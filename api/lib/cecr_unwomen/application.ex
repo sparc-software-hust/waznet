@@ -15,7 +15,8 @@ defmodule CecrUnwomen.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: CecrUnwomen.PubSub},
       # Start the Endpoint (http/https)
-      CecrUnwomenWeb.Endpoint
+      CecrUnwomenWeb.Endpoint,
+			CecrUnwomen.Fcm.FcmStore
       # Start a worker by calling: CecrUnwomen.Worker.start_link(arg)
       # {CecrUnwomen.Worker, arg}
     ]
