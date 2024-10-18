@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :cecr_unwomen, CecrUnwomen.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "admin",
+  password: "thaidmfinnick",
   hostname: "localhost",
   database: "cecr_unwomen_dev",
   stacktrace: true,

@@ -35,7 +35,7 @@ defmodule CecrUnwomen.Utils.ApiHandler do
     case response do
       {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
         is_success = cond do
-          status_code >= 200 and status_code < 300 -> true
+          status_code == 200 -> true
           true -> false
         end
 
@@ -55,14 +55,14 @@ defmodule CecrUnwomen.Utils.ApiHandler do
     end
   end
   
-  def send_conn_error(conn, message, code \\ 400, error_code \\ nil) do
+  def send_conn_error(conn, message, error_code \\ nil) do
     response = %{success: false}
     |> Map.put(:message, message)
     |> Map.put(:error_code, error_code)
 
     conn
     |> put_resp_header("content-type", "application/json; charset=UTF-8")
-    |> send_resp(code, Jason.encode!(response))
+    |> send_resp(200, Jason.encode!(response))
     |> halt
   end
 end
