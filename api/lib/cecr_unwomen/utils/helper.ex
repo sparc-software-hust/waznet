@@ -11,19 +11,23 @@ defmodule CecrUnwomen.Utils.Helper do
 
         case now > expires_in do
           true -> :invalid_token
+
           false ->
             user_id = jwt.fields["user_id"]
             role_id = jwt.fields["role_id"]
             type = jwt.fields["type"]
+
             data = %{}
-              |> Map.put(:user_id, user_id)
-              |> Map.put(:role_id, role_id)
-              |> Map.put(:type, type)
+            |> Map.put(:user_id, user_id)
+            |> Map.put(:role_id, role_id)
+            |> Map.put(:type, type)
 
             data = if type == "refresh" do
               data
               |> Map.put(:exp, expires_in)
               |> Map.put(:refresh_token, token)
+            else
+              data
             end
 
             {:valid_token, data}
@@ -46,17 +50,20 @@ defmodule CecrUnwomen.Utils.Helper do
     jws = %{"alg" => "HS256"}
 
     iat = DateTime.utc_now() |> DateTime.to_unix(:second)
-    exp = case token_type do
-      :access_token -> iat + 300
-      :refresh_token -> if exp != 0, do: exp, else: iat + 63072000
-      _ -> iat
-    end
 
-    type = case token_type do
-      :access_token -> "access"
-      :refresh_token -> "refresh"
-      _ -> "blacklist"
-    end
+    exp =
+      case token_type do
+        :access_token -> iat + 300
+        :refresh_token -> if exp != 0, do: exp, else: iat + 63_072_000
+        _ -> iat
+      end
+
+    type =
+      case token_type do
+        :access_token -> "access"
+        :refresh_token -> "refresh"
+        _ -> "blacklist"
+      end
 
     jwt =
       %{
@@ -68,7 +75,7 @@ defmodule CecrUnwomen.Utils.Helper do
       |> Map.merge(claims)
 
     JOSE.JWT.sign(jwk, jws, jwt)
-    |> JOSE.JWS.compact
+    |> JOSE.JWS.compact()
     |> elem(1)
   end
 
