@@ -144,6 +144,55 @@ defmodule CecrUnwomenWeb.UserController do
     json conn, res
   end
 
+  def change_password(conn, params) do
+    user_id = conn.assigns.user.user_id
+    old_password = params["old_password"]
+    new_password = params["new_password"]
+
+    response = Repo.get_by(User, id: user_id)
+    |> case do
+      nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+
+      user ->
+        Argon2.verify_pass(old_password, user.password_hash)
+        |> case do
+          false -> Helper.response_json_message(false, "Sai tài khoản hoặc mật khẩu!", 282)
+          true ->
+            is_pass_password_length = validate_password_length(new_password)
+
+            if is_pass_password_length do
+              new_password_hash = Argon2.hash_pwd_salt(new_password)
+              data_jwt = %{
+                "user_id" => user_id,
+                "role_id" => conn.assigns.user.role_id
+              }
+
+              new_refresh_token = Helper.create_token(data_jwt, :refresh_token)
+              new_access_token = Helper.create_token(data_jwt, :access_token)
+              Ecto.Changeset.change(user, %{password_hash: new_password_hash, refresh_token: new_refresh_token})
+              |> Repo.update
+              |> case do
+                {:ok, _} ->
+                  res_data = %{
+                    "access_token" => new_access_token,
+                    "refresh_token" => new_refresh_token
+                  }
+                  Helper.response_json_with_data(true, "Đổi mật khẩu thành công!", res_data)
+                _ -> Helper.response_json_message(false, "Lỗi khi đổi mật khẩu")
+              end
+            else
+              Helper.response_json_message(false, "Mật khẩu mới không được chấp nhận!", 282)
+            end
+        end
+    end
+
+    json conn, response
+  end
+
+  # def forgot_password(conn, params) do
+  #   
+  # end
+
 
   @spec validate_password_length(String.t()) :: boolean()
   defp validate_password_length(plain_password) do
