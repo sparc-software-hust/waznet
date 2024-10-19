@@ -1,8 +1,10 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
   alias CecrUnwomen.{Utils.Helper, Repo}
-  alias CecrUnwomen.Models.{User, Role}
+  alias CecrUnwomen.Models.{User}
   import Ecto.Query
+
+  # plug CecrUnwomenWeb.AuthPlug when action not in [:register, :login]
 
   def register(conn, params) do
     phone_number = params["phone_number"]
@@ -22,10 +24,12 @@ defmodule CecrUnwomenWeb.UserController do
         init_role_id = 2
         user_id = Ecto.UUID.generate()
         password_hash = Argon2.hash_pwd_salt(plain_password)
-        access_token = create_token(%{
+        data_jwt = %{
           "user_id" => user_id,
           "role_id" => init_role_id
-        })
+        }
+        refresh_token = Helper.create_token(data_jwt, :refresh_token)
+        access_token = Helper.create_token(data_jwt, :access_token)
 
         User.changeset(%User{}, %{
           id: user_id,
@@ -34,13 +38,20 @@ defmodule CecrUnwomenWeb.UserController do
           role_id: init_role_id,
           phone_number: phone_number,
           password_hash: password_hash,
-          access_token: access_token
+          refresh_token: refresh_token
         })
         |> Repo.insert
         |> case do
-          {:ok, user} -> 
-            Map.from_struct(user) |> IO.inspect(label: "hahaha")
-            Helper.response_json_message(true, "Tạo tài khoản thành công")
+          {:ok, user} ->
+            res_data = %{
+              "access_token" => access_token,
+              "refresh_token" => user.refresh_token,
+              "user_id" => user.id,
+              "role_id" => user.role_id,
+              "first_name" => user.first_name,
+              "last_name" => user.last_name
+            }
+            Helper.response_json_with_data(true, "Tạo tài khoản thành công", res_data)
 
           _ -> Helper.response_json_message(false, "Không thể tạo tài khoản, vui lòng liên hệ quản trị viên!", 300)
         end
@@ -69,18 +80,20 @@ defmodule CecrUnwomenWeb.UserController do
             |> case do
               false -> Helper.response_json_message(false, "Sai tài khoản hoặc mật khẩu!", 282)
               true ->
-                access_token = create_token(%{
+                data_jwt = %{
                   "user_id" => user.id,
                   "role_id" => user.role_id
-                })
+                }
+                refresh_token = Helper.create_token(data_jwt, :refresh_token)
+                access_token = Helper.create_token(data_jwt, :access_token)
 
-                Ecto.Changeset.change(user, %{access_token: access_token})
-                # TODO: blacklist revoked token?? (redis, genserver)
+                Ecto.Changeset.change(user, %{refresh_token: refresh_token})
                 |> Repo.update
                 |> case do
                   {:ok, updated_user} ->
                     res_data = %{
-                      "access_token" => updated_user.access_token,
+                      "access_token" => access_token,
+                      "refresh_token" => updated_user.refresh_token,
                       "user_id" => user.id,
                       "role_id" => user.role_id,
                       "first_name" => user.first_name,
@@ -100,44 +113,39 @@ defmodule CecrUnwomenWeb.UserController do
   end
 
   def logout(conn, params) do
-    user_id = conn.assigns.user.user_id
+    user_id = params["user_id"]
 
     # TODO: add token to blacklist with redis
-    Repo.get_by(User, id: user_id)
+    res = Repo.get_by(User, id: user_id)
     |> case do
-      nil -> IO.inspect(label: "no")
-      user -> IO.inspect(user, label: "hehe")
+      nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+      user ->
+        Ecto.Changeset.change(user, %{refresh_token: nil})
+        |> Repo.update
+        |> case do
+          nil -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
+          _ ->
+            Helper.response_json_message(true, "Đăng xuất thành công")
+        end
     end
-    res = Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
     json conn, res
   end
 
-  def create_token(claims) do
-    secret_key = Application.get_env(:cecr_unwomen, CecrUnwomenWeb.Endpoint)[:secret_key_base]
+  def get_info(conn, params) do
+    user_id = params["user_id"]
 
-    jwk = %{
-      "kty" => "oct",
-      "k" => :jose_base64url.encode(secret_key)
-    }
-
-    jws = %{"alg" => "HS256"}
-
-    iat = DateTime.utc_now() |> DateTime.to_unix(:second)
-    exp = iat + 63_072_000
-
-    jwt =
-      %{
-        "iss" => "cecr_unwomen",
-        "iat" => iat,
-        "exp" => exp
-      }
-      |> Map.merge(claims)
-
-    JOSE.JWT.sign(jwk, jws, jwt)
-    |> JOSE.JWS.compact()
-    |> elem(1)
+    res = Repo.get_by(User, id: user_id)
+    |> case do
+      nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+      user ->
+        user_map = Map.from_struct(user) |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
+        Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user_map)
+    end
+    json conn, res
   end
 
+
+  @spec validate_password_length(String.t()) :: boolean()
   defp validate_password_length(plain_password) do
     password_length = if is_nil(plain_password), do: -1, else: String.length(plain_password)
     if password_length < 8, do: false, else: true
@@ -151,9 +159,5 @@ defmodule CecrUnwomenWeb.UserController do
   defp validate_phone_number_length(phone_number) do
     phone_number_length = if is_nil(phone_number), do: -1, else: String.length(phone_number)
     if phone_number_length == 10, do: true, else: false
-  end
-
-  def verify_token(token) do
-    Helper.validate_token(token)
   end
 end

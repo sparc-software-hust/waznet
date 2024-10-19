@@ -1,6 +1,13 @@
 defmodule CecrUnwomenWeb.Router do
   use CecrUnwomenWeb, :router
 
+  # pipeline :browser do
+  #   plug :accepts, ["html"]
+  #   plug :fetch_session
+  #   plug :protect_from_forgery
+  #   plug :put_secure_browser_headers
+  # end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -12,14 +19,22 @@ defmodule CecrUnwomenWeb.Router do
   scope "/api", CecrUnwomenWeb do
     pipe_through :api
 
+    scope "/auth" do
+      pipe_through :token
+      post "/renew_access_token", AuthController, :renew_access_token
+    end
+
     scope "/user" do
       post "/register", UserController, :register
       post "/login", UserController, :login
 
-      scope "/:user_id" do
-        pipe_through :token
-        post "/logout", UserController, :logout
-      end
+      pipe_through :token
+      post "/logout", UserController, :logout
+      post "/get_info", UserController, :get_info
     end
   end
+
+  # scope "/", CecrUnwomenWeb do
+  #   pipe_through :browser
+  # end
 end
