@@ -1,6 +1,6 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
-  alias CecrUnwomen.{Utils.Helper, Repo}
+  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
   alias CecrUnwomen.Models.{User}
   import Ecto.Query
 
@@ -91,6 +91,9 @@ defmodule CecrUnwomenWeb.UserController do
                 |> Repo.update
                 |> case do
                   {:ok, updated_user} ->
+                    user_map = get_user_map_from_struct(updated_user)
+                      # |> Map.drop([:location, :avatar_url, :date_of_birth, :email])
+                    RedisDB.update_user(user_map)
                     res_data = %{
                       "access_token" => access_token,
                       "refresh_token" => updated_user.refresh_token,
@@ -131,17 +134,58 @@ defmodule CecrUnwomenWeb.UserController do
     json conn, res
   end
 
+
   def get_info(conn, params) do
     user_id = params["user_id"]
 
+    response = RedisDB.get_user(user_id)
+    |> case do
+      nil ->
+        Repo.get_by(User, id: user_id)
+        |> case do
+          nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+          user ->
+            user_map = get_user_map_from_struct(user)
+            Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user_map)
+        end
+      user -> Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user)
+    end
+    json conn, response
+  end
+
+  def get_user_map_from_struct(user) do
+    Map.from_struct(user) |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
+  end
+
+  def update_info(conn, params) do
+    user_id = params["user_id"]
     res = Repo.get_by(User, id: user_id)
     |> case do
       nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
       user ->
-        user_map = Map.from_struct(user) |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
-        Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user_map)
+        # first_name = params["first_name"]
+        # last_name = params["last_name"]
+        # avatar_url = params["avatar_url"]
+        # date_of_birth = params["date_of_birth"]
+        # email = params["email"]
+        # gender = params["gender"]
+        # location = params["location"]
+
+        keys = ["first_name", "last_name", "avatar_url", "date_of_birth", "email", "gender", "location"]
+        data_changes = Enum.reduce(keys, %{}, fn key, acc ->
+          key_atom = String.to_atom(key)
+          if params[key], do: Map.put(acc, key_atom, params[key])
+        end)
+
+        Ecto.Changeset.change(user, data_changes)
+        |> Repo.update
+        |> case do
+          {:ok, updated_user} ->
+
+          _ -> Helper.response_json_message(false, "Không thể cập nhật thông tin!", 321)
+        end
+
     end
-    json conn, res
   end
 
   def change_password(conn, params) do

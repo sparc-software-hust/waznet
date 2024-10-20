@@ -40,9 +40,10 @@ defmodule CecrUnwomen.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-			{:jose, "~> 1.11"},
+      {:jose, "~> 1.11"},
       {:httpoison, "~> 2.2.1"},
-			{:argon2_elixir, "~> 4.0"}
+      {:argon2_elixir, "~> 4.0"},
+      {:redix, "~> 1.5.2"},
     ]
   end
 
