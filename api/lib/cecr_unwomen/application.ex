@@ -8,7 +8,8 @@ defmodule CecrUnwomen.Application do
       CecrUnwomen.Repo,
       {Phoenix.PubSub, name: CecrUnwomen.PubSub},
       CecrUnwomenWeb.Endpoint,
-      CecrUnwomen.Fcm.FcmStore
+      CecrUnwomen.Fcm.FcmStore,
+      {Redix, {"redis://localhost:6379", [name: :redix]}}
       # Start a worker by calling: CecrUnwomen.Worker.start_link(arg)
       # {CecrUnwomen.Worker, arg}
     ]

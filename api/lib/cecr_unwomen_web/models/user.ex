@@ -22,11 +22,11 @@ defmodule CecrUnwomen.Models.User do
   end
 
   @required_fields [:id, :first_name, :last_name, :phone_number, :password_hash, :role_id, :refresh_token]
-  # @optional_fields [:avatar_url, :email, :gender, :date_of_birth, :location, :verified]
+  @optional_fields [:avatar_url, :email, :gender, :date_of_birth, :location, :verified]
 
   def changeset(user, params \\ %{}) do
     user
-    |> cast(params, @required_fields)
+    |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
   end
 end
