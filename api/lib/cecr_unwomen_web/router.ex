@@ -31,6 +31,7 @@ defmodule CecrUnwomenWeb.Router do
       pipe_through :token
       post "/logout", UserController, :logout
       post "/get_info", UserController, :get_info
+      post "/update_info", UserController, :update_info
       post "/change_password", UserController, :change_password
     end
   end

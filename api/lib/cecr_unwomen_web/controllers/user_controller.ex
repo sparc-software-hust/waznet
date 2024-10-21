@@ -106,8 +106,6 @@ defmodule CecrUnwomenWeb.UserController do
 
                   _ -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
                 end
-
-              _ -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
             end
         end
     end
@@ -154,38 +152,35 @@ defmodule CecrUnwomenWeb.UserController do
   end
 
   def get_user_map_from_struct(user) do
-    Map.from_struct(user) |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
+    Map.from_struct(user)
+    |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Enum.into(%{})
   end
 
   def update_info(conn, params) do
-    user_id = params["user_id"]
-    res = Repo.get_by(User, id: user_id)
+    user_id = conn.assigns.user.user_id
+    response = Repo.get_by(User, id: user_id)
     |> case do
       nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
       user ->
-        # first_name = params["first_name"]
-        # last_name = params["last_name"]
-        # avatar_url = params["avatar_url"]
-        # date_of_birth = params["date_of_birth"]
-        # email = params["email"]
-        # gender = params["gender"]
-        # location = params["location"]
-
         keys = ["first_name", "last_name", "avatar_url", "date_of_birth", "email", "gender", "location"]
         data_changes = Enum.reduce(keys, %{}, fn key, acc ->
           key_atom = String.to_atom(key)
-          if params[key], do: Map.put(acc, key_atom, params[key])
+          if params[key], do: Map.put(acc, key_atom, params[key]), else: acc
         end)
-
         Ecto.Changeset.change(user, data_changes)
         |> Repo.update
         |> case do
           {:ok, updated_user} ->
+            updated_user_map = get_user_map_from_struct(updated_user)
+            RedisDB.update_user(updated_user_map)
+            Helper.response_json_with_data(true, "Cập nhật thông tin người dùng thành công!", updated_user_map)
 
           _ -> Helper.response_json_message(false, "Không thể cập nhật thông tin!", 321)
         end
-
     end
+    json conn, response
   end
 
   def change_password(conn, params) do
