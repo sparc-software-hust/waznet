@@ -9,9 +9,8 @@ defmodule CecrUnwomen.Application do
       {Phoenix.PubSub, name: CecrUnwomen.PubSub},
       CecrUnwomenWeb.Endpoint,
       CecrUnwomen.Fcm.FcmStore,
+      CecrUnwomen.Consumer,
       {Redix, {"redis://localhost:6379", [name: :redix]}}
-      # Start a worker by calling: CecrUnwomen.Worker.start_link(arg)
-      # {CecrUnwomen.Worker, arg}
     ]
 
     opts = [strategy: :one_for_one, name: CecrUnwomen.Supervisor]
