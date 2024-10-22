@@ -1,6 +1,6 @@
 defmodule CecrUnwomen.RedisDB do
 
-  @spec update_user(%{key: any()}) :: none()
+  # @spec update_user(%{key: any()}) :: none()
   def update_user(user) do
     key = "user:#{user.id}"
     user_encode = encode_data(user)
