@@ -4,8 +4,6 @@ defmodule CecrUnwomenWeb.UserController do
   alias CecrUnwomen.Models.{User}
   import Ecto.Query
 
-  # plug CecrUnwomenWeb.AuthPlug when action not in [:register, :login]
-
   def register(conn, params) do
     phone_number = params["phone_number"]
     first_name = params["first_name"]
