@@ -62,7 +62,7 @@ defmodule CecrUnwomen.Utils.ApiHandler do
 
     conn
     |> put_resp_header("content-type", "application/json; charset=UTF-8")
-    |> send_resp(200, Jason.encode!(response))
+    |> send_resp(error_code, Jason.encode!(response))
     |> halt
   end
 end
