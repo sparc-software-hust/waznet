@@ -37,7 +37,7 @@ defmodule CecrUnwomen.Utils.Helper do
     end
   end
 
-  @spec create_token(map(), atom(), integer()) :: String.t()
+  @spec create_token(map(), atom(), integer()) :: {atom(), String.t(), integer()}
   def create_token(claims, token_type, exp \\ 0) do
     # exp != 0 => giữ nguyên exp cho refresh token
     secret_key = Application.get_env(:cecr_unwomen, CecrUnwomenWeb.Endpoint)[:secret_key_base]
@@ -74,9 +74,11 @@ defmodule CecrUnwomen.Utils.Helper do
       }
       |> Map.merge(claims)
 
-    JOSE.JWT.sign(jwk, jws, jwt)
+    token = JOSE.JWT.sign(jwk, jws, jwt)
     |> JOSE.JWS.compact()
     |> elem(1)
+
+    {token_type, token, exp}
   end
 
   def response_json_message(success, message) do

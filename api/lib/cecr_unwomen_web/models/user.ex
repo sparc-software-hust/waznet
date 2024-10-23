@@ -1,4 +1,4 @@
-defmodule CecrUnwomen.Models.User do
+defmodule CecrUnwomenWeb.Models.User do
   use Ecto.Schema
   import Ecto.Changeset
   alias CecrUnwomenWeb.Models.Role

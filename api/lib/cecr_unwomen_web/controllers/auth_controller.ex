@@ -1,6 +1,6 @@
 defmodule CecrUnwomenWeb.AuthController do
   alias CecrUnwomen. {Utils.Helper, Repo}
-  alias CecrUnwomen.Models.User
+  alias CecrUnwomenWeb.Models.User
   use CecrUnwomenWeb, :controller
 
   def renew_access_token(conn, _) do
@@ -9,7 +9,7 @@ defmodule CecrUnwomenWeb.AuthController do
 
     res = Repo.get_by(User, %{id: user_id, refresh_token: refresh_token_from_conn})
     |> case do
-      nil -> Helper.response_json_message(false, "Người dùng không tồn tại", 400)
+      nil -> Helper.response_json_message(false, "Người dùng không tồn tại", 401)
       user ->
         role_id = conn.assigns.user.role_id
         data_jwt = %{
@@ -17,8 +17,8 @@ defmodule CecrUnwomenWeb.AuthController do
           "role_id" => role_id
         }
         expires_in = conn.assigns.user.exp
-        new_refresh_token = Helper.create_token(data_jwt, :refresh_token, expires_in)
-        new_access_token = Helper.create_token(data_jwt, :access_token)
+        {_, new_refresh_token, _} = Helper.create_token(data_jwt, :refresh_token, expires_in)
+        {_, new_access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
 
         Ecto.Changeset.change(user, %{refresh_token: new_refresh_token})
         |> Repo.update
@@ -26,7 +26,8 @@ defmodule CecrUnwomenWeb.AuthController do
           {:ok, _} ->
             res_data = %{
               "refresh_token" => new_refresh_token,
-              "access_token" => new_access_token
+              "access_token" => new_access_token,
+              "access_exp" => access_exp,
             }
             Helper.response_json_with_data(true, "Làm mới at thành công", res_data)
 

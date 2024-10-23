@@ -1,7 +1,7 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
   alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
-  alias CecrUnwomen.Models.{User}
+  alias CecrUnwomenWeb.Models.{User, FirebaseToken}
   import Ecto.Query
 
   def register(conn, params) do
@@ -26,8 +26,9 @@ defmodule CecrUnwomenWeb.UserController do
           "user_id" => user_id,
           "role_id" => init_role_id
         }
-        refresh_token = Helper.create_token(data_jwt, :refresh_token)
-        access_token = Helper.create_token(data_jwt, :access_token)
+
+        {_, refresh_token, _} = Helper.create_token(data_jwt, :refresh_token)
+        {_, access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
 
         User.changeset(%User{}, %{
           id: user_id,
@@ -43,6 +44,7 @@ defmodule CecrUnwomenWeb.UserController do
           {:ok, user} ->
             res_data = %{
               "access_token" => access_token,
+              "access_exp" => access_exp,
               "refresh_token" => user.refresh_token,
               "user_id" => user.id,
               "role_id" => user.role_id,
@@ -82,8 +84,9 @@ defmodule CecrUnwomenWeb.UserController do
                   "user_id" => user.id,
                   "role_id" => user.role_id
                 }
-                refresh_token = Helper.create_token(data_jwt, :refresh_token)
-                access_token = Helper.create_token(data_jwt, :access_token)
+
+                {_, refresh_token, _} = Helper.create_token(data_jwt, :refresh_token)
+                {_, access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
 
                 Ecto.Changeset.change(user, %{refresh_token: refresh_token})
                 |> Repo.update
@@ -94,6 +97,7 @@ defmodule CecrUnwomenWeb.UserController do
                     RedisDB.update_user(user_map)
                     res_data = %{
                       "access_token" => access_token,
+                      "access_exp" => access_exp,
                       "refresh_token" => updated_user.refresh_token,
                       "user_id" => user.id,
                       "role_id" => user.role_id,
@@ -204,15 +208,17 @@ defmodule CecrUnwomenWeb.UserController do
                 "role_id" => conn.assigns.user.role_id
               }
 
-              new_refresh_token = Helper.create_token(data_jwt, :refresh_token)
-              new_access_token = Helper.create_token(data_jwt, :access_token)
+              {_, new_refresh_token, _} = Helper.create_token(data_jwt, :refresh_token)
+              {_, new_access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
+
               Ecto.Changeset.change(user, %{password_hash: new_password_hash, refresh_token: new_refresh_token})
               |> Repo.update
               |> case do
                 {:ok, _} ->
                   res_data = %{
                     "access_token" => new_access_token,
-                    "refresh_token" => new_refresh_token
+                    "refresh_token" => new_refresh_token,
+                    "access_exp" => access_exp
                   }
                   Helper.response_json_with_data(true, "Đổi mật khẩu thành công!", res_data)
                 _ -> Helper.response_json_message(false, "Lỗi khi đổi mật khẩu")
@@ -229,6 +235,24 @@ defmodule CecrUnwomenWeb.UserController do
   # def forgot_password(conn, params) do
   #   
   # end
+
+  def add_firebase_token(conn, params) do
+    user_id = conn.assigns.user.user_id
+    firebase_token = params["firebase_token"]
+    platform = params["platform"]
+
+    res = %FirebaseToken{
+      user_id: user_id,
+      platform: platform,
+      token: firebase_token
+    }
+    |> Repo.insert(on_conflict: :nothing)
+    |> case do
+      {:ok, _} -> Helper.response_json_message(true, "Thêm firebase token thành công!")
+      _ -> Helper.response_json_message(false, "Thêm firebase token thất bại!", 303)
+    end
+    json conn, res
+  end
 
 
   @spec validate_password_length(String.t()) :: boolean()
