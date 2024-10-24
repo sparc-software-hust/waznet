@@ -99,10 +99,7 @@ defmodule CecrUnwomenWeb.UserController do
                       "access_token" => access_token,
                       "access_exp" => access_exp,
                       "refresh_token" => updated_user.refresh_token,
-                      "user_id" => user.id,
-                      "role_id" => user.role_id,
-                      "first_name" => user.first_name,
-                      "last_name" => user.last_name
+                      "user" => user_map
                     }
                     Helper.response_json_with_data(true, "Đăng nhập thành công", res_data)
 
