@@ -1,3 +1,4 @@
+import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,8 +26,6 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     }
 
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    print('now:$now');
-    print('exp:$accessExp');
     final bool isExpired = now > accessExp;
     print('aaa:$isExpired');
     if (isExpired) {
@@ -39,7 +38,7 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
         print('false with logout');
       } else {
         print('refresh success');
-        await Utils.saveTokenDataIntoPrefs(res.data["data"]);
+        await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
         final String accessToken = res.data["data"]["access_token"];
         options.headers['Authorization'] = "Bearer $accessToken";
       }

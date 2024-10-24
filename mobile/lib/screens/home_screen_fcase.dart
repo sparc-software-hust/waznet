@@ -1,11 +1,12 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
-import 'package:cecr_unwomen/controllers/auth_controller.dart';
 import 'package:cecr_unwomen/controllers/firebase_messaging_controller.dart';
 import 'package:cecr_unwomen/controllers/user_controller.dart';
-import 'package:cecr_unwomen/utils.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
+
+import '../features/authentication/authentication.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -116,8 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: InkWell(
                 onTap: () async {
-                  final res = await AuthController.login("0967827856", "270920011");
-                  print('okee:${res}');
+                  // final res = await AuthController.login("0967827856", "270920011");
+                  // print('okee:${res}');
                 },
                 child: Text("Login fake")
               )
@@ -134,8 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: InkWell(
                 onTap: () async {
-                  print('zzz');
-                  await UserController.getUserInfo();
+                  // await UserController.getUserInfo();
+                  context.read<AuthenticationBloc>()
+                    .add(Update());
                 },
                 child: Text("Get user info")
               )
