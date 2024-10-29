@@ -1,6 +1,6 @@
 defmodule CecrUnwomenWeb.Models.Role do
   use Ecto.Schema
-	import Ecto.Changeset
+  import Ecto.Changeset
 
   @primary_key {:id, :integer, autogenerate: false}
   schema "role" do
