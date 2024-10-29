@@ -10,7 +10,7 @@ defmodule CecrUnwomen.Repo.Migrations.AddUserTable do
       add :phone_number, :string, null: false
       add :email, :string
       add :password_hash, :string, null: false
-      add :role_id, references(:role, on_delete: :nilify_all, column: :id, type: :integer), null: false
+      add :role_id, references(:role, on_delete: :nilify_all, column: :id, type: :integer)
       add :gender, :integer, default: 2
       add :date_of_birth, :date
       add :location, :map
