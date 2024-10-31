@@ -18,10 +18,10 @@ defmodule CecrUnwomenWeb.Endpoint do
   # You should set gzip to true if you are running phx.digest
   # when deploying your static files in production.
   plug Plug.Static,
-    at: "/",
-    from: :cecr_unwomen,
-    gzip: false,
-    only: CecrUnwomenWeb.static_paths()
+    at: "/upload",
+    from: "/media",
+    gzip: false
+    # only: CecrUnwomenWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
@@ -36,7 +36,8 @@ defmodule CecrUnwomenWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Phoenix.json_library()
+    json_decoder: Phoenix.json_library(),
+    length: 4_000_000
 
   plug Plug.MethodOverride
   plug Plug.Head
