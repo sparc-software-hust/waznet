@@ -1,20 +1,35 @@
 
-import 'dart:convert';
+import 'dart:async';
 
-import 'package:cecr_unwomen/utils.dart';
-import 'package:dio/dio.dart';
+import 'package:cecr_unwomen/features/authentication/authentication.dart';
+import 'package:cecr_unwomen/features/authentication/repository/authentication_api.dart';
+import 'package:cecr_unwomen/features/user/repository/user_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository {
-  static Future<Map> login(String phoneNumber, String password) async {
-    const String url = "/user/login";
-    final Map data = {
-      "phone_number": phoneNumber,
-      "password": password
-    };
-    final dioWithoutInterceptor = Dio()..options.baseUrl = Utils.apiUrl;
-    final Response response = await dioWithoutInterceptor.post(url, data: data);
-    return response.data;
+  static final _controller = StreamController<AuthenticationStatus>();
+  static Stream<AuthenticationStatus> get status async* {
+    await Future<void>.delayed(const Duration(seconds: 1));
+    yield* _controller.stream;
+  }
+  static void dispose() => _controller.close();
+
+  static Future<void> login(String phoneNumber, String password) async {
+    final Map res = await AuthenticationApi.login(phoneNumber, password);
+    final bool isLoginSuccess = res["success"];
+    if (isLoginSuccess) {
+      await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
+      await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
+      _controller.add(AuthenticationStatus.authorized);
+    } else {
+      _controller.add(AuthenticationStatus.unauthorized);
+    }
+  }
+
+  static Future<void> logout() async {
+    await AuthRepository.logoutNoCredentials();
+    // await AuthenticationApi.logout(userId);
+    _controller.add(AuthenticationStatus.unauthorized);
   }
 
   static Future<void> logoutNoCredentials() async {
@@ -41,18 +56,6 @@ class AuthRepository {
     return [accessToken, refreshToken, accessTokenExp];
   }
 
-  static Future<void> saveUserDataIntoPrefs(Map data) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userDataEncoded = jsonEncode(data);
-    await prefs.setString("user", userDataEncoded);
-  }
-
-  static Future<Map?> getUserDataFromPrefs() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? userDataEncoded = prefs.getString("user");
-    if (userDataEncoded == null) return null;
-    return jsonDecode(userDataEncoded);
-  }
 
   static Future<bool> checkUserLoggedIn() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();

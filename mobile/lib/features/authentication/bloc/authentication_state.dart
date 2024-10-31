@@ -1,27 +1,27 @@
-import 'package:cecr_unwomen/models/credential.dart';
+import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:equatable/equatable.dart';
 
 enum AuthenticationStatus { unknown, authorized, unauthorized, loading, error }
 
 class AuthenticationState extends Equatable {
   const AuthenticationState({
-    this.credential = Credential.empty,
-    this.status = AuthenticationStatus.unknown
+    this.status = AuthenticationStatus.unknown,
+    this.user
   });
 
-  final Credential credential;
   final AuthenticationStatus status;
+  final User? user;
 
   AuthenticationState copyWith({
     required AuthenticationStatus status,
-    Credential? credential,
+    User? user
   }) {
     return AuthenticationState(
       status: status,
-      credential: credential ?? this.credential,
+      user: user
     );
   }
 
   @override
-  List<Object> get props => [credential, status];
+  List<Object> get props => [status];
 }

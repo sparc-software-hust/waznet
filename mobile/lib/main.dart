@@ -1,5 +1,5 @@
-import 'package:cecr_unwomen/features/authentication/view/login_screen.dart';
-import 'package:cecr_unwomen/screens/home_screen_fcase.dart';
+import 'package:cecr_unwomen/features/login/view/login_screen.dart';
+import 'package:cecr_unwomen/features/home/view/home_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -50,35 +50,24 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AuthenticationBloc(),
+      lazy: false,
+      create: (context) => AuthenticationBloc()
+        ..add(AuthSubscription())
+        ..add(AutoLogin()),
       child: const BlocEntireApp()
     );
   }
 }
 
-class BlocEntireApp extends StatefulWidget {
+class BlocEntireApp extends StatelessWidget {
   const BlocEntireApp({super.key});
-
-  @override
-  State<BlocEntireApp> createState() => _BlocEntireAppState();
-}
-
-class _BlocEntireAppState extends State<BlocEntireApp> {
-  @override
-  void initState() {
-    context.read<AuthenticationBloc>().add(CheckAutoLogin());
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
-        debugPrint("State:$state");
         if (state.status == AuthenticationStatus.authorized) {
           return const HomeScreen();
-        } else if (state.status == AuthenticationStatus.loading) {
-          return const CircularProgressIndicator();
         } else {
           return const LoginScreen();
         }

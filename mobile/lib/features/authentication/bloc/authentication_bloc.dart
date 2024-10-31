@@ -1,80 +1,59 @@
 import 'package:bloc/bloc.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_state.dart';
+import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
-import 'package:cecr_unwomen/models/credential.dart';
-import 'package:cecr_unwomen/models/user.dart';
-import 'package:flutter/foundation.dart';
+import 'package:cecr_unwomen/features/user/repository/user_repository.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc() : super(const AuthenticationState()) {
-    on<LogInRequest>(_onLoginRequest);
+    on<AuthSubscription>(_onAuthSubscription);
     on<LogoutRequest>(_onLogoutRequest);
-    on<CheckAutoLogin>(_onCheckAutoLogin);
-    on<Update>(_onUpdate);
+    on<AutoLogin>(_onAutoLogin);
   }
 
-  void _onUpdate(Update event, Emitter emit) async {
-    await AuthRepository.logoutNoCredentials();
-    emit(state.copyWith(status: AuthenticationStatus.unauthorized, credential: Credential.empty));
-  }
-
-  void _onLoginRequest(LogInRequest event, Emitter emit) async {
+  Future<void> _onAuthSubscription(AuthSubscription event, Emitter emit) async {
     emit(state.copyWith(status: AuthenticationStatus.loading));
-    try {
-      final Map response = await AuthRepository.login(event.email, event.password);
-      final bool isLoginSuccess = response["success"];
+    await emit.onEach(AuthRepository.status,
+      onData: (AuthenticationStatus status) async {
+        switch (status) {
+          case AuthenticationStatus.authorized:
+            final Map? userMap = await UserRepository.getUserDataFromPrefs();
+            if (userMap == null) emit(state.copyWith(status: AuthenticationStatus.unauthorized));
 
-      if (!isLoginSuccess) {
-        await AuthRepository.logoutNoCredentials();
-        emit(state.copyWith(status: AuthenticationStatus.unauthorized, credential: Credential.empty));
-        return;
+            final User user = User.fromJson(userMap!);
+            return emit(state.copyWith(status: AuthenticationStatus.authorized, user: user));
+          case AuthenticationStatus.unauthorized:
+            return emit(state.copyWith(status: AuthenticationStatus.unauthorized));
+          default:
+            return emit(state.copyWith(status: AuthenticationStatus.error));
+        }
+      },
+      onError: (e, t) {
+        emit(state.copyWith(status: AuthenticationStatus.error));     
       }
-      final Map data = response["data"];
-      await AuthRepository.saveTokenDataIntoPrefs(data);
-      await AuthRepository.saveUserDataIntoPrefs(data["user"]);
-      emit(state.copyWith(
-        status: AuthenticationStatus.authorized,
-        credential: Credential.fromJson(data)
-      ));
-    } catch (e) {
-      debugPrint("eerror login:$e");
-      emit(state.copyWith(status: AuthenticationStatus.error));
-    }
+    );
   }
 
-  void _onLogoutRequest(LogoutRequest event, Emitter emit) async {
-    try {
-      await AuthRepository.logoutNoCredentials();
-      emit(state.copyWith(status: AuthenticationStatus.unauthorized, credential: Credential.empty));
-    } catch (e) {
-      emit(state.copyWith(status: AuthenticationStatus.error));
-    }
+  void _onLogoutRequest(LogoutRequest event, Emitter emit) {
+    AuthRepository.logout();
   }
 
-  void _onCheckAutoLogin(CheckAutoLogin event, Emitter emit) async {
+  Future<void> _onAutoLogin(AutoLogin event, Emitter emit) async {
     try {
       final bool loggedIn = await AuthRepository.checkUserLoggedIn();
       if (!loggedIn) {
         await AuthRepository.logoutNoCredentials();
-        emit(state.copyWith(status: AuthenticationStatus.unauthorized, credential: Credential.empty));
+        emit(state.copyWith(status: AuthenticationStatus.unauthorized));
         return;
       }
-      final List tokenData = await AuthRepository.getTokenDataFromPrefs();
-      final Map userPrefs = await AuthRepository.getUserDataFromPrefs() ?? {};
-      final User user = User.fromJson(userPrefs);
 
-      emit(state.copyWith(
-        status: AuthenticationStatus.authorized,
-        credential: Credential(
-          accessToken: tokenData[0],
-          refreshToken: tokenData[1],
-          accessExp: tokenData[2],
-          user: user
-        )
-      ));
-    } catch (e, t) {
-      print('dgndfgj:$e $t');
+      final Map? userMap = await UserRepository.getUserDataFromPrefs();
+      if (userMap == null) emit(state.copyWith(status: AuthenticationStatus.unauthorized));
+
+      final User user = User.fromJson(userMap!);
+      emit(state.copyWith(status: AuthenticationStatus.authorized, user: user));
+    } catch (e) {
       emit(state.copyWith(status: AuthenticationStatus.error));
     }
   }

@@ -1,17 +1,14 @@
-import 'package:cecr_unwomen/models/user.dart';
 import 'package:equatable/equatable.dart';
 
 class Credential extends Equatable {
   final String accessToken;
   final String refreshToken;
   final int accessExp;
-  final User? user;
 
   const Credential({
     required this.accessToken,
     required this.refreshToken,
     required this.accessExp,
-    this.user
   });
   
   @override
@@ -23,8 +20,7 @@ class Credential extends Equatable {
     final Credential credentials = Credential(
       accessToken: data["access_token"] ?? "", 
       refreshToken: data["refresh_token"] ?? "", 
-      accessExp: data["access_exp"] ?? 0,
-      user: User.fromJson(data["user"])
+      accessExp: data["access_exp"] ?? 0
     );
     return credentials;
   }
