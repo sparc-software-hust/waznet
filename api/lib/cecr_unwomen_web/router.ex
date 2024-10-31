@@ -29,5 +29,10 @@ defmodule CecrUnwomenWeb.Router do
       post "/add_firebase_token", UserController, :add_firebase_token
     end
 
+    scope "/upload" do
+      pipe_through :token
+      post "/upload_avatar", UploadController, :upload_avatar
+    end
+
   end
 end
