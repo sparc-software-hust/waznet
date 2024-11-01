@@ -92,7 +92,7 @@ defmodule CecrUnwomenWeb.UserController do
                 |> Repo.update
                 |> case do
                   {:ok, updated_user} ->
-                    user_map = get_user_map_from_struct(updated_user)
+                    user_map = Helper.get_user_map_from_struct(updated_user)
                       # |> Map.drop([:location, :avatar_url, :date_of_birth, :email])
                     RedisDB.update_user(user_map)
                     res_data = %{
@@ -142,7 +142,7 @@ defmodule CecrUnwomenWeb.UserController do
         |> case do
           nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
           user ->
-            user_map = get_user_map_from_struct(user)
+            user_map = Helper.get_user_map_from_struct(user)
             RedisDB.update_user(user_map)
             Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user_map)
         end
@@ -151,12 +151,6 @@ defmodule CecrUnwomenWeb.UserController do
     json conn, response
   end
 
-  def get_user_map_from_struct(user) do
-    Map.from_struct(user)
-    |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Enum.into(%{})
-  end
 
   def update_info(conn, params) do
     user_id = conn.assigns.user.user_id
@@ -164,7 +158,7 @@ defmodule CecrUnwomenWeb.UserController do
     |> case do
       nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
       user ->
-        keys = ["first_name", "last_name", "avatar_url", "date_of_birth", "email", "gender", "location"]
+        keys = ["first_name", "last_name", "date_of_birth", "email", "gender", "location"]
         data_changes = Enum.reduce(keys, %{}, fn key, acc ->
           key_atom = String.to_atom(key)
           if params[key], do: Map.put(acc, key_atom, params[key]), else: acc
@@ -173,7 +167,7 @@ defmodule CecrUnwomenWeb.UserController do
         |> Repo.update
         |> case do
           {:ok, updated_user} ->
-            updated_user_map = get_user_map_from_struct(updated_user)
+            updated_user_map = Helper.get_user_map_from_struct(updated_user)
             RedisDB.update_user(updated_user_map)
             Helper.response_json_with_data(true, "Cập nhật thông tin người dùng thành công!", updated_user_map)
 

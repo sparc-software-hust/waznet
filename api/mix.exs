@@ -41,7 +41,8 @@ defmodule CecrUnwomen.MixProject do
       {:httpoison, "~> 2.2.1"},
       {:redix, "~> 1.5.2"},
       {:amqp, "~> 3.3"},
-      {:argon2_elixir, "~> 4.0"}
+      {:argon2_elixir, "~> 4.0"},
+      {:mogrify, "~> 0.9.3"}
       # {:argon2_elixir, path: "deps/argon2_elixir"},
     ]
   end
