@@ -3,6 +3,4 @@ dev:
 bash:
 	docker exec -it unwomen sh
 app:
-	docker compose rm -sf; \
-	docker compose -f docker_compose_prod.yaml --env-file .env.prod up --build --detach; \
-	docker image prune -f
+	docker compose -f docker_compose_prod.yaml --env-file .env.prod up --build --detach
