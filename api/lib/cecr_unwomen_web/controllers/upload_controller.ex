@@ -19,8 +19,9 @@ defmodule CecrUnwomenWeb.UploadController do
       cond do
         !is_image -> Helper.response_json_message(false, "Bạn upload không đúng định dạng!", 402)
         true ->
+					static_dir = config_static_dir(Mix.env())
           image_avatar_name = "#{user_id}_avatar#{extension}"
-          destination = "/Users/admin/Desktop/#{image_avatar_name}"
+          destination = "#{static_dir}/#{image_avatar_name}"
           File.cp(path, destination)
           |> case do
             :ok ->
@@ -34,4 +35,27 @@ defmodule CecrUnwomenWeb.UploadController do
     end
     json conn, res
   end
+	
+	def config_static_dir(:prod) do
+		static_dir = "/app/api/static"
+		File.dir?(static_dir)
+		|> case do
+			false -> 
+				File.mkdir(static_dir)
+				static_dir
+			true -> static_dir
+		end
+	end
+	
+	def config_static_dir(:dev) do
+		{:ok, dir} = File.cwd
+		static_dir = "#{dir}/static"
+		File.dir?(static_dir)
+		|> case do
+			false -> 
+				File.mkdir(static_dir)
+				static_dir
+			true -> static_dir
+		end
+	end
 end
