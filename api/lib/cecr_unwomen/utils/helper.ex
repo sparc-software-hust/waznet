@@ -92,4 +92,11 @@ defmodule CecrUnwomen.Utils.Helper do
   def response_json_message(success, message, error_code) do
     %{success: success, message: message, error_code: error_code}
   end
+
+  def get_user_map_from_struct(user) do
+    Map.from_struct(user)
+    |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Enum.into(%{})
+  end
 end
