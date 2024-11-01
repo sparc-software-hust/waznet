@@ -26,4 +26,5 @@ erl_crash.dump
 cecr_unwomen-*.tar
 
 # /priv/certs
-
+/docker
+.DS_Store
