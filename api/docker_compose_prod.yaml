@@ -13,7 +13,7 @@ services:
       - db
     env_file: .env.prod
     volumes:
-      - ./:/api/
+      - ./:/app/api
     networks:
       - network-cecr
   
