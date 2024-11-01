@@ -28,3 +28,4 @@ cecr_unwomen-*.tar
 # /priv/certs
 /docker
 .DS_Store
+/static
