@@ -27,9 +27,6 @@ defmodule CecrUnwomen.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Specifies your project dependencies.
-  #
-  # Type `mix help deps` for examples and options.
   defp deps do
     [
       {:phoenix, "~> 1.7.7"},
@@ -42,9 +39,10 @@ defmodule CecrUnwomen.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:jose, "~> 1.11"},
       {:httpoison, "~> 2.2.1"},
-      {:argon2_elixir, "~> 4.0"},
       {:redix, "~> 1.5.2"},
       {:amqp, "~> 3.3"},
+      {:argon2_elixir, "~> 4.0"}
+      # {:argon2_elixir, path: "deps/argon2_elixir"},
     ]
   end
 
