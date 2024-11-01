@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :cecr_unwomen, CecrUnwomen.Repo,
-  username: "admin",
-  password: "thaidmfinnick",
-  hostname: "localhost",
-  database: "cecr_unwomen_dev",
+  username: System.get_env("POSTGRES_USER") ||  "admin",
+  password: System.get_env("POSTGRES_PASSWORD") || "thaidmfinnick",
+  hostname: System.get_env("POSTGRES_HOST") || "localhost",
+  database: System.get_env("POSTGRES_DB") || "cecr_unwomen_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -22,8 +22,8 @@ config :cecr_unwomen, CecrUnwomenWeb.Endpoint,
 	
   # http: [ip: {127, 0, 0, 1}, port: 4000],
 	# để access từ mobile
-	http: [port: 4000],
-	url: [host:  "localhost"],
+	http: [port: System.get_env("PORT") || 4000],
+	url: [host:  System.get_env("HOST") || "localhost"],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

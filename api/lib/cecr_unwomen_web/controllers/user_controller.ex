@@ -143,6 +143,7 @@ defmodule CecrUnwomenWeb.UserController do
           nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
           user ->
             user_map = get_user_map_from_struct(user)
+            RedisDB.update_user(user_map)
             Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user_map)
         end
       user -> Helper.response_json_with_data(true, "Lấy thông tin người dùng thành công", user)
