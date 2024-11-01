@@ -33,6 +33,7 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
       final bool isRefreshSuccess = res.data["success"] == true;
       if (!isRefreshSuccess) {
         // print('false with logout');
+        await AuthRepository.logoutNoCredentials();
       } else {
         await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
         final String accessToken = res.data["data"]["access_token"];
