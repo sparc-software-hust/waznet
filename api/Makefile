@@ -4,5 +4,5 @@ bash:
 	docker exec -it unwomen sh
 app:
 	docker compose rm -sf; \
-	docker compose -f docker_compose_prod.yml up --build --detach; \
+	docker compose -f docker_compose_prod.yaml up --build --detach; \
 	docker image prune -f
