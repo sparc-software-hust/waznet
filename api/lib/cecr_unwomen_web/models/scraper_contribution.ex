@@ -5,7 +5,7 @@ defmodule CecrUnwomenWeb.Models.ScraperContribution do
 
   schema "scraper_contribution" do
     field :date, :date
-    field :quantity, :integer, default: 0
+    field :quantity, :float, default: 0.0
 
     belongs_to :user, User, foreign_key: :user_id, type: Ecto.UUID
     belongs_to :scrap_constant_factor, ScrapConstantFactor, foreign_key: :factor_id, type: :integer

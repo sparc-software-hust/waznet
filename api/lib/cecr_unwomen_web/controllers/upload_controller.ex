@@ -91,7 +91,7 @@ defmodule CecrUnwomenWeb.UploadController do
     |> case do
       nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 402)
       user ->
-        url = "#{System.get_env("HOST")}:#{System.get_env("PORT")}/upload/#{image_avatar_name}"
+        url = "http://#{System.get_env("HOST")}:#{System.get_env("PORT")}/upload/#{image_avatar_name}"
         Ecto.Changeset.change(user, %{avatar_url: url})
         |> Repo.update
         |> case do

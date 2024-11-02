@@ -5,7 +5,7 @@ defmodule CecrUnwomenWeb.Models.HouseholdContribution do
 
   schema "household_contribution" do
     field :date, :date
-    field :quantity, :integer, default: 0
+    field :quantity, :float, default: 0.0
 
     belongs_to :user, User, foreign_key: :user_id, type: Ecto.UUID
     belongs_to :household_constant_factor, HouseholdConstantFactor, foreign_key: :factor_id, type: :integer
