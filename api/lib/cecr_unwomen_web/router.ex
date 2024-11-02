@@ -34,5 +34,12 @@ defmodule CecrUnwomenWeb.Router do
       post "/upload_avatar", UploadController, :upload_avatar
     end
 
+    scope "/contribution" do
+      pipe_through :token
+      post "/contribute_scrap_data", ContributionController, :contribute_scrap_data
+      post "/contribute_household_data", ContributionController, :contribute_household_data
+      post "/edit_factor_quantity", ContributionController, :edit_factor_quantity
+      post "/get_contribution_for_user", ContributionController, :get_contribution_for_user
+    end
   end
 end
