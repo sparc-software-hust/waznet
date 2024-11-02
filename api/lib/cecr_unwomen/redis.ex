@@ -21,6 +21,49 @@ defmodule CecrUnwomen.RedisDB do
     end
   end
 
+  def update_scrap_factor(factor) do
+    key = "scrap_factor:#{factor.id}"
+    set_command = [
+      "HSET", key,
+      "id", factor.id,
+      "name", factor.name,
+      "value", factor.value,
+      "unit", factor.unit
+    ]
+    Redix.command(:redix, set_command)
+  end
+
+  def get_all_scrap_factors() do
+    {:ok, keys} = Redix.command(:redix, ["KEYS", "scrap_factor:*"])
+    Enum.map(keys, fn key ->
+      {:ok, data} = Redix.command(:redix, ["HGETALL", key])
+      IO.inspect(data, label: "okeee")
+      Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
+    end)
+  end
+
+  def update_household_factor(factor) do
+    key = "household_factor:#{factor.id}"
+    set_command = [
+      "HSET", key,
+      "id", factor.id,
+      "name", factor.name,
+      "value", factor.value,
+      "unit", factor.unit
+    ]
+    Redix.command(:redix, set_command)
+  end
+
+
+  def get_all_household_factors() do
+    {:ok, keys} = Redix.command(:redix, ["KEYS", "household_factor:*"])
+    Enum.map(keys, fn key ->
+      {:ok, data} = Redix.command(:redix, ["HGETALL", key])
+      IO.inspect(data, label: "okeee")
+      Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
+    end)
+  end
+
   def encode_data(nil) do "NULL" end
   def encode_data(data) do Jason.encode!(data) end
   def decode_data(nil) do nil end
