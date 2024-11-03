@@ -104,7 +104,7 @@ defmodule CecrUnwomenWeb.ContributionController do
 
   def get_contribution_for_user(conn, params) do
     user_id_request = conn.assigns.user.user_id
-    role_id_request = conn.assigns.user.role_id
+    # role_id_request = conn.assigns.user.role_id
 
     date = params["date"]
 
