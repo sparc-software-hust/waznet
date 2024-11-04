@@ -104,28 +104,40 @@ defmodule CecrUnwomenWeb.ContributionController do
 
   def get_contribution_for_user(conn, params) do
     user_id_request = conn.assigns.user.user_id
-    # role_id_request = conn.assigns.user.role_id
 
-    date = params["date"]
+    limit = String.to_integer(params["limit"])
+    page = String.to_integer(params["page"])
+    offset = limit * page
+
+    from = params["from"] |> Date.from_iso8601!
+    to = params["to"] |> Date.from_iso8601!
+    date_diff = Date.diff(from, to)
 
     res = cond do
-      is_list(date) && length(date) == 2 ->
-        [start_date, end_date] = date |> Enum.map(&Date.from_iso8601!/1)
-
+      date_diff != 0 ->
         data = ScraperContribution
-        |> where([sc], sc.date >= ^start_date and sc.date <= ^end_date and sc.user_id == ^user_id_request)
+        |> where([sc], sc.date >= ^from and sc.date <= ^to and sc.user_id == ^user_id_request)
         |> order_by([sc], desc: sc.date)
-        |> select([sc], %{user_id: sc.user_id, date: sc.date, factor_id: sc.factor_id, quantity: sc.quantity, inserted_at: sc.inserted_at})
+        |> offset(^offset)
+        |> limit(^limit)
+        |> select([sc], %{
+					id: sc.id,
+					user_id: sc.user_id,
+					date: sc.date,
+					factor_id: sc.factor_id,
+					quantity: sc.quantity,inserted_at: sc.inserted_at
+				})
         |> Repo.all
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công!", data)
 
-      is_binary(date) ->
+				date_diff == 0 ->
         data = ScraperContribution
-        |> where([sc], sc.date == ^date)
+        |> where([sc], sc.date == ^from)
         |> order_by([sc], desc: sc.date)
+        |> offset(^offset)
+        |> limit(^limit)
         |> select([sc], %{user_id: sc.user_id, date: sc.date, factor_id: sc.factor_id, quantity: sc.quantity, inserted_at: sc.inserted_at})
         |> Repo.all
-
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công!", data)
 
       true ->
