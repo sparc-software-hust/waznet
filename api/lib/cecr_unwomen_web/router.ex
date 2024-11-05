@@ -39,7 +39,7 @@ defmodule CecrUnwomenWeb.Router do
       post "/contribute_scrap_data", ContributionController, :contribute_scrap_data
       post "/contribute_household_data", ContributionController, :contribute_household_data
       post "/edit_factor_quantity", ContributionController, :edit_factor_quantity
-      get "/get_contribution_for_user", ContributionController, :get_contribution_for_user
+      get "/get_contribution", ContributionController, :get_contribution
     end
   end
 end
