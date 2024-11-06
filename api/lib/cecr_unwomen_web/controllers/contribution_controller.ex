@@ -11,8 +11,9 @@ defmodule CecrUnwomenWeb.ContributionController do
 
   alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
 
-  def contribute_scrap_data(conn, params) do
+  def contribute_data(conn, params) do
     user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
     date = params["date"] |> Date.from_iso8601!()
     data_entry = params["data_entry"] || []
 
@@ -22,10 +23,10 @@ defmodule CecrUnwomenWeb.ContributionController do
     #   factors -> factors
     # end
 
-    res =
-      if Enum.empty?(data_entry) do
-        Helper.response_json_message(false, "Không có thông tin để nhập", 406)
-      else
+    res = cond do
+      Enum.empty?(data_entry) -> Helper.response_json_message(false, "Không có thông tin để nhập", 406)
+
+      role_id == 3 ->
         Repo.transaction(fn ->
           Enum.each(data_entry, fn d ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
@@ -43,20 +44,8 @@ defmodule CecrUnwomenWeb.ContributionController do
           {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
-      end
 
-    json(conn, res)
-  end
-
-  def contribute_household_data(conn, params) do
-    user_id = conn.assigns.user.user_id
-    date = params["date"] |> Date.from_iso8601!()
-    data_entry = params["data_entry"] || []
-
-    res =
-      if Enum.empty?(data_entry) do
-        Helper.response_json_message(false, "Không có thông tin để nhập", 406)
-      else
+      role_id == 2 ->
         Repo.transaction(fn ->
           Enum.each(data_entry, fn d ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
@@ -74,7 +63,9 @@ defmodule CecrUnwomenWeb.ContributionController do
           {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
-      end
+
+      true -> Helper.response_json_message(false, "Có lỗi xảy ra khi thực hiện nhập thông tin!", 406)
+    end
 
     json(conn, res)
   end

@@ -36,8 +36,7 @@ defmodule CecrUnwomenWeb.Router do
 
     scope "/contribution" do
       pipe_through :token
-      post "/contribute_scrap_data", ContributionController, :contribute_scrap_data
-      post "/contribute_household_data", ContributionController, :contribute_household_data
+      post "/contribute_data", ContributionController, :contribute_data
       post "/edit_factor_quantity", ContributionController, :edit_factor_quantity
       get "/get_contribution", ContributionController, :get_contribution
     end
