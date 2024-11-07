@@ -37,7 +37,6 @@ defmodule CecrUnwomen.RedisDB do
     {:ok, keys} = Redix.command(:redix, ["KEYS", "scrap_factor:*"])
     Enum.map(keys, fn key ->
       {:ok, data} = Redix.command(:redix, ["HGETALL", key])
-      IO.inspect(data, label: "okeee")
       Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
     end)
   end
@@ -59,7 +58,6 @@ defmodule CecrUnwomen.RedisDB do
     {:ok, keys} = Redix.command(:redix, ["KEYS", "household_factor:*"])
     Enum.map(keys, fn key ->
       {:ok, data} = Redix.command(:redix, ["HGETALL", key])
-      IO.inspect(data, label: "okeee")
       Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
     end)
   end

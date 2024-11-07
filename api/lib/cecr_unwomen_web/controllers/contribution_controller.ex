@@ -6,10 +6,12 @@ defmodule CecrUnwomenWeb.ContributionController do
     ScraperContribution,
     ScrapConstantFactor,
     HouseholdContribution,
-    HouseholdConstantFactor
+    HouseholdConstantFactor,
+    OverallScraperContribution,
+    OverallHouseholdContribution
   }
 
-  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
+  alias CecrUnwomen.{Utils.Helper, Repo}
 
   def contribute_data(conn, params) do
     user_id = conn.assigns.user.user_id
@@ -17,18 +19,14 @@ defmodule CecrUnwomenWeb.ContributionController do
     date = params["date"] |> Date.from_iso8601!()
     data_entry = params["data_entry"] || []
 
-    # RedisDB.get_all_scrap_factors()
-    # |> case do
-    #   [] -> Repo.all(ScrapConstantFactor) |> Enum.each(&RedisDB.update_scrap_factor(&1))
-    #   factors -> factors
-    # end
-
     res = cond do
       Enum.empty?(data_entry) -> Helper.response_json_message(false, "Không có thông tin để nhập", 406)
 
       role_id == 3 ->
+        constant_value = GenServer.call(ConstantWorker, :get_scrap_factors)
+
         Repo.transaction(fn ->
-          Enum.each(data_entry, fn d ->
+          overall = Enum.reduce(data_entry, %{ kgco2e: 0, expense_reduced: 0, kg: 0 }, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
 
             %ScraperContribution{
@@ -38,7 +36,22 @@ defmodule CecrUnwomenWeb.ContributionController do
               quantity: :erlang.float(quantity)
             }
             |> Repo.insert()
+
+            Map.update!(acc, :kg, &(&1 + quantity))
+            |> Map.update!(:kgco2e, &(&1 + constant_value[factor_id] * quantity))
           end)
+
+          overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg))
+          |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
+          |> Enum.into(%{})
+
+          %OverallScraperContribution{
+            date: date,
+            user_id: user_id,
+            kg_co2e_reduced: overall.kgco2e,
+            kg_collected: overall.kg,
+            expense_reduced: overall.expense_reduced
+          } |> Repo.insert
         end)
         |> case do
           {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
@@ -46,9 +59,13 @@ defmodule CecrUnwomenWeb.ContributionController do
         end
 
       role_id == 2 ->
+        constant_value = GenServer.call(ConstantWorker, :get_household_factors)
+
         Repo.transaction(fn ->
-          Enum.each(data_entry, fn d ->
+          overall = Enum.reduce(data_entry, %{ kgco2e_plastic: 0, kgco2e_recycle: 0, kg_recycle_collected: 0 }, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
+            # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
+            quantity = if factor_id <= 4, do: round(quantity), else: quantity
 
             %HouseholdContribution{
               date: date,
@@ -57,7 +74,24 @@ defmodule CecrUnwomenWeb.ContributionController do
               quantity: :erlang.float(quantity)
             }
             |> Repo.insert()
+
+            if (factor_id <= 4) do
+              Map.update!(acc, :kgco2e_plastic, &(&1 + constant_value[factor_id] * quantity))
+            else
+              Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
+              |> Map.update!(:kgco2e_recycle, &(&1 + constant_value[factor_id] * quantity))
+            end
           end)
+          |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
+          |> Enum.into(%{})
+
+          %OverallHouseholdContribution{
+            date: date,
+            user_id: user_id,
+            kg_co2e_plastic_reduced: overall.kgco2e_plastic,
+            kg_co2e_recycle_reduced: overall.kgco2e_recycle,
+            kg_recycle_collected: overall.kg_recycle_collected
+          } |> Repo.insert
         end)
         |> case do
           {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
