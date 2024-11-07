@@ -10,7 +10,8 @@ defmodule CecrUnwomen.Application do
       CecrUnwomenWeb.Endpoint,
       CecrUnwomen.Fcm.FcmStore,
       CecrUnwomen.Consumer,
-      {Redix, {get_redis_uri(), [name: :redix]}}
+      {Redix, {get_redis_uri(), [name: :redix]}},
+      CecrUnwomen.Workers.ConstantWorker,
     ]
 
     opts = [strategy: :one_for_one, name: CecrUnwomen.Supervisor]
