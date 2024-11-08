@@ -27,6 +27,7 @@ defmodule CecrUnwomenWeb.Router do
       post "/update_info", UserController, :update_info
       post "/change_password", UserController, :change_password
       post "/add_firebase_token", UserController, :add_firebase_token
+      get "/get_overall_data", UserController, :get_overall_data
     end
 
     scope "/upload" do
