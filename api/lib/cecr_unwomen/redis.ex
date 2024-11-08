@@ -21,8 +21,24 @@ defmodule CecrUnwomen.RedisDB do
     end
   end
 
-  def update_scrap_factor(factor) do
-    key = "scrap_factor:#{factor.id}"
+  def get_all_factors_by_type(type) do
+    model = if type == "scrap", do: "scrap_factor", else: "household_factor"
+    {:ok, keys} = Redix.command(:redix, ["KEYS", "#{model}:*"])
+    cond do
+      length(keys) == 0 -> nil
+      true ->
+        Enum.map(keys, fn key ->
+          {:ok, data} = Redix.command(:redix, ["HGETALL", key])
+          if (data != nil) do
+            Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
+          end
+        end)
+    end
+  end
+
+  def update_factor_by_type(factor, type) do
+    model = if type == "scrap", do: "scrap_factor", else: "household_factor"
+    key = "#{model}:#{factor.id}"
     set_command = [
       "HSET", key,
       "id", factor.id,
@@ -33,34 +49,40 @@ defmodule CecrUnwomen.RedisDB do
     Redix.command(:redix, set_command)
   end
 
-  def get_all_scrap_factors() do
-    {:ok, keys} = Redix.command(:redix, ["KEYS", "scrap_factor:*"])
-    Enum.map(keys, fn key ->
-      {:ok, data} = Redix.command(:redix, ["HGETALL", key])
-      Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
-    end)
-  end
-
-  def update_household_factor(factor) do
-    key = "household_factor:#{factor.id}"
-    set_command = [
-      "HSET", key,
-      "id", factor.id,
-      "name", factor.name,
-      "value", factor.value,
-      "unit", factor.unit
-    ]
+  def update_overall_data_for_admin(type, data) do
+    # scraper: number of users, co2_reduced_recycle, expense_reduced
+    # household: number of users, co2_reduced_recycle, co2_reduced_plastic
+    key = if (type == "scrap"), do: "overall_data:all_scraper", else: "overall_data:all_household"
+    set_command = Enum.reduce(data, ["HSET", key], fn {k, value}, acc -> acc ++ [to_string(k), value] end)
     Redix.command(:redix, set_command)
   end
 
-
-  def get_all_household_factors() do
-    {:ok, keys} = Redix.command(:redix, ["KEYS", "household_factor:*"])
-    Enum.map(keys, fn key ->
-      {:ok, data} = Redix.command(:redix, ["HGETALL", key])
-      Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
-    end)
+  def get_overall_data_for_admin(type) do
+    key = if (type == "scrap"), do: "overall_data:all_scraper", else: "overall_data:all_household"
+    get_command = ["HGETALL", key]
+    {:ok, data} = Redix.command(:redix, get_command)
+    case data do
+      [] -> nil
+      _ -> Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
+    end
   end
+
+  def get_overall_data_for_user(type, user_id) do
+    key = if (type == "scrap"), do: "overall_data:scraper_#{user_id}", else: "overall_data:household_#{user_id}"
+    get_command = ["HGETALL", key]
+    {:ok, data} = Redix.command(:redix, get_command)
+    case data do
+      [] -> nil
+      _ -> Enum.chunk_every(data, 2) |> Enum.map(&List.to_tuple/1) |> Enum.into(%{})
+    end
+  end
+
+  def update_overall_data_for_user(type, user_id, data) do
+    key = if (type == "scrap"), do: "overall_data:scraper_#{user_id}", else: "overall_data:household_#{user_id}"
+    set_command = Enum.reduce(data, ["HSET", key], fn {k, value}, acc -> acc ++ [to_string(k), value] end)
+    Redix.command(:redix, set_command)
+  end
+
 
   def encode_data(nil) do "NULL" end
   def encode_data(data) do Jason.encode!(data) end

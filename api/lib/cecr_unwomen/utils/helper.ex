@@ -1,4 +1,6 @@
 defmodule CecrUnwomen.Utils.Helper do
+  alias CecrUnwomen.Repo
+
   def validate_token(token) do
     Application.get_env(:cecr_unwomen, CecrUnwomenWeb.Endpoint)[:secret_key_base]
     # phải có from_oct để key không bị đổi thành bytes
@@ -98,5 +100,13 @@ defmodule CecrUnwomen.Utils.Helper do
     |> Map.drop([:refresh_token, :inserted_at, :updated_at, :role, :__meta__, :password_hash])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Enum.into(%{})
+  end
+
+  def aggregate_with_fields(query, fields) do
+    Enum.reduce(fields, %{}, fn key, acc -> 
+      key_atom = String.to_atom(key)
+      count_value = Repo.aggregate(query, :sum, key_atom)
+      Map.put(acc, key_atom, count_value)
+    end)
   end
 end

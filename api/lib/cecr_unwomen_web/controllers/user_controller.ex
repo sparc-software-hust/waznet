@@ -1,7 +1,7 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
   alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
-  alias CecrUnwomenWeb.Models.{User, FirebaseToken}
+  alias CecrUnwomenWeb.Models.{User, FirebaseToken, OverallHouseholdContribution, OverallScraperContribution}
   import Ecto.Query
 
   def register(conn, params) do
@@ -227,6 +227,69 @@ defmodule CecrUnwomenWeb.UserController do
   # def forgot_password(conn, params) do
   #   
   # end
+
+  def get_overall_data(conn, _) do
+    user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
+    res = cond do
+      role_id != 1 ->
+        model = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+        # type = if role_id == 2, do: "household", else: "scrap"
+        keys = if role_id == 2, do: ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"],
+          else: ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        query = model |> where([m], m.user_id == ^user_id)
+
+        overall = Helper.aggregate_with_fields(query, keys)
+        # overall_data = RedisDB.get_overall_data_for_user(type, user_id)
+        # |> case do
+        #   nil ->
+        #     overall = Helper.aggregate_with_fields(query, keys)
+        #     RedisDB.update_overall_data_for_user(type, user_id, overall)
+        #     overall
+        #   data -> data
+        # end
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+
+      role_id == 1 ->
+        keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
+        count_household_user = User |> where([u], u.role_id == ^2) |> Repo.aggregate(:count)
+        household_overall_data = Helper.aggregate_with_fields(OverallHouseholdContribution, keys) |> Map.put(:count_household, count_household_user)
+        # household_overall_data = RedisDB.get_overall_data_for_admin("household")
+        # |> case do
+        #   nil ->
+        #     count_household_user = User |> where([u], u.role_id == ^2) |> Repo.aggregate(:count)
+        #     keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
+        #     household_overall_data = Helper.aggregate_with_fields(OverallHouseholdContribution, keys) |> Map.put(:count_household, count_household_user)
+        #     RedisDB.update_overall_data_for_admin("household", household_overall_data)
+        #     household_overall_data
+        #   data -> data
+        # end
+
+        count_scraper_user = User |> where([u], u.role_id == ^3) |> Repo.aggregate(:count)
+        keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
+        # scraper_overall_data = RedisDB.get_overall_data_for_admin("scrap")
+        # |> case do
+        #   nil ->
+        #     count_scraper_user = User |> where([u], u.role_id == ^3) |> Repo.aggregate(:count)
+        #     keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        #     scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
+        #     RedisDB.update_overall_data_for_admin("scrap", scraper_overall_data)
+        #     scraper_overall_data
+        #   data -> data
+        # end
+
+        overall = %{
+          household_overall_data: household_overall_data,
+          scraper_overall_data: scraper_overall_data
+        }
+
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+      true ->
+        Helper.response_json_message(false, "Bạn không có đủ quyền thực hiện thao tác!", 402)
+    end
+    json conn, res
+  end
 
   def add_firebase_token(conn, params) do
     user_id = conn.assigns.user.user_id
