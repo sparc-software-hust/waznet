@@ -9,17 +9,21 @@ defmodule CecrUnwomen.Workers.ConstantWorker do
 
   def init(_) do
     scrap_factors =
-      RedisDB.get_all_scrap_factors
+      RedisDB.get_all_factors_by_type("scrap")
       |> case do
-        [] -> Repo.all(ScrapConstantFactor) |> Enum.each(&RedisDB.update_scrap_factor(&1))
+        nil -> 
+          Repo.all(ScrapConstantFactor) |> Enum.each(&RedisDB.update_factor_by_type(&1, "scrap"))
+          RedisDB.get_all_factors_by_type("scrap")
         factors -> factors
       end
       |> Enum.reduce(%{}, fn f, acc -> Map.put(acc, String.to_integer(f["id"]), String.to_float(f["value"])) end)
 
     household_factors =
-      RedisDB.get_all_household_factors
+      RedisDB.get_all_factors_by_type("household")
       |> case do
-        [] -> Repo.all(HouseholdConstantFactor) |> Enum.each(&RedisDB.update_household_factor(&1))
+        nil ->
+          Repo.all(HouseholdConstantFactor) |> Enum.each(&RedisDB.update_factor_by_type(&1, "household"))
+          RedisDB.get_all_factors_by_type("household")
         factors -> factors
       end
       |> Enum.reduce(%{}, fn f, acc -> Map.put(acc, String.to_integer(f["id"]), String.to_float(f["value"])) end)

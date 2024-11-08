@@ -4,14 +4,12 @@ defmodule CecrUnwomenWeb.ContributionController do
 
   alias CecrUnwomenWeb.Models.{
     ScraperContribution,
-    ScrapConstantFactor,
     HouseholdContribution,
-    HouseholdConstantFactor,
     OverallScraperContribution,
     OverallHouseholdContribution
   }
 
-  alias CecrUnwomen.{Utils.Helper, Repo}
+  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
 
   def contribute_data(conn, params) do
     user_id = conn.assigns.user.user_id
@@ -26,7 +24,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         constant_value = GenServer.call(ConstantWorker, :get_scrap_factors)
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kgco2e: 0, expense_reduced: 0, kg: 0 }, fn d, acc ->
+          overall = Enum.reduce(data_entry, %{ kg_co2e_reduced: 0, expense_reduced: 0, kg_collected: 0 }, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
 
             %ScraperContribution{
@@ -37,24 +35,29 @@ defmodule CecrUnwomenWeb.ContributionController do
             }
             |> Repo.insert()
 
-            Map.update!(acc, :kg, &(&1 + quantity))
-            |> Map.update!(:kgco2e, &(&1 + constant_value[factor_id] * quantity))
+            Map.update!(acc, :kg_collected, &(&1 + quantity))
+            |> Map.update!(:kg_co2e_reduced, &(&1 + constant_value[factor_id] * quantity))
           end)
 
-          overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg))
+          overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg_collected))
           |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
           |> Enum.into(%{})
+					# TODO: check with float.round(0, 2)
 
           %OverallScraperContribution{
             date: date,
             user_id: user_id,
-            kg_co2e_reduced: overall.kgco2e,
-            kg_collected: overall.kg,
+            kg_co2e_reduced: overall.kg_co2e_reduced,
+            kg_collected: overall.kg_collected,
             expense_reduced: overall.expense_reduced
           } |> Repo.insert
+
+          # TODO: set key based on overall
+          keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+          Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
         |> case do
-          {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
+          {:ok, overall_data} -> Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
@@ -62,7 +65,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         constant_value = GenServer.call(ConstantWorker, :get_household_factors)
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kgco2e_plastic: 0, kgco2e_recycle: 0, kg_recycle_collected: 0 }, fn d, acc ->
+          overall = Enum.reduce(data_entry, %{ kg_co2e_plastic_reduced: 0, kg_co2e_recycle_reduced: 0, kg_recycle_collected: 0 }, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
             # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
             quantity = if factor_id <= 4, do: round(quantity), else: quantity
@@ -76,10 +79,10 @@ defmodule CecrUnwomenWeb.ContributionController do
             |> Repo.insert()
 
             if (factor_id <= 4) do
-              Map.update!(acc, :kgco2e_plastic, &(&1 + constant_value[factor_id] * quantity))
+              Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
             else
               Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
-              |> Map.update!(:kgco2e_recycle, &(&1 + constant_value[factor_id] * quantity))
+              |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
             end
           end)
           |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
@@ -88,13 +91,16 @@ defmodule CecrUnwomenWeb.ContributionController do
           %OverallHouseholdContribution{
             date: date,
             user_id: user_id,
-            kg_co2e_plastic_reduced: overall.kgco2e_plastic,
-            kg_co2e_recycle_reduced: overall.kgco2e_recycle,
+            kg_co2e_plastic_reduced: overall.kg_co2e_plastic_reduced,
+            kg_co2e_recycle_reduced: overall.kg_co2e_recycle_reduced,
             kg_recycle_collected: overall.kg_recycle_collected
           } |> Repo.insert
+
+          keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
+          Helper.aggregate_with_fields(OverallHouseholdContribution, keys)
         end)
         |> case do
-          {:ok, _} -> Helper.response_json_message(true, "Nhập thông tin thành công!")
+          {:ok, overall_data} -> Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
