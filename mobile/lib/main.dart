@@ -66,11 +66,11 @@ class BlocEntireApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
-        if (state.status == AuthenticationStatus.authorized) {
+        // if (state.status == AuthenticationStatus.authorized) {
           return const HomeScreen();
-        } else {
-          return const LoginScreen();
-        }
+        // } else {
+          // return const LoginScreen();
+        // }
       },
     );
   }
