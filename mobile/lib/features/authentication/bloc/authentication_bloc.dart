@@ -30,7 +30,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         }
       },
       onError: (e, t) {
-        emit(state.copyWith(status: AuthenticationStatus.error));     
+        emit(state.copyWith(status: AuthenticationStatus.error));
       }
     );
   }
