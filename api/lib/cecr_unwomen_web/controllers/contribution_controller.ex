@@ -9,7 +9,7 @@ defmodule CecrUnwomenWeb.ContributionController do
     OverallHouseholdContribution
   }
 
-  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
+  alias CecrUnwomen.{Utils.Helper, Repo}
 
   def contribute_data(conn, params) do
     user_id = conn.assigns.user.user_id
