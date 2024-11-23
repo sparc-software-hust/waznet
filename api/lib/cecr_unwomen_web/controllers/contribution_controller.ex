@@ -3,6 +3,7 @@ defmodule CecrUnwomenWeb.ContributionController do
   import Ecto.Query
 
   alias CecrUnwomenWeb.Models.{
+    User,
     ScraperContribution,
     HouseholdContribution,
     OverallScraperContribution,
@@ -42,7 +43,7 @@ defmodule CecrUnwomenWeb.ContributionController do
           overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg_collected))
           |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
           |> Enum.into(%{})
-					# TODO: check with float.round(0, 2)
+          # TODO: check with float.round(0, 2)
 
           %OverallScraperContribution{
             date: date,
@@ -234,4 +235,141 @@ defmodule CecrUnwomenWeb.ContributionController do
 
     json(conn, res)
   end
+
+  def get_overall_data(conn, _) do
+    # check role id
+    # neu admin lay nhung data sau:
+    # - scraper: total user, total kg collected, total kgco2 recycle, expense reduced
+    # - household: total user, total kg recycled collected, total kgco2 recycle, plastic reduced
+    # - data co2e recycled in 1 week from today
+    # - household contribution today
+    # - scraper contribution today
+    user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
+    res = cond do
+      role_id != 1 ->
+        model = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+        keys = if role_id == 2, do: ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"],
+          else: ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        query = model |> where([m], m.user_id == ^user_id)
+
+        count_days_joined = User |> where([u], u.id == ^user_id) |> select([u], u.inserted_at) |> Repo.one
+          |> case do
+            nil -> 0
+            inserted_at ->
+              NaiveDateTime.utc_now() |> NaiveDateTime.diff(inserted_at, :day)
+          end
+
+        overall = Helper.aggregate_with_fields(query, keys)
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+
+      role_id == 1 ->
+        keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
+        count_household_user = User |> where([u], u.role_id == ^2) |> Repo.aggregate(:count)
+        household_overall_data = Helper.aggregate_with_fields(OverallHouseholdContribution, keys) |> Map.put(:count_household, count_household_user)
+
+        count_scraper_user = User |> where([u], u.role_id == ^3) |> Repo.aggregate(:count)
+        keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
+
+        {overall_scrapers_today, overall_households_today} = get_users_contribution_today()
+        {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
+
+        overall = %{
+          household_overall_data:
+            household_overall_data
+            |> Map.put(:overall_households_today, overall_households_today)
+            |> Map.put(:household_total_kgco2e_seven_days, household_total_kgco2e_seven_days),
+
+          scraper_overall_data: scraper_overall_data
+            |> Map.put(:overall_scrapers_today, overall_scrapers_today)
+            |> Map.put(:scraper_total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
+        }
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+      true ->
+        Helper.response_json_message(false, "Bạn không có đủ quyền thực hiện thao tác!", 402)
+    end
+    json conn, res
+  end
+
+  defp get_total_kgco2e_seven_days() do
+    to = "2024-11-11" |> Date.from_iso8601!()
+    # to = NaiveDateTime.local_now()
+    #   |> NaiveDateTime.add(7 * 3600, :second)
+    #   |> NaiveDateTime.to_date
+
+    from = Date.add(to, -7)
+
+    household_total_kgco2e_seven_days = OverallHouseholdContribution
+      |> where([osc], osc.date >= ^from and osc.date <= ^to)
+      |> group_by([m], m.date)
+      |> order_by([m], desc: m.date)
+      |> select([m], %{
+        date: m.date,
+        total_kg_co2e: sum(m.kg_co2e_plastic_reduced) + sum(m.kg_co2e_recycle_reduced)
+      })
+      |> Repo.all()
+
+    scraper_total_kgco2e_seven_days = OverallScraperContribution
+      |> where([osc], osc.date >= ^from and osc.date <= ^to)
+      |> group_by([m], m.date)
+      |> order_by([m], desc: m.date)
+      |> select([m], %{
+        date: m.date,
+        total_kg_co2e: sum(m.kg_co2e_reduced)
+      })
+      |> Repo.all()
+
+    {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days}
+  end
+
+  defp get_users_contribution_today(limit \\ 50, page \\ 0) do
+    offset = limit * page
+
+    current_day = "2024-11-08" |> Date.from_iso8601!()
+    # current_day = NaiveDateTime.local_now()
+    #   |> NaiveDateTime.add(7 * 3600, :second)
+    #   |> NaiveDateTime.to_date
+
+    overall_scrapers_today = OverallScraperContribution
+      |> join(:left, [osc], u in User, on: u.id == osc.user_id)
+      |> where([osc], osc.date == ^current_day)
+      |> order_by([osc], desc: :date)
+      |> offset(^offset)
+      |> limit(^limit)
+      |> select([osc, u], %{
+        id: osc.id,
+        kg_co2e_reduced: osc.kg_co2e_reduced,
+        expense_reduced: osc.expense_reduced,
+        kg_collected: osc.kg_collected,
+        user_id: osc.user_id,
+        avatar_url: u.avatar_url,
+        inserted_at: osc.inserted_at,
+        first_name: u.first_name,
+        last_name: u.last_name
+      })
+      |> Repo.all
+
+    overall_households_today = OverallHouseholdContribution
+      |> join(:left, [ohc], u in User, on: u.id == ohc.user_id)
+      |> where([ohc], ohc.date == ^current_day)
+      |> order_by([ohc], desc: :date)
+      |> offset(^offset)
+      |> limit(^limit)
+      |> select([ohc, u], %{
+        id: ohc.id,
+        kg_co2e_plastic_reduced: ohc.kg_co2e_plastic_reduced,
+        kg_co2e_recycle_reduced: ohc.kg_co2e_recycle_reduced,
+        kg_recycle_collected: ohc.kg_recycle_collected,
+        inserted_at: ohc.inserted_at,
+        user_id: ohc.user_id,
+        avatar_url: u.avatar_url,
+        first_name: u.first_name,
+        last_name: u.last_name
+      })
+      |> Repo.all
+
+    {overall_scrapers_today, overall_households_today}
+  end
+
 end
