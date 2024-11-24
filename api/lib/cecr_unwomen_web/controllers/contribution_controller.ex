@@ -7,7 +7,9 @@ defmodule CecrUnwomenWeb.ContributionController do
     ScraperContribution,
     HouseholdContribution,
     OverallScraperContribution,
-    OverallHouseholdContribution
+    OverallHouseholdContribution,
+    HouseholdConstantFactor,
+    ScrapConstantFactor
   }
 
   alias CecrUnwomen.{Utils.Helper, Repo}
@@ -248,19 +250,43 @@ defmodule CecrUnwomenWeb.ContributionController do
     role_id = conn.assigns.user.role_id
     res = cond do
       role_id != 1 ->
-        model = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+        model_overall = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
         keys = if role_id == 2, do: ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"],
           else: ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
-        query = model |> where([m], m.user_id == ^user_id)
+        query = model_overall |> where([m], m.user_id == ^user_id)
 
         count_days_joined = User |> where([u], u.id == ^user_id) |> select([u], u.inserted_at) |> Repo.one
           |> case do
             nil -> 0
-            inserted_at ->
-              NaiveDateTime.utc_now() |> NaiveDateTime.diff(inserted_at, :day)
+            inserted_at -> NaiveDateTime.utc_now() |> NaiveDateTime.diff(inserted_at, :day)
           end
 
+        today = Helper.get_vietnam_date_today()
+        {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+
+        sum_factors = if role_id == 2 do
+          HouseholdContribution
+          |> join(:inner, [hc], hcf in HouseholdConstantFactor, on: hc.factor_id == hcf.id)
+          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_month and hc.date <= ^end_month)
+          |> group_by([hc, hcf], [hc.factor_id, hcf.name])
+        else
+          ScraperContribution
+          |> join(:inner, [hc], hcf in ScrapConstantFactor, on: hc.factor_id == hcf.id)
+          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_month and hc.date <= ^end_month)
+          |> group_by([hc, hcf], [hc.factor_id, hcf.name])
+        end
+        |> order_by([hc], asc: hc.factor_id)
+        |> select([hc, hcf], %{
+          factor_id: hc.factor_id,
+          factor_name: hcf.name,
+          quantity: sum(hc.quantity)
+        })
+        |> Repo.all
+
         overall = Helper.aggregate_with_fields(query, keys)
+          |> Map.put(:days_joined, count_days_joined)
+          |> Map.put(:sum_factors, sum_factors)
+
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
 
       role_id == 1 ->
