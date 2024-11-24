@@ -109,4 +109,10 @@ defmodule CecrUnwomen.Utils.Helper do
       Map.put(acc, key_atom, count_value)
     end)
   end
+
+  def get_vietnam_date_today() do
+    NaiveDateTime.utc_now()
+    |> NaiveDateTime.add(7 * 3600, :second)
+    |> NaiveDateTime.to_date
+  end
 end
