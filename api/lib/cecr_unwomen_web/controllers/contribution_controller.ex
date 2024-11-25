@@ -271,14 +271,14 @@ defmodule CecrUnwomenWeb.ContributionController do
           |> group_by([hc, hcf], [hc.factor_id, hcf.name])
         else
           ScraperContribution
-          |> join(:inner, [hc], hcf in ScrapConstantFactor, on: hc.factor_id == hcf.id)
+          |> join(:inner, [hc], scf in ScrapConstantFactor, on: hc.factor_id == scf.id)
           |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_month and hc.date <= ^end_month)
-          |> group_by([hc, hcf], [hc.factor_id, hcf.name])
+          |> group_by([hc, scf], [hc.factor_id, scf.name])
         end
         |> order_by([hc], asc: hc.factor_id)
-        |> select([hc, hcf], %{
+        |> select([hc, f], %{
           factor_id: hc.factor_id,
-          factor_name: hcf.name,
+          factor_name: f.name,
           quantity: sum(hc.quantity)
         })
         |> Repo.all
