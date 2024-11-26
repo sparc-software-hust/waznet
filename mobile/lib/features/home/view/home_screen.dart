@@ -5,12 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final ColorConstants colorCons = ColorConstants();
+  bool isHousehold = true;
+
+  changeBar() {
+    setState(() {
+      isHousehold = !isHousehold;
+    });
+  }
+  @override
   Widget build(BuildContext context) {
-    final ColorConstants colorCons = ColorConstants();
     return Scaffold(
       body: SafeArea(
         child: BlocProvider(
@@ -29,7 +41,7 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   decoration: BoxDecoration(
                       gradient: LinearGradient(
-                    colors: [Color(0xFFA5D6A7).withOpacity(0.55), Color(0xFF81C784)],
+                    colors: [const Color(0xFFA5D6A7).withOpacity(0.55), const Color(0xFF81C784)],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     ),
@@ -72,10 +84,19 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          PhosphorIcon(PhosphorIcons.bold.bell,
-                              size: 24, color: colorCons.primaryBlack1),
+                          Container(
+                            height: 40,
+                            width: 40,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                            child: PhosphorIcon(PhosphorIcons.regular.bell,
+                                size: 24, color: colorCons.primaryBlack1),
+                          ),
                         ],
                       ),
+
                       // const SizedBox(height: 32),
                       // Container(
                       //   height: 100,
@@ -122,11 +143,98 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                BarWidget(isHousehold: isHousehold, changeBar: changeBar),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class BarWidget extends StatefulWidget {
+  const BarWidget({super.key, required this.isHousehold, required this.changeBar});
+  final bool isHousehold;
+  final Function changeBar;
+
+  @override
+  State<BarWidget> createState() => _BarWidgetState();
+}
+
+class _BarWidgetState extends State<BarWidget> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Container(
+        height: 44,
+        width: 280,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+          ),
+          color: Color(0xFFE3E3E5)
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ButtonBar(
+              onPressed: widget.changeBar,
+              isSelected: widget.isHousehold,
+              text: "Hộ gia đình"
+            ),
+            ButtonBar(
+              onPressed: widget.changeBar,
+              isSelected: !widget.isHousehold,
+              text: "Người thu gom"
+            ),
+          ],
+        ),
+      )
+    );
+  }
+}
+
+class ButtonBar extends StatelessWidget {
+  const ButtonBar({super.key, required this.onPressed, required this.isSelected, required this.text});
+  final Function onPressed;
+  final bool isSelected;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: 135,
+        height: 36,
+        decoration: BoxDecoration(
+          borderRadius: isSelected ? const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+          ) : null,
+          color: isSelected ? Colors.white : Colors.transparent
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: InkWell(
+          onTap: () => onPressed(),
+          child: Text(text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+            color: isSelected ? const Color(0xFF333334) : const Color(0xFF808082),
+            fontSize: 14,
+            fontWeight: FontWeight.w600
+          ))
+        )
+      )
     );
   }
 }
