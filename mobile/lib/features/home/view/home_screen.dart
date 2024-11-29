@@ -4,6 +4,7 @@ import 'package:cecr_unwomen/features/firebase/firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ColorConstants colorCons = ColorConstants();
   bool isHousehold = true;
+  int _currentIndex = 0;
 
   changeBar() {
     setState(() {
@@ -24,6 +26,29 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F5),
+      bottomNavigationBar: SalomonBottomBar(
+        backgroundColor: Colors.white,
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+        itemPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        items: [
+        SalomonBottomBarItem(
+          icon: const Icon(Icons.home),
+          title: const Text("Trang chủ"),
+          selectedColor: colorCons.primaryGreen,
+        ),
+        SalomonBottomBarItem(
+          icon: const Icon(Icons.map),
+          title: const Text("Bản đồ"),
+          selectedColor: colorCons.primaryGreen,
+        ),
+        SalomonBottomBarItem(
+          icon: const Icon(Icons.message),
+          title: const Text("Tin nhắn"),
+          selectedColor: colorCons.primaryGreen,
+        ),
+      ]),
       body: SafeArea(
         child: BlocProvider(
           lazy: false,
@@ -144,10 +169,115 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 BarWidget(isHousehold: isHousehold, changeBar: changeBar),
+                const CardStatistic(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CardStatistic extends StatelessWidget {
+  const CardStatistic({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          CardInfoWidget(
+            icon: PhosphorIcon(
+              PhosphorIcons.fill.users, size: 100, color: Colors.white
+            ),
+            text: "Hộ gia đình",
+            number: 999
+          ),
+          CardInfoWidget(
+            icon: PhosphorIcon(
+              PhosphorIcons.fill.users, size: 100, color: Colors.white
+            ),
+            text: "Hộ gia đình",
+            number: 999
+          ),
+          CardInfoWidget(
+            icon: PhosphorIcon(
+              PhosphorIcons.fill.users, size: 100, color: Colors.white
+            ),
+            text: "Hộ gia đình",
+            number: 999
+          ),
+          CardInfoWidget(
+            icon: PhosphorIcon(
+              PhosphorIcons.fill.users, size: 100, color: Colors.white
+            ),
+            text: "Hộ gia đình",
+            number: 999
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CardInfoWidget extends StatelessWidget {
+  const CardInfoWidget({super.key, required this.icon, required this.text, required this.number});
+  final Widget icon;
+  final String text;
+  final int number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text,
+                    style: TextStyle(
+                        color: Color(0xFF666667),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                SizedBox(height: 10),
+                Text("$number",
+                    style: TextStyle(
+                        color: Color(0xFF29292A),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+          Positioned(
+            right: -5,
+            bottom: -20,
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [Color(0xFFFFFCF0), Color(0xFFC8E6C9)], // Define your gradient colors here
+                  tileMode: TileMode.clamp,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds);
+              },
+              child: icon
+            ),
+          ),
+        ],
       ),
     );
   }
