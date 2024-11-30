@@ -1,4 +1,4 @@
-// package com.example.cecr_unwomen
+// package vn.sparc.waznet
 
 // import androidx.core.app.NotificationCompat
 // import android.content.Context
