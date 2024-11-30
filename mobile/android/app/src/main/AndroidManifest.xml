@@ -2,7 +2,7 @@
     <application
         android:label="cecr_unwomen"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/waznet_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
