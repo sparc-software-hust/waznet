@@ -1,4 +1,4 @@
-package com.example.cecr_unwomen
+package vn.sparc.waznet
 
 import io.flutter.embedding.android.FlutterActivity
 
