@@ -61,10 +61,12 @@ flutter:
   fonts:
     - family: Satoshi
       fonts:
-        - asset: assets/fonts/Satoshi-Black.ttf
-        - asset: assets/fonts/Satoshi-Bold.ttf
-        - asset: assets/fonts/Satoshi-Medium.ttf
-        - asset: assets/fonts/Satoshi-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Black.ttf
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
+        - asset: assets/fonts/Inter_18pt-Light.ttf
+        - asset: assets/fonts/Inter_18pt-Medium.ttf
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Thin.ttf
 
   #   - family: Trajan Pro
   #     fonts:
