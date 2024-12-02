@@ -23,6 +23,14 @@ class ColorConstants {
   final Color primaryWhite1 = Colors.white;
   final Color primaryBlack1 = const Color(0xFF090A0A);
 
+  final Color textHeader = const Color(0xFF333334);
+  final Color textSubHeader = const Color(0xFF666667);
+  final Color textPlaceholder = const Color(0xFF808082);
+  final Color bgDisabled = const Color(0xFFC1C1C2);
+  final Color bgClickable = const Color(0xFF4CAF50);
+  final Color border = const Color(0xFFE3E3E5);
+
+
   Color primary(isDark) => isDark ? const Color(0xFF33BACA) : const Color(0xFF05AABD);
 
   TextStyle fastStyle(int fontSize, FontWeight fontWeight, Color color) {
@@ -30,8 +38,8 @@ class ColorConstants {
       color: color,
       fontSize: fontSize.toDouble(),
       fontWeight: fontWeight,
-      fontFamily: "Satoshi",
-      letterSpacing: 0.1
+      // fontFamily: "Inter",
+      // letterSpacing: 0.1
     );
   }
 }

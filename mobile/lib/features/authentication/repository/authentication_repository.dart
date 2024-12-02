@@ -10,20 +10,30 @@ class AuthRepository {
   static final _controller = StreamController<AuthenticationStatus>();
   static Stream<AuthenticationStatus> get status async* {
     await Future<void>.delayed(const Duration(seconds: 1));
+    // yield AuthenticationStatus.unauthorized;
     yield* _controller.stream;
   }
   static void dispose() => _controller.close();
 
-  static Future<void> login(String phoneNumber, String password) async {
-    final Map res = await AuthenticationApi.login(phoneNumber, password);
-    final bool isLoginSuccess = res["success"];
-    if (isLoginSuccess) {
-      await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
-      await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
-      _controller.add(AuthenticationStatus.authorized);
-    } else {
-      _controller.add(AuthenticationStatus.unauthorized);
+  static Future<bool> login(String phoneNumber, String password) async {
+    try {
+      final Map res = await AuthenticationApi.login(phoneNumber, password);
+      final bool isLoginSuccess = res["success"];
+      if (isLoginSuccess) {
+        await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
+        await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
+        _controller.add(AuthenticationStatus.authorized);
+        return true;
+      } else {
+        _controller.add(AuthenticationStatus.unauthorized);
+        return false;
+      }
+    } catch (e) {
+      print('gndkjf:$e');
+      _controller.add(AuthenticationStatus.error);
+      return false;
     }
+    
   }
 
   static Future<void> logout() async {

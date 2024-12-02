@@ -26,10 +26,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           case AuthenticationStatus.unauthorized:
             return emit(state.copyWith(status: AuthenticationStatus.unauthorized));
           default:
-            return emit(state.copyWith(status: AuthenticationStatus.error));
+            return emit(state.copyWith(status: AuthenticationStatus.loading));
         }
       },
       onError: (e, t) {
+        print('gndkjffdg:$e $t');
         emit(state.copyWith(status: AuthenticationStatus.error));
       }
     );
@@ -54,6 +55,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       final User user = User.fromJson(userMap!);
       emit(state.copyWith(status: AuthenticationStatus.authorized, user: user));
     } catch (e) {
+      print('gndfkj:$e');
       emit(state.copyWith(status: AuthenticationStatus.error));
     }
   }

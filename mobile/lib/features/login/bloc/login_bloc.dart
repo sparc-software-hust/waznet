@@ -14,6 +14,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>{
     final String phoneNumber = event.phoneNumber;
     emit(
       state.copyWith(
+        status: LoginStatus.init,
         phoneNumber: phoneNumber,
         isValid: _validatePhoneNumber(phoneNumber)
       ),
@@ -24,17 +25,25 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>{
     final String password = event.password;
     emit(
       state.copyWith(
+        status: LoginStatus.init,
         password: password,
         isValid: _validatePassword(password)
       ),
     );
-  } 
+  }
 
   Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter emit) async {
-    if (!state.isValid) return;
     emit(state.copyWith(status: LoginStatus.inProcess));
+    if (!state.isValid) {
+      emit(state.copyWith(status: LoginStatus.fail));
+      return;
+    }
     try {
-      await AuthRepository.login(state.phoneNumber, state.password);
+      final bool isSuccess = await AuthRepository.login(state.phoneNumber, state.password);
+      if (!isSuccess) {
+        emit(state.copyWith(status: LoginStatus.fail));
+        return;
+      }
       emit(state.copyWith(status: LoginStatus.success));
     } catch (_) {
       emit(state.copyWith(status: LoginStatus.fail));
