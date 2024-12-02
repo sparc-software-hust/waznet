@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.0.1+1
+version: 0.0.1+2
 
 environment:
   sdk: ^3.5.3
@@ -43,7 +43,8 @@ dependencies:
   provider: ^6.1.2
   flutter_spinkit: ^5.2.1
   salomon_bottom_bar: ^3.3.2
-  flutter_launcher_icons: "^0.14.1"
+  flutter_native_splash: ^2.4.3
+  collection: 1.18.0
 
 dev_dependencies:
   flutter_test:
@@ -76,11 +77,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-flutter_launcher_icons:
-  android: "waznet_icon"
-  adaptive_icon_background: "#52B156"
-  adaptive_icon_foreground: "assets/icon/icon.png"
-  adaptive_icon_foreground_inset: 30
+flutter_native_splash:
+  color: "#74C177"
+  image: "assets/icon/logoo.png"
+  # branding: "assets/icon/branding.png"
+
+  android_12:
+    # icon_background_color: "#111111"
+    color: "#74C177"
+    image: "assets/icon/logoo.png"
+    # branding: "assets/icon/branding.png"
+
+  android: true
   ios: true
-  image_path: "assets/icon/icon.png"
-  min_sdk_android: 22
+  web: false
