@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="cecr_unwomen"
+        android:label="WazNet"
         android:name="${applicationName}"
         android:icon="@mipmap/waznet_icon">
         <activity
