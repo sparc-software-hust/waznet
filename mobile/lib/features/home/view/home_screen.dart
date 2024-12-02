@@ -1,6 +1,7 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/constants/text_constants.dart';
-// import 'package:cecr_unwomen/features/authentication/authentication.dart';
+import 'package:cecr_unwomen/features/authentication/authentication.dart';
+import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/firebase/firebase.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
       activeIcon: PhosphorIcon(activeIcon, size: 24, color: const Color(0xFF348A3A)),
       selectedColor: const Color(0xFF348A3A)
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final User? user = context.read<AuthenticationBloc>().state.user;
   }
 
   @override
@@ -200,7 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
             text: "Đăng xuất",
             isLogout: true,
             icon: PhosphorIcons.regular.signOut,
-            onTap: () { },
+            onTap: () {
+              context.read<AuthenticationBloc>().add(LogoutRequest());
+            },
           ),
         ],
       ),
@@ -699,36 +708,39 @@ class UserInfoItem extends StatelessWidget {
     final Color iconBgColor = isLogout ? const Color(0xFFFFE8D8) : const Color(0xFFE8F5E9).withOpacity(0.7);
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onTap == null ? null : onTap!(),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  shape: BoxShape.circle,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => onTap == null ? null : onTap!(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 20, color: iconColor),
                 ),
-                child: Icon(icon, size: 20, color: iconColor),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(text, style: TextStyle(
-                  color: !isLogout ? const Color(0xFF333334) : const Color(0xFFFF4F3F),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(text, style: TextStyle(
+                    color: !isLogout ? const Color(0xFF333334) : const Color(0xFFFF4F3F),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600)
+                  ),
                 ),
-              ),
-              Icon(PhosphorIcons.regular.caretRight, size: 20, color: const Color(0xFF4D4D4E)),
-            ],
+                Icon(PhosphorIcons.regular.caretRight, size: 20, color: const Color(0xFF4D4D4E)),
+              ],
+            ),
           ),
         ),
       ),
