@@ -7,7 +7,8 @@ class Utils {
     return fcmToken;
   }
   // static String apiUrl = "http://192.168.0.9:4000/api";
-  static String apiUrl = "http://192.168.1.203:4000/api";
+  // static String apiUrl = "http://192.168.1.203:4000/api";
+  static String apiUrl = "http://103.200.20.242:4000/api";
 
   static Future<dynamic> showDialogWarningError(BuildContext context, bool isDark, String warningContent) {
     final Color colorInput = isDark ? const Color(0xFF25282A) : const Color(0xFFF2F4F7);

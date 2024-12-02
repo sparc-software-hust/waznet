@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '699979131229',
     projectId: 'cecr-unwomen',
     storageBucket: 'cecr-unwomen.appspot.com',
-    iosBundleId: 'com.example.cecrUnwomen',
+    iosBundleId: 'vn.sparc.waznet',
   );
 }
