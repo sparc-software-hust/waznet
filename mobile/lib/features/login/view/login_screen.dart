@@ -113,7 +113,7 @@ class _PhoneNumberBoxState extends State<PhoneNumberBox> {
           Text("Bắt đầu hành trình\nsống xanh",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28, fontWeight: FontWeight.w700, color: colorConstants.textHeader
+              fontSize: 28, fontWeight: FontWeight.w700, color: colorConstants.textHeader,
             )
           ),
           const SizedBox(height: 12),
@@ -167,15 +167,20 @@ class _PhoneNumberBoxState extends State<PhoneNumberBox> {
                 ),
                 Expanded(
                   child: CupertinoTextField(
+                    cursorColor: colorConstants.bgClickable,
+                    cursorHeight: 16,
                     controller: _controller,
-                    padding: const EdgeInsets.all(12),
+                    onTapOutside: (_) {
+                      FocusScope.of(context).unfocus();
+                    },
+                    padding: const EdgeInsets.only(left: 12),
                     placeholder: "Nhập số điện thoại của bạn",
                     keyboardType: TextInputType.phone,
                     placeholderStyle: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder
+                      fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder, fontFamily: "Inter"
                     ),
                     style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader
+                      fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader, fontFamily: "Inter"
                     ),
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(10),
@@ -308,20 +313,23 @@ class _PasswordBoxState extends State<PasswordBox> {
           ),
           child: CupertinoTextField(
             controller: _controller,
+            onTapOutside: (_) {
+              FocusScope.of(context).unfocus();
+            },
             cursorHeight: 16,
             cursorColor: colorConstants.bgClickable,
             autofocus: true,
             obscureText: showPassword ? false : true,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.only(left: 12),
             placeholder: "Nhập mật khẩu của bạn",
             prefix: Container(
               margin: const EdgeInsets.only(left: 12),
               child: Icon(PhosphorIcons.regular.lock, size: 20, color: colorConstants.textPlaceholder)),
             placeholderStyle: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder
+              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder, fontFamily: "Inter",
             ),
             style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader
+              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader, fontFamily: "Inter"
             ),
             onChanged: (value) {
               context.read<LoginBloc>().add(LoginPasswordChanged(password: value));

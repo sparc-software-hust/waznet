@@ -45,6 +45,7 @@ dependencies:
   salomon_bottom_bar: ^3.3.2
   flutter_native_splash: ^2.4.3
   collection: 1.18.0
+  intl: 0.18.0
 
 dev_dependencies:
   flutter_test:
@@ -60,7 +61,7 @@ flutter:
     - assets/icon/
 
   fonts:
-    - family: Satoshi
+    - family: Inter
       fonts:
         - asset: assets/fonts/Inter_18pt-Black.ttf
         - asset: assets/fonts/Inter_18pt-Bold.ttf
