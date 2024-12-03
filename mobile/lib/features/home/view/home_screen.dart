@@ -3,10 +3,14 @@ import 'package:cecr_unwomen/constants/text_constants.dart';
 import 'package:cecr_unwomen/features/authentication/authentication.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/firebase/firebase.dart';
+import 'package:cecr_unwomen/temp_api.dart';
+import 'package:cecr_unwomen/utils.dart';
+import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:collection/collection.dart';
@@ -20,13 +24,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ColorConstants colorCons = ColorConstants();
-  bool isHousehold = true;
+  final ScrollController _scrollControllerHome = ScrollController();
+  bool isHouseholdTab = true;
   int _currentIndex = 0;
-  int roleId = 3;
+  final Map householdData = {};
+  final Map scraperData = {};
 
   changeBar() {
     setState(() {
-      isHousehold = !isHousehold;
+      isHouseholdTab = !isHouseholdTab;
     });
   }
 
@@ -43,80 +49,141 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final User? user = context.read<AuthenticationBloc>().state.user;
+    if (user == null) return;
+    isHouseholdTab = user.roleId != 3;
+    callApiGetOverallData();
+  }
+
+  callApiGetOverallData() async {
+    // TODO: move to bloc
+    if (!mounted) return;
+    final int roleId = context.read<AuthenticationBloc>().state.user!.roleId;
+    final data  = await TempApi.getOverallData();
+    print('data:$data');
+
+    if (!(data["success"] ?? false)) return;
+
+    if (roleId == 2) {
+      setState(() {
+        householdData['statistic'] = data["data"];
+      });
+    } else if (roleId == 3) {
+      setState(() {
+        scraperData['statistic'] = data["data"];
+      });
+    } else if (roleId == 1) {
+      setState(() {
+        householdData['statistic'] = data["data"]["household_overall_data"];
+        scraperData['statistic'] = data["data"]["scraper_overall_data"];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollControllerHome.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final Map allData = isHouseholdTab ? (householdData['statistic'] ?? {}) : (scraperData['statistic'] ?? {});
     final Widget adminWidget = Column(
       children: [
         HeaderWidget(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          child: Builder(
+            builder: (context) {
+              final User? user = context.watch<AuthenticationBloc>().state.user;
+              if (user == null) return const SizedBox();
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Row(
+                    children: [
+                      CustomCircleAvatar(
+                        size: 40,
+                        avatarUrl: user.avatarUrl,
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${user.firstName} ${user.lastName}",
+                              style: colorCons.fastStyle(
+                                  16, FontWeight.w600, colorCons.primaryBlack1)),
+                          const SizedBox(height: 2),
+                          Text("Hôm nay bạn thế nào?",
+                              style: colorCons.fastStyle(
+                                  14, FontWeight.w400, colorCons.primaryBlack1))
+                        ],
+                      ),
+                    ],
+                  ),
                   Container(
                     height: 40,
                     width: 40,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg"),
-                          fit: BoxFit.cover),
+                      color: Colors.white,
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Thái Đồng",
-                          style: colorCons.fastStyle(
-                              16, FontWeight.w600, colorCons.primaryBlack1)),
-                      const SizedBox(height: 2),
-                      Text("Hôm nay bạn thế nào?",
-                          style: colorCons.fastStyle(
-                              14, FontWeight.w400, colorCons.primaryBlack1))
-                    ],
+                    child: PhosphorIcon(PhosphorIcons.regular.bell,
+                        size: 24, color: colorCons.primaryBlack1),
                   ),
                 ],
-              ),
-              Container(
-                height: 40,
-                width: 40,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: PhosphorIcon(PhosphorIcons.regular.bell,
-                    size: 24, color: colorCons.primaryBlack1),
-              ),
-            ],
+              );
+            }
           ),
         ),
-        BarWidget(isHousehold: isHousehold, changeBar: changeBar),
-        CardStatistic(isHousehold: isHousehold),
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Text("Người cung cấp số liệu",
-                        style: colorCons.fastStyle(
-                            14, FontWeight.w600, const Color(0xFF666667))),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollControllerHome,
+            child: Column(
+              children: [
+                BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
+                CardStatistic(
+                  isHouseholdTab: isHouseholdTab, 
+                  statistic: allData
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Text(roleId == 1 ? "Người cung cấp số liệu" : "Thống kê số liệu đóng góp",
+                                    style: colorCons.fastStyle(
+                                        14, FontWeight.w600, const Color(0xFF666667))),
+                              );
+                            }
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
+                      ...allData["overall_data_one_month"].map((e) {
+                        return UserContributionWidget(oneDayData: e);
+                      }).toList()
+
+                      else const Center(
+                        child: Text("Không có dữ liệu", style: TextStyle(
+                          color: Color(0xFF808082),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500)
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const UserContributionWidget(),
-              const UserContributionWidget(),
-              const UserContributionWidget(),
-              const UserContributionWidget(),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -142,78 +209,98 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           )
         ),
-        BarWidget(isHousehold: isHousehold, changeBar: changeBar),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
-        const UserContributionWidget(),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
+                if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
+                ...allData["overall_data_one_month"].map((e) {
+                  return UserContributionWidget(oneDayData: e);
+                }).toList()
+                else
+                const Center(
+                  child: Text("Không có dữ liệu", style: TextStyle(
+                    color: Color(0xFF808082),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500)
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
 
-    final Widget userInfoWidget = Container(
-      width: double.maxFinite,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 40),
-          Container(
-            height: 104,
-            width: 104,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: NetworkImage(
-                      "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg"),
-                  fit: BoxFit.cover),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text("Thái Đồng", style: colorCons.fastStyle(18,FontWeight.w700, const Color(0xFF333334))),
-          const SizedBox(height: 12),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () { },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9).withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text("Sửa thông tin", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFF4CAF50))),
+    final Widget userInfoWidget = Builder(
+      builder: (context) {
+        final User user = context.watch<AuthenticationBloc>().state.user!;
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              width: double.maxFinite,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  Container(
+                    height: 104,
+                    width: 104,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                          image: NetworkImage(
+                              "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg"),
+                          fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text("${user.firstName} ${user.lastName}", style: colorCons.fastStyle(18,FontWeight.w700, const Color(0xFF333334))),
+                  const SizedBox(height: 12),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () { },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9).withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text("Sửa thông tin", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFF4CAF50))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  UserInfoItem(
+                    text: "Về chúng tôi",
+                    icon: PhosphorIcons.regular.users,
+                    onTap: () { },
+                  ),
+                  UserInfoItem(
+                    text: "Đổi mật khẩu",
+                    icon: PhosphorIcons.regular.lock,
+                    onTap: () { },
+                  ),
+                  UserInfoItem(
+                    text: "Đăng xuất",
+                    isLogout: true,
+                    icon: PhosphorIcons.regular.signOut,
+                    onTap: () {
+                      context.read<AuthenticationBloc>().add(LogoutRequest());
+                    },
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          UserInfoItem(
-            text: "Về chúng tôi",
-            icon: PhosphorIcons.regular.users,
-            onTap: () { },
-          ),
-          UserInfoItem(
-            text: "Đổi mật khẩu",
-            icon: PhosphorIcons.regular.lock,
-            onTap: () { },
-          ),
-          UserInfoItem(
-            text: "Đăng xuất",
-            isLogout: true,
-            icon: PhosphorIcons.regular.signOut,
-            onTap: () {
-              context.read<AuthenticationBloc>().add(LogoutRequest());
-            },
-          ),
-        ],
-      ),
+        );
+      }
     );
+
+    final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F5),
@@ -222,8 +309,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () { 
           Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
         },
-        child: Icon(PhosphorIcons.regular.plus, size: 24, color: Colors.white),
         backgroundColor: const Color(0xFF4CAF50),
+        child: Icon(PhosphorIcons.regular.plus, size: 24, color: Colors.white),
       ) : null,
       bottomNavigationBar: SalomonBottomBar(
         backgroundColor: Colors.white,
@@ -253,11 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ..add(OpenMessageBackground())
           ..add(OpenMessageTerminated())
           ..add(ReceiveMessageForeground()),
-        child: SingleChildScrollView(
-          child: _currentIndex == 0 ? adminWidget
-            : _currentIndex == 1 ? adminStatisticWidget
-            : userInfoWidget,
-          ),
+        child: _currentIndex == 0 ? adminWidget
+          : _currentIndex == 1 ? adminStatisticWidget
+          : userInfoWidget,
         ),
       );
     }
@@ -275,6 +360,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
   final ColorConstants colorCons = ColorConstants();
   double totalkgCO2e = 0.0;
   final List inputData = [];
+  DateTime _selectedDate = DateTime.now();
 
   updateTotalKgCO2e(Map data) {
     if (inputData.isNotEmpty) {
@@ -290,6 +376,52 @@ class _ContributionScreenState extends State<ContributionScreen> {
     setState(() {
       totalkgCO2e = inputData.fold(0.0, (previousValue, element) => previousValue + element["co2e"]);
     });
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  callApiToContributeData() async {
+    if (!mounted) return;
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final String formattedDate = formatter.format(_selectedDate);
+
+    final Map data = {
+      "date": formattedDate,
+      "data_entry": inputData
+    };
+    final res = await TempApi.contributionData(data);
+    if (!(res["success"] ?? false)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: const Duration(seconds: 2),
+        content: Text('Gửi dữ liệu thất bại. ${res["message"]}', style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: const Duration(seconds: 2),
+        content: Text('Gửi dữ liệu thành công', style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ));
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -332,19 +464,58 @@ class _ContributionScreenState extends State<ContributionScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: input.map((Map e) {
-                    final String text = e.values.last;
-                    return ContributionInput(
-                      textHeader: text,
-                      factorId: e['factor_id'],
-                      callBack: (Map data) {
-                        print('daataaa$data');
-                        updateTotalKgCO2e(data);
-                      },
-                      onlyInteger: e['factor_id'] < 5 && widget.roleId == 2 ? true : false,
-                      unitValue: e['unit_value'],
-                    );
-                  }).toList(),
+                  children: [
+                    const Text("Ngày nhập số liệu", style: TextStyle(
+                      color: Color(0xFF1D1D1E),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600)
+                    ),
+                    const SizedBox(height: 10),
+                    InkWell(
+                      radius: 12,
+                      onTap: () => _pickDate(context),
+                      child: Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                                style: const TextStyle(
+                                  color: Color(0xFF333334),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                              ),
+                              Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xFF808082)),
+                            ],
+                          ),
+                        )
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: input.map((Map e) {
+                        final String text = e.values.last;
+                        return ContributionInput(
+                          textHeader: text,
+                          factorId: e['factor_id'],
+                          callBack: (Map data) {
+                            updateTotalKgCO2e(data);
+                          },
+                          onlyInteger: e['factor_id'] < 5 && widget.roleId == 2 ? true : false,
+                          unitValue: e['unit_value'],
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 )
               ),
             ),
@@ -435,16 +606,8 @@ class _ContributionScreenState extends State<ContributionScreen> {
                 ),
                 const SizedBox(height: 12),
                 InkWell(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      duration: const Duration(seconds: 2),
-                      content: Text('Gửi dữ liệu thành công', style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ));
-                    Navigator.pop(context);
+                  onTap: () async {
+                    await callApiToContributeData();
                   },
                   child: Container(
                     width: double.maxFinite,
@@ -478,7 +641,6 @@ class ContributionInput extends StatefulWidget {
 
 class _ContributionInputState extends State<ContributionInput> {
   final TextEditingController _controller = TextEditingController();
-  // final FocusNode _focusNode = FocusNode();
   double co2eValue = 0.0;
 
   updateValue(currentValue) {
@@ -620,7 +782,7 @@ class _ContributionInputState extends State<ContributionInput> {
                           LengthLimitingTextInputFormatter(3)
                         ],
                         placeholder: "Nhập số lượng",
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF4F4F5),
                           borderRadius: BorderRadius.circular(2),
@@ -629,7 +791,8 @@ class _ContributionInputState extends State<ContributionInput> {
                         style: const TextStyle(
                           color: Color(0xFF333334),
                           fontSize: 17,
-                          fontWeight: FontWeight.w500
+                          fontWeight: FontWeight.w500,
+                          fontFamily: "Inter"
                         ),
                       ),
                     )
@@ -749,7 +912,8 @@ class UserInfoItem extends StatelessWidget {
 }
 
 class UserContributionWidget extends StatefulWidget {
-    const UserContributionWidget({super.key});
+  const UserContributionWidget({super.key, required this.oneDayData});
+  final Map oneDayData;
 
   @override
   State<UserContributionWidget> createState() => _UserContributionWidgetState();
@@ -762,49 +926,174 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
       children: [
         Icon(icon, size: 16, color: const Color(0xFF808082)),
         const SizedBox(width: 12),
-        Text(text,
-            style: const TextStyle(
-                color: Color(0xFF333334),
-                fontSize: 16,
-                fontWeight: FontWeight.w500)),
+        Text(text, style: const TextStyle(
+          color: Color(0xFF333334),
+          fontSize: 16,
+          fontWeight: FontWeight.w500
+        )),
+      ],
+    );
+  }
+
+  num countTotal() {
+    return widget.oneDayData.entries.fold(0, (previousValue, element) {
+      if (!element.key.contains("reduced")) return previousValue;
+      return previousValue + element.value;
+    });
+  }
+
+  String? getAvatarUrl() {
+    final bool hasAvatar = widget.oneDayData["avatar_url"] != null;
+    if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
+    return widget.oneDayData["avatar_url"];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final User user = context.watch<AuthenticationBloc>().state.user!;
+    final String name = Utils.getContributorName(widget.oneDayData["first_name"], widget.oneDayData["last_namej"]) ?? "${user.firstName} ${user.lastName}";
+    final String? avatarUrl = getAvatarUrl();
+    final String date = Utils.parseContributionDate(widget.oneDayData["inserted_at"]);
+    final num totalCo2e = countTotal();
+    // "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg",
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Material(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.transparent,
+        child: InkWell(
+          radius: 12,
+          onTap: () {
+            showModalBottomSheet(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+              context: context,
+              isScrollControlled: true,
+              builder: (context) {
+                return UserContributionDetailScreen(oneDayData: widget.oneDayData);
+              }
+            );
+          },
+          child: Container(
+            height: 100,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomCircleAvatar(
+                  avatarUrl: avatarUrl,
+                  size: 56,
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
+                    _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
+                    _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
+                      icon: PhosphorIcons.regular.cloud
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class UserContributionDetailScreen extends StatefulWidget {
+  const UserContributionDetailScreen({super.key, required this.oneDayData});
+  final Map oneDayData;
+
+  @override
+  State<UserContributionDetailScreen> createState() => _UserContributionDetailScreenState();
+}
+
+class _UserContributionDetailScreenState extends State<UserContributionDetailScreen> {
+  final ColorConstants colorCons = ColorConstants();
+
+  String? getAvatarUrl() {
+    final bool hasAvatar = widget.oneDayData["avatar_url"] != null;
+    if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
+    return widget.oneDayData["avatar_url"];
+  }
+
+  _buildRowItem({required String text, required IconData icon}) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF808082)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(text,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Color(0xFF333334),
+            fontSize: 16,
+            fontWeight: FontWeight.w500
+          )),
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+    final String? avatarUrl = getAvatarUrl();
+    return Column(
+      children: [
+        HeaderWidget(child:
           Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: Color(0xFF66BB6A),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(PhosphorIcons.regular.user, size: 24, color: Colors.white),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.only(top: 15),
+            child: Row(
             children: [
-              _buildRowItem(text: "Thái Đồng", icon: PhosphorIcons.regular.user),
-              _buildRowItem(text: "04/11/2024 - 22:32", icon: PhosphorIcons.regular.clock),
-              _buildRowItem(text: "500g CO₂e", icon: PhosphorIcons.regular.cloud),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Icon(PhosphorIcons.regular.arrowLeft, size: 24, color: const Color(0xFF29292A))),
+              const SizedBox(width: 10),
+              Text("Chi tiết", style: colorCons.fastStyle(18, FontWeight.w600, const Color(0xFF29292A))),
             ],
-          ),
-        ],
-      ),
+            ),
+          )
+        ),
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 20),
+                child: CustomCircleAvatar(
+                  size: 88,
+                  avatarUrl: avatarUrl,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
+                    _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
+                    _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
+                      icon: PhosphorIcons.regular.cloud
+                    ),
+                  ],
+                )
+              )
+            ]
+          )
+        ),
+      ],
     );
   }
 }
@@ -840,12 +1129,13 @@ class HeaderWidget extends StatelessWidget {
 }
 
 class CardStatistic extends StatelessWidget {
-  const CardStatistic({super.key, required this.isHousehold});
-  final bool isHousehold;
+  const CardStatistic({super.key, required this.isHouseholdTab, required this.statistic});
+  final bool isHouseholdTab;
+  final Map statistic;
 
   @override
   Widget build(BuildContext context) {
-    final String key = isHousehold ? 'household' : 'scraper';
+    final String key = isHouseholdTab ? 'household' : 'scraper';
     final List householdIcons = [
       PhosphorIcons.fill.users,
       PhosphorIcons.fill.package,
@@ -859,7 +1149,14 @@ class CardStatistic extends StatelessWidget {
       PhosphorIcons.fill.trashSimple,
       PhosphorIcons.fill.currencyCircleDollar,
     ];
+    final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
+    final Map<String, String> keysStatistic = 
+        roleId == 1 ? adminStatistic[key] ?? {}
+      : roleId == 2 ? householdStatistic
+      : scraperStatistic;
+    
     return Container(
+      margin: EdgeInsets.only(top: roleId == 1 ? 0 : 16),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.count(
         padding: const EdgeInsets.only(top: 0),
@@ -868,14 +1165,17 @@ class CardStatistic extends StatelessWidget {
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         physics: const NeverScrollableScrollPhysics(),
-        children: adminStatistic[key]!.entries.mapIndexed((i, e) {
-          final icon = isHousehold ? householdIcons[i] : scraperIcons[i];
+        children: keysStatistic.entries.mapIndexed((i, e) {
+          final icon = roleId == 1 ? isHouseholdTab ? householdIcons[i] : scraperIcons[i]
+              : roleId == 2 ? householdIcons[i] : scraperIcons[i];
+
           return CardInfoWidget(
             icon: PhosphorIcon(
               icon, size: 100, color: Colors.white
             ),
             text: e.value,
-            number: 999
+            number: i == 0 && roleId != 1 ? (statistic["days_joined"] ?? 0).toString() : 
+              i == 0 && roleId == 1 ? (statistic[e.key] ?? 0).toString() : (statistic[e.key] ?? 0).toStringAsFixed(2)
           );
         }).toList(),
       ),
@@ -887,7 +1187,7 @@ class CardInfoWidget extends StatelessWidget {
   const CardInfoWidget({super.key, required this.icon, required this.text, required this.number});
   final Widget icon;
   final String text;
-  final int number;
+  final String number;
 
   @override
   Widget build(BuildContext context) {
@@ -910,7 +1210,7 @@ class CardInfoWidget extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w500)),
                 const SizedBox(height: 10),
-                Text("$number",
+                Text(number,
                     style: const TextStyle(
                         color: Color(0xFF29292A),
                         fontSize: 24,
@@ -952,6 +1252,10 @@ class _BarWidgetState extends State<BarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
+    if (roleId != 1) {
+      return const SizedBox(height: 16);
+    }
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
       padding: const EdgeInsets.symmetric(vertical: 10),
