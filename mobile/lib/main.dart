@@ -22,7 +22,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const App(),
-      theme: ThemeData(fontFamily: 'Satoshi'),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Inter'
+      ),
       // localizationsDelegates: [
       //   S.delegate,
       //   GlobalMaterialLocalizations.delegate,

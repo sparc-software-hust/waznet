@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Utils {
   static Future<String?> getFirebaseToken() async {
@@ -7,8 +8,22 @@ class Utils {
     return fcmToken;
   }
   // static String apiUrl = "http://192.168.0.9:4000/api";
-  // static String apiUrl = "http://192.168.1.203:4000/api";
-  static String apiUrl = "http://103.200.20.242:4000/api";
+  static String apiUrl = "http://192.168.1.200:4000/api";
+  // static String apiUrl = "http://103.200.20.242:4000/api";
+
+  static String parseContributionDate(String input) {
+    final DateTime? date = DateTime.tryParse(input);
+    if (date == null) return "";
+    final DateFormat formatter = DateFormat('dd/MM/yyyy - HH:mm');
+    final String formattedDate = formatter.format(date.add(const Duration(hours: 7)));
+    return formattedDate;
+  }
+
+  static String? getNameContributor(String? firstName, String? lastName) {
+    final bool hasName = firstName != null && lastName != null;
+    if (!hasName) return null;
+    return "$firstName $lastName";
+  }
 
   static Future<dynamic> showDialogWarningError(BuildContext context, bool isDark, String warningContent) {
     final Color colorInput = isDark ? const Color(0xFF25282A) : const Color(0xFFF2F4F7);

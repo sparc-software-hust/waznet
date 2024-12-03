@@ -26,7 +26,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           case AuthenticationStatus.unauthorized:
             return emit(state.copyWith(status: AuthenticationStatus.unauthorized));
           default:
-            return emit(state.copyWith(status: AuthenticationStatus.loading));
+            return emit(state.copyWith(status: AuthenticationStatus.error));
         }
       },
       onError: (e, t) {

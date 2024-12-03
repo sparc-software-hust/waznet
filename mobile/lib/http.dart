@@ -19,7 +19,6 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     if (accessToken == null || accessExp == null || refreshToken == null) {
       // return handler.next(options);
       // logout
-
       return;
     }
 
@@ -42,6 +41,7 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     } else {
       options.headers['Authorization'] = "Bearer $accessToken";
     }
+    print('gdnfkjg:$accessToken');
     return handler.next(options);
   },
 
