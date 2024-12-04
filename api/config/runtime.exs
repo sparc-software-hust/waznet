@@ -29,6 +29,7 @@ if config_env() == :prod do
     http: [port: port],
     url: [host: host],
     server: true,
+		debug_errors: true,
     check_origin: ["//#{host}"],
     secret_key_base: secret_key_base
   
