@@ -41,7 +41,6 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     } else {
       options.headers['Authorization'] = "Bearer $accessToken";
     }
-    print('gdnfkjg:$accessToken');
     return handler.next(options);
   },
 

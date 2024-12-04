@@ -61,8 +61,8 @@ enum Gender {
 
 Gender _getGenderBasedOnInt(int? gender) {
   switch (gender) {
-      case 1: return Gender.male;  
-      case 2: return Gender.female;  
+      case 1: return Gender.male;
+      case 2: return Gender.female;
       default: return Gender.other;
     }
 }
