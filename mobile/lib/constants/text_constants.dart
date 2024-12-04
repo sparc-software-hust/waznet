@@ -21,8 +21,8 @@ const scraperDetailContribution = {
 };
 const householdDetailContribution = {
   1: "túi nilon từ chối sử dụng khi đi chợ",
-  2: "chai nhựa PET từ chối mua nhờ bình cá nhân",
-  3: "cốc dùng một lần từ chối sử dụng nhờ bình nước cá nhân",
+  2: "chai nhựa PET từ chối mua nhờ mang bình cá nhân",
+  3: "cốc dùng một lần từ chối sử dụng nhờ mang bình nước cá nhân",
   4: "ống hút nhựa từ chối sử dụng",
   5: "kg rác NHỰA phân loại để tái chế",
   6: "kg rác GIẤY phân loại để tái chế",
@@ -65,11 +65,11 @@ const householdInput = {
   },
   2: {
     'unit_value': 0.08,
-    'pet_bottle_rejected': "Số lượng chai nhựa từ chối sử dụng nhờ mua bình cá nhân (cái)",
+    'pet_bottle_rejected': "Số lượng chai nhựa từ chối sử dụng nhờ mang bình cá nhân (cái)",
   },
   3: {
     'unit_value': 0.05,
-    'plastic_cup_rejected': "Số lượng cốc nhựa từ chối sử dụng nhờ mua bình cá nhân (cái)",
+    'plastic_cup_rejected': "Số lượng cốc nhựa từ chối sử dụng nhờ mang bình cá nhân (cái)",
   },
   4: {
     'unit_value': 0.00146,

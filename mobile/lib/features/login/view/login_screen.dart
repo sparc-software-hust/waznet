@@ -342,7 +342,7 @@ class _RegisterBoxState extends State<RegisterBox> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDate) {
@@ -411,7 +411,7 @@ class _RegisterBoxState extends State<RegisterBox> {
         _buildHeaderWidget("Ngày sinh"),
         InkWell(
           radius: 8,
-          canRequestFocus: false,
+          // canRequestFocus: false,
           onTap: () => _pickDate(context),
           child: Container(
             height: 44,
@@ -459,7 +459,6 @@ class _RegisterBoxState extends State<RegisterBox> {
         CustomTextField(
           label: "Mật khẩu",
           placeholder: "mật khẩu",
-          isOnlyNumber: true,
           keyword: "password",
           hasBorder: false,
           isPassword: true,
