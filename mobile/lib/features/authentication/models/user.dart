@@ -10,7 +10,7 @@ class User extends Equatable {
   final String? avatarUrl;
   final Gender gender;
   final int roleId;
-  final Map? location;
+  final String? location;
 
   const User({
     required this.id,
