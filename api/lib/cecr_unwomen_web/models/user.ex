@@ -13,7 +13,7 @@ defmodule CecrUnwomenWeb.Models.User do
     field :password_hash, :string
     field :gender, :integer, default: 2
     field :date_of_birth, :date
-    field :location, :map
+    field :location, :string
     field :refresh_token, :string
     field :verified, :boolean
 
