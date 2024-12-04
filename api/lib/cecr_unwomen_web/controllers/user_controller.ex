@@ -66,7 +66,9 @@ defmodule CecrUnwomenWeb.UserController do
             }
             Helper.response_json_with_data(true, "Tạo tài khoản thành công", res_data)
 
-          _ -> Helper.response_json_message(false, "Không thể tạo tài khoản, vui lòng liên hệ quản trị viên!", 300)
+          {:error, e} ->
+            IO.inspect(e, label: "gndkjfd")
+            Helper.response_json_message(false, "Không thể tạo tài khoản, vui lòng liên hệ quản trị viên!", 300)
         end
     end
 
