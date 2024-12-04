@@ -14,6 +14,13 @@ class AuthenticationApi {
     return response.data;
   }
 
+  static Future<Map> register(data) async {
+    const String url = "/user/register";
+    final dioWithoutInterceptor = Dio()..options.baseUrl = Utils.apiUrl;
+    final Response response = await dioWithoutInterceptor.post(url, data: data);
+    return response.data;
+  }
+
   static Future<void> logout(String userId) async {
     const String url = "/user/logout";
     await dioConfigInterceptor.post(url, data: {"user_id": userId});
