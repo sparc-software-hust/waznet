@@ -11,47 +11,58 @@ defmodule CecrUnwomenWeb.UserController do
     first_name = params["first_name"]
     last_name = params["last_name"]
     plain_password = params["password"]
+    role_id = params["role_id"]
+    code = params["code"]
+    birth = params["birth"]
+    gender = params["gender"]
+    location = params["location"]
 
     is_pass_phone_number = validate_phone_number_length(phone_number) && !has_user_with_phone_number(phone_number)
     is_pass_password = validate_password_length(plain_password)
+    is_pass_admin_role = role_id == 1 && code == "03120045" || role_id != 1
 
     is_ready_to_insert = !is_nil(first_name) && !is_nil(last_name) && is_pass_password
     response = cond do
       !is_pass_phone_number -> Helper.response_json_message(false, "Số điện thoại không đúng hoặc đã tồn tại!", 279)
       !is_ready_to_insert -> Helper.response_json_message(false, "Bạn nhập thiếu các thông tin cần thiết! Vui lòng kiểm tra lại!", 301)
+      !is_pass_admin_role -> Helper.response_json_message(false, "Bạn không thể đăng ký làm admin!", 301)
       true ->
         # TODO: validate role for admin
-        init_role_id = 2
         user_id = Ecto.UUID.generate()
         password_hash = Argon2.hash_pwd_salt(plain_password)
         data_jwt = %{
           "user_id" => user_id,
-          "role_id" => init_role_id
+          "role_id" => role_id
         }
 
         {_, refresh_token, _} = Helper.create_token(data_jwt, :refresh_token)
         {_, access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
 
+        birth = if is_nil(birth), do: nil, else: Date.from_iso8601!(birth)
+
         User.changeset(%User{}, %{
           id: user_id,
           first_name: first_name,
           last_name: last_name,
-          role_id: init_role_id,
+          role_id: role_id,
           phone_number: phone_number,
           password_hash: password_hash,
-          refresh_token: refresh_token
+          refresh_token: refresh_token,
+          birth: birth,
+          location: location,
+          gender: gender
         })
         |> Repo.insert
         |> case do
           {:ok, user} ->
+            user_map = Helper.get_user_map_from_struct(user)
+              # |> Map.drop([:location, :avatar_url, :date_of_birth, :email])
+            RedisDB.update_user(user_map)
             res_data = %{
               "access_token" => access_token,
               "access_exp" => access_exp,
               "refresh_token" => user.refresh_token,
-              "user_id" => user.id,
-              "role_id" => user.role_id,
-              "first_name" => user.first_name,
-              "last_name" => user.last_name
+              "user" => user_map
             }
             Helper.response_json_with_data(true, "Tạo tài khoản thành công", res_data)
 
