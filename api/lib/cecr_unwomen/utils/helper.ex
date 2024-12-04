@@ -111,8 +111,10 @@ defmodule CecrUnwomen.Utils.Helper do
   end
 
   def get_vietnam_date_today() do
+    # TODO: change correct time
     NaiveDateTime.utc_now()
     |> NaiveDateTime.add(7 * 3600, :second)
+    # |> NaiveDateTime.add(-10, :day)
     |> NaiveDateTime.to_date
   end
 end

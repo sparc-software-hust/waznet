@@ -27,7 +27,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         constant_value = GenServer.call(ConstantWorker, :get_scrap_factors)
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kg_co2e_reduced: 0, expense_reduced: 0, kg_collected: 0 }, fn d, acc ->
+          overall = Enum.reduce(data_entry, %{ kg_co2e_reduced: 0.0, expense_reduced: 0.0, kg_collected: 0.0 }, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
 
             %ScraperContribution{
@@ -45,7 +45,6 @@ defmodule CecrUnwomenWeb.ContributionController do
           overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg_collected))
           |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
           |> Enum.into(%{})
-          # TODO: check with float.round(0, 2)
 
           %OverallScraperContribution{
             date: date,
@@ -55,7 +54,6 @@ defmodule CecrUnwomenWeb.ContributionController do
             expense_reduced: overall.expense_reduced
           } |> Repo.insert
 
-          # TODO: set key based on overall
           keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
           Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
@@ -68,7 +66,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         constant_value = GenServer.call(ConstantWorker, :get_household_factors)
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kg_co2e_plastic_reduced: 0, kg_co2e_recycle_reduced: 0, kg_recycle_collected: 0 }, fn d, acc ->
+          overall = Enum.reduce(data_entry, %{ kg_co2e_plastic_reduced: 0.0, kg_co2e_recycle_reduced: 0.0, kg_recycle_collected: 0.0}, fn d, acc ->
             %{"factor_id" => factor_id, "quantity" => quantity} = d
             # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
             quantity = if factor_id <= 4, do: round(quantity), else: quantity
@@ -238,6 +236,53 @@ defmodule CecrUnwomenWeb.ContributionController do
     json(conn, res)
   end
 
+  def get_detail_contribution(conn, params) do
+    user_id_request = conn.assigns.user.user_id
+    role_id_request = conn.assigns.user.role_id
+    user_id = params["user_id"]
+    date = params["date"] |> Date.from_iso8601!()
+    role_id = params["role_id"]
+
+    res = cond do
+      role_id_request == 1 ->
+        model = if role_id == 2, do: HouseholdContribution, else: ScraperContribution
+        data = model
+          |> where([m], m.user_id == ^user_id and m.date == ^date)
+          |> select([m], %{
+            id: m.id,
+            # user_id: m.user_id,
+            date: m.date,
+            factor_id: m.factor_id,
+            quantity: m.quantity,
+            # inserted_at: m.inserted_at
+          })
+          |> Repo.all()
+          |> IO.inspect(label: "hehe")
+        %{success: true, message: "Lấy dữ liệu thành công!", data: data}
+      true ->
+        is_same_user = user_id_request == user_id
+        if is_same_user do
+          model = if role_id_request == 2, do: HouseholdContribution, else: ScraperContribution
+          data = model
+            |> where([m], m.user_id == ^user_id_request and m.date == ^date)
+            |> select([m], %{
+              id: m.id,
+              # user_id: m.user_id,
+              date: m.date,
+              factor_id: m.factor_id,
+              quantity: m.quantity,
+              # inserted_at: m.inserted_at
+            })
+            |> Repo.all()
+            |> IO.inspect(label: "hehe")
+          %{success: true, message: "Lấy dữ liệu thành công!", data: data}
+        else
+          %{success: false, message: "Bạn không có quyền xem thông tin này!", code: 402}
+        end
+    end
+    json conn, res
+  end
+
   def get_overall_data(conn, _) do
     # check role id
     # neu admin lay nhung data sau:
@@ -263,6 +308,7 @@ defmodule CecrUnwomenWeb.ContributionController do
 
         today = Helper.get_vietnam_date_today()
         {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        overall_data_one_month = get_overall_contribution_one_month(user_id, role_id, start_month, end_month)
 
         sum_factors = if role_id == 2 do
           HouseholdContribution
@@ -286,6 +332,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         overall = Helper.aggregate_with_fields(query, keys)
           |> Map.put(:days_joined, count_days_joined)
           |> Map.put(:sum_factors, sum_factors)
+          |> Map.put(:overall_data_one_month, overall_data_one_month)
 
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
 
@@ -298,24 +345,55 @@ defmodule CecrUnwomenWeb.ContributionController do
         keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
         scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
 
-        {overall_scrapers_today, overall_households_today} = get_users_contribution_today()
+        today = Helper.get_vietnam_date_today()
+        {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        {overall_scrapers_one_month, overall_households_one_month} = get_user_contributions_by_range(start_month, end_month)
         {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
 
         overall = %{
-          household_overall_data:
-            household_overall_data
-            |> Map.put(:overall_households_today, overall_households_today)
-            |> Map.put(:household_total_kgco2e_seven_days, household_total_kgco2e_seven_days),
+          household_overall_data: household_overall_data
+            |> Map.put(:total_kgco2e_seven_days, household_total_kgco2e_seven_days)
+            |> Map.put(:overall_data_one_month, overall_households_one_month),
 
           scraper_overall_data: scraper_overall_data
-            |> Map.put(:overall_scrapers_today, overall_scrapers_today)
-            |> Map.put(:scraper_total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
+            |> Map.put(:total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
+            |> Map.put(:overall_data_one_month, overall_scrapers_one_month)
         }
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
       true ->
         Helper.response_json_message(false, "Bạn không có đủ quyền thực hiện thao tác!", 402)
     end
     json conn, res
+  end
+
+  defp get_overall_contribution_one_month(user_id, role_id, start_month, end_month) do
+    model_overall = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+    model_overall = model_overall
+    |> where([m], m.user_id == ^user_id and m.date >= ^start_month and m.date <= ^end_month)
+    |> order_by([m], desc: m.date)
+
+    if role_id == 3 do
+      model_overall
+      |> select([m], %{
+        id: m.id,
+        date: m.date,
+        kg_co2e_reduced: m.kg_co2e_reduced,
+        expense_reduced: m.expense_reduced,
+        kg_collected: m.kg_collected,
+        inserted_at: m.inserted_at,
+      })
+    else
+      model_overall
+      |> select([m], %{
+        id: m.id,
+        date: m.date,
+        kg_co2e_plastic_reduced: m.kg_co2e_plastic_reduced,
+        kg_co2e_recycle_reduced: m.kg_co2e_recycle_reduced,
+        kg_recycle_collected: m.kg_recycle_collected,
+        inserted_at: m.inserted_at
+      })
+    end
+    |> Repo.all
   end
 
   defp get_total_kgco2e_seven_days() do
@@ -349,17 +427,15 @@ defmodule CecrUnwomenWeb.ContributionController do
     {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days}
   end
 
-  defp get_users_contribution_today(limit \\ 50, page \\ 0) do
+  defp get_user_contributions_by_range(start_date, end_date, limit \\ 50, page \\ 0) do
     offset = limit * page
-
-    current_day = "2024-11-08" |> Date.from_iso8601!()
     # current_day = NaiveDateTime.local_now()
     #   |> NaiveDateTime.add(7 * 3600, :second)
     #   |> NaiveDateTime.to_date
 
-    overall_scrapers_today = OverallScraperContribution
+    overall_scrapers = OverallScraperContribution
       |> join(:left, [osc], u in User, on: u.id == osc.user_id)
-      |> where([osc], osc.date == ^current_day)
+      |> where([osc], osc.date >= ^start_date and osc.date <= ^end_date)
       |> order_by([osc], desc: :date)
       |> offset(^offset)
       |> limit(^limit)
@@ -371,19 +447,21 @@ defmodule CecrUnwomenWeb.ContributionController do
         user_id: osc.user_id,
         avatar_url: u.avatar_url,
         inserted_at: osc.inserted_at,
+        date: osc.date,
         first_name: u.first_name,
         last_name: u.last_name
       })
       |> Repo.all
 
-    overall_households_today = OverallHouseholdContribution
+    overall_households = OverallHouseholdContribution
       |> join(:left, [ohc], u in User, on: u.id == ohc.user_id)
-      |> where([ohc], ohc.date == ^current_day)
+      |> where([osc], osc.date >= ^start_date and osc.date <= ^end_date)
       |> order_by([ohc], desc: :date)
       |> offset(^offset)
       |> limit(^limit)
       |> select([ohc, u], %{
         id: ohc.id,
+        date: ohc.date,
         kg_co2e_plastic_reduced: ohc.kg_co2e_plastic_reduced,
         kg_co2e_recycle_reduced: ohc.kg_co2e_recycle_reduced,
         kg_recycle_collected: ohc.kg_recycle_collected,
@@ -395,7 +473,7 @@ defmodule CecrUnwomenWeb.ContributionController do
       })
       |> Repo.all
 
-    {overall_scrapers_today, overall_households_today}
+    {overall_scrapers, overall_households}
   end
 
 end
