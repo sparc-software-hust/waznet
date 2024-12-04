@@ -1,3 +1,4 @@
+import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,19 +8,20 @@ class Utils {
     final String? fcmToken = await FirebaseMessaging.instance.getToken();
     return fcmToken;
   }
-  // static String apiUrl = "http://192.168.0.9:4000/api";
-  static String apiUrl = "http://192.168.1.200:4000/api";
+  // static String apiUrl = "http://192.168.0.92:4000/api";
+  static String apiUrl = "http://14.225.211.176:4000/api";
+  // static String apiUrl = "http://192.168.1.200:4000/api";
   // static String apiUrl = "http://103.200.20.242:4000/api";
 
-  static String parseContributionDate(String input) {
+  static String parseContributionDate(String input, {String format = 'dd/MM/yyyy - HH:mm'}) {
     final DateTime? date = DateTime.tryParse(input);
     if (date == null) return "";
-    final DateFormat formatter = DateFormat('dd/MM/yyyy - HH:mm');
+    final DateFormat formatter = DateFormat(format);
     final String formattedDate = formatter.format(date.add(const Duration(hours: 7)));
     return formattedDate;
   }
 
-  static String? getNameContributor(String? firstName, String? lastName) {
+  static String? getContributorName(String? firstName, String? lastName) {
     final bool hasName = firstName != null && lastName != null;
     if (!hasName) return null;
     return "$firstName $lastName";
@@ -46,7 +48,6 @@ class Utils {
                       style: TextStyle(
                         color: isDark ? const Color(0xFFF6F6F7) : const Color(0xFF101828),
                         fontSize: 16,
-                        fontFamily: 'Roboto',
                         fontWeight: FontWeight.w700,
                       ),
                       textAlign: TextAlign.center,
@@ -56,8 +57,8 @@ class Utils {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text("Close", 
-                        style: TextStyle(color: Color(0xff05AABD), fontSize: 14, fontWeight: FontWeight.w500),),
+                      child: Text("Đóng",
+                        style: TextStyle(color: ColorConstants().bgClickable, fontSize: 16, fontWeight: FontWeight.w600),),
                     ),
                   ],
                 )

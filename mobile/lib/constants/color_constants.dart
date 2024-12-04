@@ -27,6 +27,9 @@ class ColorConstants {
   final Color textSubHeader = const Color(0xFF666667);
   final Color textPlaceholder = const Color(0xFF808082);
   final Color bgDisabled = const Color(0xFFC1C1C2);
+  final Color bgApp = const Color(0xFFF4F4F5);
+  final Color textBold = const Color(0xFF1D1D1E);
+  final Color textChild = const Color(0xFF4D4D4E);
   final Color bgClickable = const Color(0xFF4CAF50);
   final Color border = const Color(0xFFE3E3E5);
 

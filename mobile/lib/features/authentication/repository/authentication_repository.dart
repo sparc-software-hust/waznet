@@ -33,7 +33,25 @@ class AuthRepository {
       _controller.add(AuthenticationStatus.error);
       return false;
     }
-    
+  }
+
+  static Future<Map> register(Map data) async {
+    try {
+      final Map res = await AuthenticationApi.register(data);
+      final bool isLoginSuccess = res["success"];
+      if (isLoginSuccess) {
+        await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
+        await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
+        _controller.add(AuthenticationStatus.authorized);
+      } else {
+        _controller.add(AuthenticationStatus.unauthorized);
+      }
+      return res;
+    } catch (e) {
+      print('gndkjf:$e');
+      _controller.add(AuthenticationStatus.error);
+      return {"success": false};
+    }
   }
 
   static Future<void> logout() async {
