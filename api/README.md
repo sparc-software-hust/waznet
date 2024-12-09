@@ -8,4 +8,4 @@
   - Application.fetch_env!(:cecr_unwomen, :ecto_repos) -> CecrUnwomen.Repo -> repo
   - :code.priv_dir(:cecr_unwomen) -> "some_path"
   => Code.eval_file("/app/lib/cecr_unwomen-0.1.0/priv/repo/seeds.exs")
-- deploy oke
+- deploy done, wait for cecr response
