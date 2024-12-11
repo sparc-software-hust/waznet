@@ -59,7 +59,7 @@ jobs:
           APPSTORE_APIKEY: ${{ secrets.APPSTORE_KEYID }}
         run: |
           mkdir -p ~/private_keys
-          echo -n "$APPSTORE_KEY_P8_BASE64" | base64 --decode > ~/private_keys/AuthKey_$APPSTORE_KEYID.p8
+          echo -n "$APPSTORE_KEY_P8_BASE64" | base64 --decode > ~/private_keys/AuthKey_$APPSTORE_APIKEY.p8
 
       - name: Install dependencies
         run: flutter pub get
@@ -75,5 +75,4 @@ jobs:
           APPSTORE_APIKEY: ${{ secrets.APPSTORE_KEYID }}
           APPSTORE_APIISSUER: ${{ secrets.APPSTORE_ISSUERID }}
         run: |
-          ls -l build/ios/ipa
-          xcrun altool --upload-app --type ios -f build/ios/ipa/*.ipa --apiKey $APPSTORE_KEYID --apiIssuer $APPSTORE_ISSUERID
+          xcrun altool --upload-app --type ios -f build/ios/ipa/*.ipa --apiKey $APPSTORE_APIKEY --apiIssuer $APPSTORE_APIISSUER
