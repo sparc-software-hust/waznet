@@ -1,10 +1,12 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
+import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/login/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -293,6 +295,7 @@ class _RegisterBoxState extends State<RegisterBox> {
   final ColorConstants colorConstants = ColorConstants();
   DateTime? _selectedDate;
   bool isLoading = false;
+  FToast fToast = FToast();
 
   Map registerData = {
     "first_name": "",
@@ -310,6 +313,7 @@ class _RegisterBoxState extends State<RegisterBox> {
   @override
   void initState() {
     super.initState();
+    fToast.init(context);
     registerData["birth"] = _selectedDate;
   }
 
@@ -318,11 +322,18 @@ class _RegisterBoxState extends State<RegisterBox> {
     final Map res = await AuthRepository.register(registerData);
     final bool isSuccess = res["success"];
     if (!isSuccess) {
-      ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(res["message"] ?? 'Không thể đăng ký! Vui lòng kiểm tra lại thông tin.')),
+      fToast.showToast(
+        child: ToastContent(
+          isSuccess: false, 
+          title: res["message"] ?? 'Không thể đăng ký! Vui lòng kiểm tra lại thông tin.'
+        ),
+        gravity: ToastGravity.BOTTOM
       );
+    //   ScaffoldMessenger.of(context)
+    //   ..hideCurrentSnackBar()
+    //   ..showSnackBar(
+    //     SnackBar(content: Text(res["message"] ?? 'Không thể đăng ký! Vui lòng kiểm tra lại thông tin.')),
+    //   );
     }
   }
 
