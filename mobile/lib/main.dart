@@ -26,13 +26,13 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Inter'
       ),
-      localizationsDelegates: [
+      localizationsDelegates: const [
         // S.delegate,
         // GlobalMaterialLocalizations.delegate,
         // GlobalWidgetsLocalizations.delegate,
         // GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('en'), // English
         Locale('vi'),
       ],
