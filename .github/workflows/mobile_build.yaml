@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
     paths:
-      - 'pubspec.yaml'
+      - 'mobile/pubspec.yaml'
 defaults:
   run:
     working-directory: ./mobile
