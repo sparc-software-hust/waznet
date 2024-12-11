@@ -126,7 +126,7 @@ class _PhoneNumberBoxState extends State<PhoneNumberBox> {
             )
           ),
           const SizedBox(height: 12),
-          Text("Đăng nhập/Đăng ký tài khoản WazNet ngay",
+          Text("Đăng nhập/Đăng ký tài khoản WazNet",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14, fontWeight: FontWeight.w500, color: colorConstants.textSubHeader
