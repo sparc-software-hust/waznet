@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: colorCons.fastStyle(
                                   16, FontWeight.w600, colorCons.primaryBlack1)),
                           const SizedBox(height: 2),
-                          Text("Hôm nay bạn thế nào?",
+                          Text("Hôm nay bạn thế nào??",
                               style: colorCons.fastStyle(
                                   14, FontWeight.w400, colorCons.primaryBlack1))
                         ],
