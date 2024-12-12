@@ -12,6 +12,7 @@ defaults:
 
 jobs:
   build-and-release-android:
+    name: Build PlayConsole Android App
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Github repo
@@ -58,7 +59,7 @@ jobs:
           status: completed
 
   build-and-release-ios:
-    name: Build iOS App
+    name: Build Testflight iOS App
     runs-on: macos-latest
     steps:
       - name: Checkout Github repo
