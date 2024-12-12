@@ -1,5 +1,10 @@
 # CecrUnwomen
-- Step configuration on server
+## Steps configuration local
+- mix deps.get
+- make bash -> mix ecto.migrate -> mix run priv/repo/seeds.exs
+- make dev
+
+## Steps configuration on server
 - install docker
 - make app
 - migrate db to server: docker ps, docker exec, /app/bin/migrate
