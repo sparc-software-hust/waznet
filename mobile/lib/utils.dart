@@ -1,4 +1,5 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
+import 'package:cecr_unwomen/secrets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,11 +9,7 @@ class Utils {
     final String? fcmToken = await FirebaseMessaging.instance.getToken();
     return fcmToken;
   }
-  // static String apiUrl = "http://192.168.0.92:4000/api";
-  static String apiUrl = "http://14.225.211.176:4000/api";
-  // static String apiUrl = "http://192.168.1.200:4000/api";
-  // static String apiUrl = "http://103.200.20.242:4000/api";
-
+  static String apiUrl = Secrets.apiUrl;
   static String parseContributionDate(String input, {String format = 'dd/MM/yyyy - HH:mm'}) {
     final DateTime? date = DateTime.tryParse(input);
     if (date == null) return "";

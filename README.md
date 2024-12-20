@@ -4,3 +4,4 @@
 - database migrations file
 - docker configuration
 - ci/cd
+- git-crypt
