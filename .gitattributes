@@ -1,0 +1,9 @@
+api/config/** filter=git-crypt diff=git-crypt
+api/priv/certs/** filter=git-crypt diff=git-crypt
+api/priv/repo/seeds.exs filter=git-crypt diff=git-crypt
+.env.* filter=git-crypt diff=git-crypt
+mobile/lib/secrets.dart filter=git-crypt diff=git-crypt
+mobile/android/app/google-services.json filter=git-crypt diff=git-crypt
+mobile/lib/firebase_options.dart filter=git-crypt diff=git-crypt
+mobile/ios/Runner/GoogleService-Info.plist filter=git-crypt diff=git-crypt
+mobile/firebase.json filter=git-crypt diff=git-crypt
