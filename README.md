@@ -20,3 +20,9 @@ App Store: [TestFlight]()
 
 ## Building
 Project is using git-crypt to encrypt all credentials, contact to repo's owner to get decryption key.
+
+## Roadmap
+- iOS/Android Push Notification
+- ZNS to forgot password flow
+- Export Excel statistics
+- Decrypt when run GHA 
