@@ -17,6 +17,10 @@ jobs:
     steps:
       - name: Checkout Github repo
         uses: actions/checkout@v4
+      - run: |
+          set -e
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          bash ./decryption.sh
       - name: Handle Android keystore
         id: android_keystore
         uses: timheuer/base64-to-file@v1.2
@@ -64,6 +68,8 @@ jobs:
     steps:
       - name: Checkout Github repo
         uses: actions/checkout@v4
+      - run: |
+          bash ./decryption.sh
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
