@@ -8,6 +8,4 @@ set -eo pipefail
 if ! command -v git-crypt &>/dev/null; then
   brew install git-crypt
 fi
-echo "${GIT_CRYPT_KEY}" | base64 -d >./git-crypt-key
-git-crypt unlock ./git-crypt-key
-rm ./git-crypt-key
+echo $GIT_CRYPT_KEY | base64 -d | git-crypt unlock -
