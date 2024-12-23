@@ -45,8 +45,9 @@ A product of SPARC Lab (HUST) and CECR.
 | Detail                                            | Detail                                               |
 |---------------------------------------------------|-----------------------------------------------------|
 | ![](mobile/assets/images/household_detail.JPG)      | ![](mobile/assets/images/contribution_1.JPG) |
-### Contribution detail
-| Detail                                            |
+
+### User info
+| User Info                                            |
 |---------------------------------------------------|
 | ![](mobile/assets/images/user_info.png)    | 
 </details>
@@ -68,4 +69,5 @@ Project is using git-crypt to encrypt all credentials, contributors need to cont
 
 ## Contact
 Email: sparc.hust@gmail.com
+
 Email: thai.dm279@gmail.com
