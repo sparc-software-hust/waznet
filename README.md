@@ -26,22 +26,22 @@ A product of SPARC Lab (HUST) and CECR.
 ### Login/Register
 | Login                                             | Register                                              |
 |---------------------------------------------------|-----------------------------------------------------|
-| ![](mobile/assets/images/login.png)               | ![](mobile/assets/images/register.png) |
+| ![](mobile/assets/images/login.PNG)               | ![](mobile/assets/images/register.PNG) |
 
 ### Home
 | Admin                                             | Household                                               |
 |---------------------------------------------------|-----------------------------------------------------|
-| ![](mobile/assets/images/admin_home.jpg)          | ![](mobile/assets/images/household_home.jpg) |
+| ![](mobile/assets/images/admin_home.JPG)          | ![](mobile/assets/images/household_home.JPG) |
 
 ### Contribution input
 | Input                                             | Input                                               |
 |---------------------------------------------------|-----------------------------------------------------|
-| ![](mobile/assets/images/contribution_input_2.png)      | ![](mobile/assets/images/contribution_input.png) |
+| ![](mobile/assets/images/contribution_input_2.PNG)      | ![](mobile/assets/images/contribution_input.PNG) |
 
 ### Contribution detail
 | Detail                                            | Detail                                               |
 |---------------------------------------------------|-----------------------------------------------------|
-| ![](mobile/assets/images/household_detail.jpg)      | ![](mobile/assets/images/contribution_1.jpg) |
+| ![](mobile/assets/images/household_detail.JPG)      | ![](mobile/assets/images/contribution_1.JPG) |
 ### Contribution detail
 | Detail                                            |
 |---------------------------------------------------|
