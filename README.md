@@ -1,6 +1,8 @@
 # WazNet
 <!-- <img src="mobile/assets/icon/logo_green.png" width="250" height="223" /> <img src="mobile/assets/icon/branding_color.png" /> -->
-<img src="mobile/assets/icon/logo_branding.png" />
+<p align="center">
+  <img src="mobile/assets/icon/logo_branding.png" />
+</p>
 
 **WazNet** (Waste zero, Net zero) is a mobile app that helps users track their contributions to greenhouse gas reduction.
 
