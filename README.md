@@ -1,5 +1,6 @@
 # WazNet
-<img src="mobile/assets/icon/logo_green.png" width="250" height="223" />
+<!-- <img src="mobile/assets/icon/logo_green.png" width="250" height="223" /> <img src="mobile/assets/icon/branding_color.png" /> -->
+<img src="mobile/assets/icon/logo_branding.png" />
 
 **WazNet** (Waste zero, Net zero) is a mobile app that helps users track their contributions to greenhouse gas reduction.
 
@@ -64,4 +65,5 @@ Project is using git-crypt to encrypt all credentials, contributors need to cont
 - Export Excel statistics
 
 ## Contact
+Email: sparc.hust@gmail.com
 Email: thai.dm279@gmail.com
