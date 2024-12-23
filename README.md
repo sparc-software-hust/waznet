@@ -16,6 +16,7 @@ A product of SPARC Lab (HUST) and CECR.
 ## Installing
 
 Google Play: Closed Beta Testing (send email address to email in contact)
+
 App Store: [TestFlight](https://testflight.apple.com/join/9wRutKJ9)
 
 ## Building
