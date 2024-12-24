@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ..add(OpenMessageTerminated())
           ..add(ReceiveMessageForeground()),
         child: _currentIndex == 0 ? adminWidget
-          : _currentIndex == 1 ? const StatisticScreen()
+          : _currentIndex == 1 ? StatisticScreen(householdStatisticData: householdData["statistic"] ?? {}, scraperStatisticData: scraperData["statistic"] ?? {})
           : const UserInfo(),
         ),
       );
