@@ -1,12 +1,15 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
+import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
-  const StatisticScreen({super.key});
+  const StatisticScreen({super.key, required this.householdStatisticData, required this.scraperStatisticData});
+  final Map householdStatisticData;
+  final Map scraperStatisticData;
 
   @override
   State<StatisticScreen> createState() => _StatisticScreenState();
@@ -24,6 +27,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Map allData = isHouseholdTab ? (widget.householdStatisticData) : (widget.scraperStatisticData);
     return Column(
       children: [
         HeaderWidget(
@@ -52,12 +56,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
             child: Column(
               children: [
                 BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
-                // if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
-                // ...allData["overall_data_one_month"].map((e) {
-                //   final int roleIdUser = isHouseholdTab ? 2 : 3;
-                //   return UserContributionWidget(oneDayData: {...e, "role_id": roleIdUser});
-                // }).toList()
-                // else
+                if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
+                ...allData["overall_data_one_month"].map((e) {
+                  final int roleIdUser = isHouseholdTab ? 2 : 3;
+                  return UserContributionWidget(oneDayData: {...e, "role_id": roleIdUser});
+                }).toList()
+                else
                 const Center(
                   child: Text("Không có dữ liệu", style: TextStyle(
                     color: Color(0xFF808082),
