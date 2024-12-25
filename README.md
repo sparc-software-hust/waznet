@@ -61,6 +61,14 @@ App Store: [TestFlight](https://testflight.apple.com/join/9wRutKJ9)
 ## Building
 Project is using git-crypt to encrypt all credentials, contributors need to contact to repo's owner to get decryption key.
 
+Install `git-crypt`: [MacOS, Ubuntu](https://github.com/AGWA/git-crypt/blob/master/INSTALL.md), [Windows](https://github.com/AGWA/git-crypt/releases/tag/0.7.0)
+
+After saving key somewhere in your directory, command:
+```bash
+git-crypt unlock <path_to_key>
+```
+If all files are decrypted, done! You can run code normally.
+
 ## Roadmap
 - iOS/Android Push Notification
 - Custom time schedule for sending reminder notification to users
