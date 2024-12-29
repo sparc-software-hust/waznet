@@ -1,7 +1,7 @@
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:equatable/equatable.dart';
 
-enum AuthenticationStatus { unknown, authorized, unauthorized, loading, error }
+enum AuthenticationStatus { unknown, authorized, unauthorized, loading, error, updated }
 
 class AuthenticationState extends Equatable {
   const AuthenticationState({

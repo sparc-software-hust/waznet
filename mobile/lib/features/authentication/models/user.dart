@@ -44,7 +44,7 @@ class User extends Equatable {
     "last_name": lastName,
     "email": email,
     "phone_number": phoneNumber,
-    "birth": dateOfBirth,
+    "birth": dateOfBirth?.toIso8601String(),
     "gender": convertGenderToInt(gender),
     "avatar_url": avatarUrl,
     "role_id": roleId,
@@ -78,6 +78,18 @@ class User extends Equatable {
       location: location ?? this.location,
     );
   }
+
+  // bool isChange(User user) {
+  //   return firstName != user.firstName 
+  //     || lastName != user.lastName
+  //     || email != user.email
+  //     || phoneNumber != user.phoneNumber
+  //     || dateOfBirth != user.dateOfBirth
+  //     || avatarUrl != user.avatarUrl
+  //     || gender != user.gender
+  //     || roleId != user.roleId
+  //     || location != user.location;
+  // }
   
   @override
   List<Object?> get props => [];

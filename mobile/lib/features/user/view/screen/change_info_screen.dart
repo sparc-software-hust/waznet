@@ -1,12 +1,14 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
-import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
+import 'package:cecr_unwomen/features/authentication/authentication.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
+import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -23,11 +25,13 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController birthDateController = TextEditingController();
-  late DateTime birthDate;
-  // Gender? gender;
+  DateTime? birthDate;
+  Gender? gender;
   final ColorConstants colorConstants = ColorConstants();
   late User user;
   late User userClone;
+  FToast fToast = FToast();
+
 
   @override
   void initState() {
@@ -38,19 +42,11 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     lastNameController.text = userClone.lastName;
     phoneController.text = userClone.phoneNumber;
     addressController.text = userClone.location ?? '';
-    birthDateController.text = userClone.dateOfBirth != null ? DateFormat("dd/MM/yy").format(userClone.dateOfBirth!) : "";
-    birthDate = userClone.dateOfBirth ?? DateTime.now();
-
-    firstNameController.addListener(firstNameListener);
-    lastNameController.addListener(lastNameListener);
-    phoneController.addListener(phoneListener);
-    addressController.addListener(addressListener);
+    birthDateController.text = userClone.dateOfBirth != null ? DateFormat("dd/MM/yyyy").format(userClone.dateOfBirth!) : "";
+    birthDate = userClone.dateOfBirth;
+    gender = userClone.gender;
+    fToast.init(context);
   }
-
-  void firstNameListener() => userClone = userClone.copyWith(firstName: firstNameController.text);
-  void lastNameListener() => userClone = userClone.copyWith(firstName: lastNameController.text);
-  void phoneListener() => userClone = userClone.copyWith(firstName: phoneController.text);
-  void addressListener() => userClone = userClone.copyWith(firstName: addressController.text);
 
   void _showDatePicker() {
       showCupertinoModalPopup<void>(
@@ -79,7 +75,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                     children: [
                       InkWell(
                         onTap: () {
-                          birthDate = userClone.dateOfBirth ?? DateTime.now();
+                          birthDate = DateTime.parse(birthDateController.text);
                           Navigator.pop(context);
                         } ,
                         child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
@@ -87,8 +83,9 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                       Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
                       InkWell(
                         onTap: () {
-                          birthDateController.text = DateFormat("dd/MM/yy").format(birthDate);
-                          setState(() => userClone = userClone.copyWith(dateOfBirth: birthDate));
+                          birthDate = birthDate ?? DateTime.now();
+                          birthDateController.text = DateFormat("dd/MM/yyyy").format(birthDate!);
+                          // setState(() => userClone = userClone.copyWith(dateOfBirth: birthDate));
                           Navigator.pop(context);
                         } ,
                         child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
@@ -115,6 +112,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(), 
       child: Scaffold(
@@ -218,8 +216,36 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: ElevatedButton(
-                  onPressed: () {
-                    UserApi.updateInfo(userClone.toJson());
+                  onPressed: () async {
+                    userClone = userClone.copyWith(
+                      firstName: firstNameController.text,
+                      lastName: lastNameController.text,
+                      phoneNumber: phoneController.text,
+                      location: addressController.text,
+                      gender: gender,
+                      dateOfBirth: birthDate
+                    );
+                    Map updatedUser = await UserApi.updateInfo(userClone.toJson());
+                    if (context.mounted) {
+                      if (updatedUser.isNotEmpty) {
+                        context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(updatedUser)));
+                        fToast.showToast(
+                          child: const ToastContent(
+                            isSuccess: true, 
+                            title: 'Cập nhật thành công'
+                          ),
+                          gravity: ToastGravity.BOTTOM
+                        );
+                      } else {
+                        fToast.showToast(
+                          child: const ToastContent(
+                            isSuccess: false, 
+                            title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+                          ),
+                          gravity: ToastGravity.BOTTOM
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
@@ -307,6 +333,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
           style: colorConstants.fastStyle(16, FontWeight.w400,const Color(0xff333334)),
           controller: birthDateController,
           decoration: InputDecoration(
+            suffixIcon: Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4CAF50),),
             filled: true,
             fillColor: Colors.white,
             hintText: "Chọn ngày sinh",
@@ -355,7 +382,6 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
         //       ),
         //     ),
         //   ),
-        
       ],
     );
   }
@@ -385,10 +411,10 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
   }
 
   Widget _buildGenderOption(String label, Gender value) {
-    final isSelected = userClone.gender == value;
+    final isSelected = gender == value;
     return InkWell(
       onTap: () {
-        setState(() => userClone = userClone.copyWith(gender: value));
+        setState(() => gender = value);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
@@ -413,10 +439,6 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
 
   @override
   void dispose() {
-    firstNameController.removeListener(firstNameListener);
-    lastNameController.removeListener(lastNameListener);
-    phoneController.removeListener(phoneListener);
-    addressController.removeListener(addressListener);
     firstNameController.dispose();
     lastNameController.dispose();
     phoneController.dispose();

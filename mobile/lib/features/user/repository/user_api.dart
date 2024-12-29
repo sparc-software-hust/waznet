@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:cecr_unwomen/http.dart';
-import 'package:cecr_unwomen/utils.dart';
 import 'package:dio/dio.dart';
 
 class UserApi {
@@ -11,14 +10,9 @@ class UserApi {
     return res.data;
   }
 
-  static void updateInfo(Map data) async {
-    print("payloadt: $data");
-    try {
-      const String url = "/user/update_info";
-      final Response res = await dioConfigInterceptor.post(url, data: jsonEncode(data));
-      print(res.data);
-    } catch (e) {
-      print("errr update info");
-    }
+  static Future<Map> updateInfo(Map data) async {
+    const String url = "/user/update_info";
+    final Response res = await dioConfigInterceptor.post(url, data: jsonEncode(data));
+    return res.data["data"];
   }
 }

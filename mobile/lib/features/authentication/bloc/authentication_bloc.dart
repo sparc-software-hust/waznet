@@ -10,6 +10,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<AuthSubscription>(_onAuthSubscription);
     on<LogoutRequest>(_onLogoutRequest);
     on<AutoLogin>(_onAutoLogin);
+    on<UpdateInfo>(_onUpdateInfo);
   }
 
   Future<void> _onAuthSubscription(AuthSubscription event, Emitter emit) async {
@@ -56,6 +57,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       emit(state.copyWith(status: AuthenticationStatus.authorized, user: user));
     } catch (e) {
       print('gndfkj:$e');
+      emit(state.copyWith(status: AuthenticationStatus.error));
+    }
+  }
+
+  Future<void> _onUpdateInfo(UpdateInfo event, Emitter emit) async {
+    try {
+      // print("event: ${event.user.toJson()}");
+      emit(state.copyWith(status: AuthenticationStatus.updated, user: event.user));
+    } catch (e) {
+      print('gndasdadfkj:$e');
       emit(state.copyWith(status: AuthenticationStatus.error));
     }
   }
