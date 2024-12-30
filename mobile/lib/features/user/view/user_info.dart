@@ -2,9 +2,11 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
+import 'package:cecr_unwomen/features/user/view/screen/app_info.dart';
 import 'package:cecr_unwomen/features/user/view/screen/change_info_screen.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
+import 'package:cecr_unwomen/widgets/navigation_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -51,7 +53,7 @@ class _UserInfoState extends State<UserInfo> {
                       context, 
                       MaterialPageRoute(builder: (context) => BlocProvider.value(
                         value: BlocProvider.of<AuthenticationBloc>(this.context),
-                        child: ChangeInfoScreen()))
+                        child: const ChangeInfoScreen()))
                     );
                   },
                   child: Container(
@@ -65,79 +67,34 @@ class _UserInfoState extends State<UserInfo> {
                 ),
               ),
               const SizedBox(height: 20),
-              UserInfoItem(
+              NavigationButton(
                 text: "Về chúng tôi",
                 icon: PhosphorIcons.regular.users,
-                onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                onTap: () =>  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => AppInfo())
+                  ),
               ),
-              UserInfoItem(
-                text: "Đổi mật khẩu",
+              NavigationButton(
+                text: "Thay đổi mật khẩu",
                 icon: PhosphorIcons.regular.lock,
                 onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
               ),
-              UserInfoItem(
+              NavigationButton(
+                text: "Xác thực sinh trắc học",
+                icon: PhosphorIcons.regular.fingerprint,
+                hasSwitch: true,
+                onToggleSwitch: (p0) => () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+              ),
+              NavigationButton(
                 text: "Đăng xuất",
-                isLogout: true,
+                isWarning: true,
                 icon: PhosphorIcons.regular.signOut,
                 onTap: () {
                   context.read<AuthenticationBloc>().add(LogoutRequest());
                 },
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class UserInfoItem extends StatelessWidget {
-  const UserInfoItem({super.key, required this.text, required this.icon, this.isLogout =  false, this.isBiometric = false, this.onTap});
-  final String text;
-  final IconData icon;
-  final bool isLogout;
-  final bool isBiometric;
-  final Function? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color iconColor = isLogout ? const Color(0xFFFF4F3F) : const Color(0xFF4CAF50);
-    final Color iconBgColor = isLogout ? const Color(0xFFFFE8D8) : const Color(0xFFE8F5E9).withOpacity(0.7);
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => onTap == null ? null : onTap!(),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, size: 20, color: iconColor),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(text, style: TextStyle(
-                    color: !isLogout ? const Color(0xFF333334) : const Color(0xFFFF4F3F),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600)
-                  ),
-                ),
-                Icon(PhosphorIcons.regular.caretRight, size: 20, color: const Color(0xFF4D4D4E)),
-              ],
-            ),
           ),
         ),
       ),

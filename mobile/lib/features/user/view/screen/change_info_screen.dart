@@ -48,72 +48,8 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     fToast.init(context);
   }
 
-  void _showDatePicker() {
-      showCupertinoModalPopup<void>(
-        context: context,
-        builder: (BuildContext context) => Material(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            child: Container(
-              height: 300,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
-              color: const Color(0xffFFFFFF),
-              child: Column(
-                children: [
-                  Container(
-                    height: 5,
-                    width: 45,
-                    margin: const EdgeInsets.only(top: 6, bottom: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xffC1C1C2),
-                      borderRadius: BorderRadius.circular(100)
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          birthDate = DateTime.parse(birthDateController.text);
-                          Navigator.pop(context);
-                        } ,
-                        child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                      ),
-                      Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
-                      InkWell(
-                        onTap: () {
-                          birthDate = birthDate ?? DateTime.now();
-                          birthDateController.text = DateFormat("dd/MM/yyyy").format(birthDate!);
-                          // setState(() => userClone = userClone.copyWith(dateOfBirth: birthDate));
-                          Navigator.pop(context);
-                        } ,
-                        child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                      )
-                    ],
-                  ),
-                  Flexible(
-                    child:  CupertinoDatePicker(
-                      initialDateTime: userClone.dateOfBirth ?? DateTime.now(),
-                      mode: CupertinoDatePickerMode.date,
-                      use24hFormat: true,
-                      onDateTimeChanged: (DateTime newDate) {
-                        birthDate = newDate;
-                      },
-                      dateOrder: DatePickerDateOrder.dmy,
-                    ),
-                  )
-                ],
-              )
-            ),
-          ),
-        ),
-      );
-    }
-
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(), 
       child: Scaffold(
@@ -269,6 +205,72 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     );
   }
 
+
+
+  void _showDatePicker() {
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (BuildContext context) => Material(
+          borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            child: Container(
+              height: 300,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
+              color: const Color(0xffFFFFFF),
+              child: Column(
+                children: [
+                  Container(
+                    height: 5,
+                    width: 45,
+                    margin: const EdgeInsets.only(top: 6, bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffC1C1C2),
+                      borderRadius: BorderRadius.circular(100)
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          birthDate = DateTime.parse(birthDateController.text);
+                          Navigator.pop(context);
+                        } ,
+                        child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
+                      ),
+                      Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
+                      InkWell(
+                        onTap: () {
+                          birthDate = birthDate ?? DateTime.now();
+                          birthDateController.text = DateFormat("dd/MM/yyyy").format(birthDate!);
+                          // setState(() => userClone = userClone.copyWith(dateOfBirth: birthDate));
+                          Navigator.pop(context);
+                        } ,
+                        child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
+                      )
+                    ],
+                  ),
+                  Flexible(
+                    child:  CupertinoDatePicker(
+                      initialDateTime: userClone.dateOfBirth ?? DateTime.now(),
+                      mode: CupertinoDatePickerMode.date,
+                      use24hFormat: true,
+                      onDateTimeChanged: (DateTime newDate) {
+                        birthDate = newDate;
+                      },
+                      dateOrder: DatePickerDateOrder.dmy,
+                    ),
+                  )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+    }
+
+
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
@@ -358,32 +360,6 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
             ),
           ),
         ),
-        // Material(
-        //   child: InkWell(
-        //     onTap: onTap,
-        //     },
-        //     borderRadius: BorderRadius.circular(8),
-        //     child: Container(
-        //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        //       decoration: BoxDecoration(
-        //         color: Colors.white,
-        //         borderRadius: BorderRadius.circular(8),
-        //         border: isPickedDate ? Border.all(color: Color(0xFF4CAF50)) : null
-        //       ),
-        //       child: Row(
-        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //         children: [
-        //           Text(
-        //             value != null
-        //                 ? DateFormat("dd/MM/yy").format(value)
-        //                 : 'Chọn ngày sinh',
-        //             style: colorConstants.fastStyle(14, FontWeight.w400, Color(value != null ? 0xff333334 : 0xffC1C1C2)),
-        //           ),
-        //           Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4CAF50),),
-        //         ],
-        //       ),
-        //     ),
-        //   ),
       ],
     );
   }
@@ -405,6 +381,10 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildGenderOption('Nữ', Gender.female),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildGenderOption('Khác', Gender.other),
             ),
           ],
         ),

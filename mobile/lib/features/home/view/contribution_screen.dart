@@ -629,10 +629,7 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
   }
 
   num countTotal() {
-    return widget.oneDayData.entries.fold(0, (previousValue, element) {
-      if (!element.key.contains("reduced")) return previousValue;
-      return previousValue + element.value;
-    });
+    return widget.oneDayData["kg_co2e_reduced"] ?? 0;
   }
 
   String? getAvatarUrl() {

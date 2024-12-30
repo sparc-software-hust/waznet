@@ -45,4 +45,7 @@ class ColorConstants {
       // letterSpacing: 0.1
     );
   }
+
+    TextStyle placeholderStyle() => fastStyle(14, FontWeight.w400, textPlaceholder);
+    TextStyle highlightPlaceHolderStyle() => fastStyle(14, FontWeight.w500, textSubHeader);
 }
