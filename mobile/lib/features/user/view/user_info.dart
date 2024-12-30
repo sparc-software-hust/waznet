@@ -2,6 +2,7 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
+import 'package:cecr_unwomen/features/user/view/screen/change_info_screen.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +46,14 @@ class _UserInfoState extends State<UserInfo> {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                  onTap: () {
+                     Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (context) => BlocProvider.value(
+                        value: BlocProvider.of<AuthenticationBloc>(this.context),
+                        child: ChangeInfoScreen()))
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(

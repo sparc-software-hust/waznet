@@ -7,7 +7,7 @@ import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/features/home/view/statistic_screen.dart';
-import 'package:cecr_unwomen/features/home/view/user_info.dart';
+import 'package:cecr_unwomen/features/user/view/user_info.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
