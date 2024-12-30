@@ -84,7 +84,9 @@ class _UserInfoState extends State<UserInfo> {
                 text: "Xác thực sinh trắc học",
                 icon: PhosphorIcons.regular.fingerprint,
                 hasSwitch: true,
-                onToggleSwitch: (p0) => () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                onToggleSwitch: (p0) {
+                  return Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển");
+                },
               ),
               NavigationButton(
                 text: "Đăng xuất",
