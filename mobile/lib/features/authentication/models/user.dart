@@ -31,7 +31,9 @@ class User extends Equatable {
     lastName: json["last_name"],
     email: json["email"] ?? "",
     phoneNumber: json["phone_number"],
-    dateOfBirth: DateTime.tryParse(json["date_of_birth"]),
+    dateOfBirth: json["date_of_birth"] != null 
+      ? DateTime.tryParse(json["date_of_birth"]) 
+      : null,
     avatarUrl: json["avatar_url"],
     gender: getGenderBasedOnInt(json["gender"]),
     roleId: json["role_id"],
