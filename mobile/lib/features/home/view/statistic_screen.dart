@@ -26,6 +26,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
     });
   }
 
+  _getRoleIdShowData() {
+    return widget.roleId == 1 ?
+      isHouseholdTab ? 2 : 3
+    : widget.roleId;
+  }
+
   @override
   Widget build(BuildContext context) {
     final Map allData = widget.roleId == 1 ?
@@ -63,7 +69,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
                 BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
                 if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
                 ...allData["overall_data_one_month"].map((e) {
-                  return UserContributionWidget(oneDayData: {...e, "role_id": widget.roleId});
+                  return UserContributionWidget(oneDayData: {...e, "role_id": _getRoleIdShowData()});
                 }).toList()
                 else
                 const Center(

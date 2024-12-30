@@ -629,7 +629,14 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
   }
 
   num countTotal() {
-    return widget.oneDayData["kg_co2e_reduced"] ?? 0;
+    final int roleId = widget.oneDayData["role_id"] ?? 0;
+    final Map data = widget.oneDayData;
+    switch (roleId) {
+      case 2:
+        return (data["kg_co2e_recycle_reduced"] ?? 0) + (data["kg_co2e_plastic_reduced"] ?? 0);
+      case 3: return data["kg_co2e_reduced"] ?? 0;
+      default: return 0;
+    }
   }
 
   String? getAvatarUrl() {
