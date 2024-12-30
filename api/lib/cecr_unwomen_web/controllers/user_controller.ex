@@ -179,9 +179,11 @@ defmodule CecrUnwomenWeb.UserController do
           key_atom = String.to_atom(key)
           value = case key do
             "date_of_birth" -> 
-              String.split(params[key], "T")
-              |> List.first()
-              |> Date.from_iso8601!()
+              if (!is_nil(params[key])) do
+                String.split(params[key], "T")
+                |> List.first()
+                |> Date.from_iso8601!()
+              end
               
             _ -> params[key]
           end
