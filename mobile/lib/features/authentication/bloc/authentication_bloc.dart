@@ -63,10 +63,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
   Future<void> _onUpdateInfo(UpdateInfo event, Emitter emit) async {
     try {
-      // print("event: ${event.user.toJson()}");
-      emit(state.copyWith(status: AuthenticationStatus.updated, user: event.user));
+      emit(state.copyWith(status: AuthenticationStatus.authorized, user: event.user));
     } catch (e) {
-      print('gndasdadfkj:$e');
+      print('udpate into :$e');
       emit(state.copyWith(status: AuthenticationStatus.error));
     }
   }

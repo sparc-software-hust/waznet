@@ -1,7 +1,7 @@
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:equatable/equatable.dart';
 
-enum AuthenticationStatus { unknown, authorized, unauthorized, loading, error, updated }
+enum AuthenticationStatus { unknown, authorized, unauthorized, loading, error}
 
 class AuthenticationState extends Equatable {
   const AuthenticationState({
@@ -23,5 +23,5 @@ class AuthenticationState extends Equatable {
   }
 
   @override
-  List<Object> get props => [status];
+  List<Object?> get props => [status, user];
 }

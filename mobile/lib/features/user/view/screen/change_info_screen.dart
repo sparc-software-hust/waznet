@@ -245,6 +245,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                           gravity: ToastGravity.BOTTOM
                         );
                       }
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(

@@ -31,7 +31,7 @@ class User extends Equatable {
     lastName: json["last_name"],
     email: json["email"] ?? "",
     phoneNumber: json["phone_number"],
-    dateOfBirth: json["date_of_birth"],
+    dateOfBirth: DateTime.parse(json["date_of_birth"]),
     avatarUrl: json["avatar_url"],
     gender: getGenderBasedOnInt(json["gender"]),
     roleId: json["role_id"],
@@ -44,7 +44,7 @@ class User extends Equatable {
     "last_name": lastName,
     "email": email,
     "phone_number": phoneNumber,
-    "birth": dateOfBirth?.toIso8601String(),
+    "date_of_birth": dateOfBirth?.toIso8601String(),
     "gender": convertGenderToInt(gender),
     "avatar_url": avatarUrl,
     "role_id": roleId,
@@ -79,20 +79,11 @@ class User extends Equatable {
     );
   }
 
-  // bool isChange(User user) {
-  //   return firstName != user.firstName 
-  //     || lastName != user.lastName
-  //     || email != user.email
-  //     || phoneNumber != user.phoneNumber
-  //     || dateOfBirth != user.dateOfBirth
-  //     || avatarUrl != user.avatarUrl
-  //     || gender != user.gender
-  //     || roleId != user.roleId
-  //     || location != user.location;
-  // }
   
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+    id, firstName, lastName, email, phoneNumber, dateOfBirth, avatarUrl, gender, roleId, location
+  ];
 }
 
 enum Gender {
