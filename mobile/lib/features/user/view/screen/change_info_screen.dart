@@ -100,6 +100,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                       onDateTimeChanged: (DateTime newDate) {
                         birthDate = newDate;
                       },
+                      dateOrder: DatePickerDateOrder.dmy,
                     ),
                   )
                 ],
