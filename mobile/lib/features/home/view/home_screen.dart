@@ -7,7 +7,7 @@ import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/features/home/view/statistic_screen.dart';
-import 'package:cecr_unwomen/features/home/view/user_info.dart';
+import 'package:cecr_unwomen/features/user/view/user_info.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
@@ -236,7 +236,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ..add(OpenMessageTerminated())
           ..add(ReceiveMessageForeground()),
         child: _currentIndex == 0 ? adminWidget
-          : _currentIndex == 1 ? StatisticScreen(householdStatisticData: householdData["statistic"] ?? {}, scraperStatisticData: scraperData["statistic"] ?? {})
+          : _currentIndex == 1 ?
+          StatisticScreen(
+            householdStatisticData: householdData["statistic"] ?? {},
+            scraperStatisticData: scraperData["statistic"] ?? {},
+            roleId: roleId,
+          )
           : const UserInfo(),
         ),
       );
@@ -259,6 +264,21 @@ class CardInfoWidget extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          Positioned(
+            right: -5,
+            bottom: -20,
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [Color(0xFFFFFCF0), Color(0xFFC8E6C9)], // Define your gradient colors here
+                  tileMode: TileMode.clamp,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds);
+              },
+              child: icon
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -276,21 +296,6 @@ class CardInfoWidget extends StatelessWidget {
                         fontSize: 24,
                         fontWeight: FontWeight.w700)),
               ],
-            ),
-          ),
-          Positioned(
-            right: -5,
-            bottom: -20,
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return const LinearGradient(
-                  colors: [Color(0xFFFFFCF0), Color(0xFFC8E6C9)], // Define your gradient colors here
-                  tileMode: TileMode.clamp,
-                  begin: Alignment.centerLeft,
-                  end: Alignment.bottomRight,
-                ).createShader(bounds);
-              },
-              child: icon
             ),
           ),
         ],

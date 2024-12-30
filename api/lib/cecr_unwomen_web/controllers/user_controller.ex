@@ -169,6 +169,7 @@ defmodule CecrUnwomenWeb.UserController do
 
   def update_info(conn, params) do
     user_id = conn.assigns.user.user_id
+
     response = Repo.get_by(User, id: user_id)
     |> case do
       nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
@@ -176,7 +177,17 @@ defmodule CecrUnwomenWeb.UserController do
         keys = ["first_name", "last_name", "date_of_birth", "email", "gender", "location"]
         data_changes = Enum.reduce(keys, %{}, fn key, acc ->
           key_atom = String.to_atom(key)
-          if params[key], do: Map.put(acc, key_atom, params[key]), else: acc
+          value = case key do
+            "date_of_birth" -> 
+              if (!is_nil(params[key])) do
+                String.split(params[key], "T")
+                |> List.first()
+                |> Date.from_iso8601!()
+              end
+              
+            _ -> params[key]
+          end
+          if params[key], do: Map.put(acc, key_atom, value), else: acc
         end)
         Ecto.Changeset.change(user, data_changes)
         |> Repo.update

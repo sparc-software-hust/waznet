@@ -6,7 +6,7 @@ class User extends Equatable {
   final String lastName;
   final String? email;
   final String phoneNumber;
-  final int? dateOfBirth;
+  final DateTime? dateOfBirth;
   final String? avatarUrl;
   final Gender gender;
   final int roleId;
@@ -31,9 +31,11 @@ class User extends Equatable {
     lastName: json["last_name"],
     email: json["email"] ?? "",
     phoneNumber: json["phone_number"],
-    dateOfBirth: json["date_of_birth"],
+    dateOfBirth: json["date_of_birth"] != null 
+      ? DateTime.tryParse(json["date_of_birth"]) 
+      : null,
     avatarUrl: json["avatar_url"],
-    gender: _getGenderBasedOnInt(json["gender"]),
+    gender: getGenderBasedOnInt(json["gender"]),
     roleId: json["role_id"],
     location: json["location"]
   );
@@ -44,25 +46,72 @@ class User extends Equatable {
     "last_name": lastName,
     "email": email,
     "phone_number": phoneNumber,
-    "birth": dateOfBirth,
-    "gender": gender,
+    "date_of_birth": dateOfBirth?.toIso8601String(),
+    "gender": convertGenderToInt(gender),
     "avatar_url": avatarUrl,
     "role_id": roleId,
     "location": location
   };
+
+  User clone(Map data) => User.fromJson(data);
+
+  User copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phoneNumber,
+    DateTime? dateOfBirth,
+    String? avatarUrl,
+    Gender? gender,
+    int? roleId,
+    String? location,
+  }) {
+    return User(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      gender: gender ?? this.gender,
+      roleId: roleId ?? this.roleId,
+      location: location ?? this.location,
+    );
+  }
+
   
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+    id, firstName, lastName, email, phoneNumber, dateOfBirth, avatarUrl, gender, roleId, location
+  ];
 }
 
 enum Gender {
   male, female, other
 }
 
-Gender _getGenderBasedOnInt(int? gender) {
+int convertGenderToInt(Gender gender) {
+  switch (gender) {
+      case Gender.male: return 1;
+      case Gender.female: return 2;
+      default: return 0;
+    }
+}
+
+Gender getGenderBasedOnInt(int? gender) {
   switch (gender) {
       case 1: return Gender.male;
       case 2: return Gender.female;
       default: return Gender.other;
+  }
+}
+
+String convertGenderToString(Gender gender) {
+    switch (gender) {
+      case Gender.male: return "Nam";
+      case Gender.female: return "Nữ";
+      default: return "Không xác định";
     }
 }
