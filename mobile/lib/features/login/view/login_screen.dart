@@ -2,6 +2,7 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/login/login.dart';
+import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -294,6 +295,7 @@ class RegisterBox extends StatefulWidget {
 class _RegisterBoxState extends State<RegisterBox> {
   final ColorConstants colorConstants = ColorConstants();
   DateTime? _selectedDate;
+  DateTime? _picked;
   bool isLoading = false;
   FToast fToast = FToast();
 
@@ -347,21 +349,6 @@ class _RegisterBoxState extends State<RegisterBox> {
         )
       ),
     );
-  }
-
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-      registerData["birth"] = DateFormat("yyyy-MM-dd").format(_selectedDate!);
-    }
   }
 
   @override
@@ -423,7 +410,24 @@ class _RegisterBoxState extends State<RegisterBox> {
         InkWell(
           radius: 8,
           // canRequestFocus: false,
-          onTap: () => _pickDate(context),
+          onTap: () => Utils.showDatePicker(
+            context: context,
+            initDate: _selectedDate ,
+            onCancel: () {
+              _picked = _selectedDate;
+              Navigator.pop(context);
+            },
+            onSave: () {
+              setState(() {
+                _selectedDate = _picked ?? DateTime.now();    
+              });
+              registerData["birth"] = DateFormat("yyyy-MM-dd").format(_selectedDate!);
+              Navigator.pop(context);
+            },
+            onDateTimeChanged: (date) {
+              _picked = date;
+            }
+          ),
           child: Container(
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 16),
