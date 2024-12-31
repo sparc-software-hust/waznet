@@ -19,9 +19,10 @@ class AuthRepository {
     try {
       final Map res = await AuthenticationApi.login(phoneNumber, password);
       final bool isLoginSuccess = res["success"];
-      await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
-      await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
-      
+      if (isLoginSuccess) {
+        await AuthRepository.saveTokenDataIntoPrefs(res["data"]);
+        await UserRepository.saveUserDataIntoPrefs(res["data"]["user"]);
+      }
       return isLoginSuccess;
     } catch (e) {
       return false;
