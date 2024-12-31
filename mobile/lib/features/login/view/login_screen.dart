@@ -349,6 +349,70 @@ class _RegisterBoxState extends State<RegisterBox> {
       ),
     );
   }
+  void _showDatePicker() {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Material(
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+          child: Container(
+            height: 300,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
+            color: const Color(0xffFFFFFF),
+            child: Column(
+              children: [
+                Container(
+                  height: 5,
+                  width: 45,
+                  margin: const EdgeInsets.only(top: 6, bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffC1C1C2),
+                    borderRadius: BorderRadius.circular(100)
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        registerData["birth"] = "";
+                        setState(() => _selectedDate = null);
+                        Navigator.pop(context);
+                      } ,
+                      child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
+                    ),
+                    Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
+                    InkWell(
+                      onTap: () {
+                        if (_selectedDate != null) {
+                          setState(() => _selectedDate);
+                          registerData["birth"] = DateFormat("yyyy-MM-dd").format(_selectedDate!);
+                        }
+                        Navigator.pop(context);
+                      } ,
+                      child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
+                    )
+                  ],
+                ),
+                Flexible(
+                  child:  CupertinoDatePicker(
+                    initialDateTime: _selectedDate ?? DateTime.now(),
+                    mode: CupertinoDatePickerMode.date,
+                    use24hFormat: true,
+                    onDateTimeChanged: (DateTime newDate) {
+                      _selectedDate = newDate;
+                    },
+                    dateOrder: DatePickerDateOrder.dmy,
+                  ),
+                )
+              ],
+            )
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
