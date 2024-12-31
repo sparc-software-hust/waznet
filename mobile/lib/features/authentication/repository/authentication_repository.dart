@@ -15,6 +15,16 @@ class AuthRepository {
   }
   static void dispose() => _controller.close();
 
+  static Future<bool> checkPassword(String phoneNumber, String password) async {
+    try {
+      final Map res = await AuthenticationApi.login(phoneNumber, password);
+      final bool isLoginSuccess = res["success"];
+      return isLoginSuccess;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static Future<bool> login(String phoneNumber, String password) async {
     try {
       final Map res = await AuthenticationApi.login(phoneNumber, password);

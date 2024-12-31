@@ -2,8 +2,10 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
+import 'package:cecr_unwomen/features/user/view/bloc/change_password_bloc/change_password_bloc.dart';
 import 'package:cecr_unwomen/features/user/view/screen/app_info.dart';
 import 'package:cecr_unwomen/features/user/view/screen/change_info_screen.dart';
+import 'package:cecr_unwomen/features/user/view/screen/change_password_screen.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:cecr_unwomen/widgets/navigation_button.dart';
@@ -58,10 +60,7 @@ class _UserInfoState extends State<UserInfo> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => BlocProvider.value(
-                                value: BlocProvider.of<AuthenticationBloc>(
-                                    this.context),
-                                child: const ChangeInfoScreen())));
+                            builder: (context) => const ChangeInfoScreen()));
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -118,8 +117,14 @@ class _UserInfoState extends State<UserInfo> {
               NavigationButton(
                 text: "Thay đổi mật khẩu",
                 icon: PhosphorIcons.regular.lock,
-                onTap: () => Utils.showDialogWarningError(
-                    context, false, "Chức năng đang được phát triển"),
+                onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => ChangePasswordBloc(),
+                              child: const ChangePasswordScreen())));
+                  },
               ),
               NavigationButton(
                 text: "Xác thực sinh trắc học",
