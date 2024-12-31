@@ -7,9 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
-  const StatisticScreen({super.key, required this.householdStatisticData, required this.scraperStatisticData});
+  const StatisticScreen({super.key, required this.householdStatisticData, required this.scraperStatisticData, required this.roleId});
   final Map householdStatisticData;
   final Map scraperStatisticData;
+  final int roleId;
 
   @override
   State<StatisticScreen> createState() => _StatisticScreenState();
@@ -25,9 +26,19 @@ class _StatisticScreenState extends State<StatisticScreen> {
     });
   }
 
+  _getRoleIdShowData() {
+    return widget.roleId == 1 ?
+      isHouseholdTab ? 2 : 3
+    : widget.roleId;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map allData = isHouseholdTab ? (widget.householdStatisticData) : (widget.scraperStatisticData);
+    final Map allData = widget.roleId == 1 ?
+      isHouseholdTab ? (widget.householdStatisticData) : (widget.scraperStatisticData)
+    : widget.roleId == 2 ? (widget.householdStatisticData)
+    : widget.roleId == 3 ? (widget.scraperStatisticData)
+    : {};
     return Column(
       children: [
         HeaderWidget(
@@ -58,8 +69,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
                 BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
                 if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
                 ...allData["overall_data_one_month"].map((e) {
-                  final int roleIdUser = isHouseholdTab ? 2 : 3;
-                  return UserContributionWidget(oneDayData: {...e, "role_id": roleIdUser});
+                  return UserContributionWidget(oneDayData: {...e, "role_id": _getRoleIdShowData()});
                 }).toList()
                 else
                 const Center(

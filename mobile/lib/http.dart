@@ -19,6 +19,7 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     if (accessToken == null || accessExp == null || refreshToken == null) {
       // return handler.next(options);
       // logout
+      await AuthRepository.logout();
       return;
     }
 

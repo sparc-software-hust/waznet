@@ -628,14 +628,15 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
     );
   }
 
-  num countTotal(int roleId) {
-    if (roleId == 3) {
-      return widget.oneDayData["kg_co2e_reduced"] ?? 0;
+  num countTotal() {
+    final int roleId = widget.oneDayData["role_id"] ?? 0;
+    final Map data = widget.oneDayData;
+    switch (roleId) {
+      case 2:
+        return (data["kg_co2e_recycle_reduced"] ?? 0) + (data["kg_co2e_plastic_reduced"] ?? 0);
+      case 3: return data["kg_co2e_reduced"] ?? 0;
+      default: return 0;
     }
-    return widget.oneDayData.entries.fold(0, (previousValue, element) {
-      if (!element.key.contains("reduced")) return previousValue;
-      return previousValue + element.value;
-    });
   }
 
   String? getAvatarUrl() {
@@ -650,7 +651,7 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
     final String name = Utils.getContributorName(widget.oneDayData["first_name"], widget.oneDayData["last_name"]) ?? "${user.firstName} ${user.lastName}";
     final String? avatarUrl = getAvatarUrl();
     final String date = Utils.parseContributionDate(widget.oneDayData["date"], format: "dd/MM/yyyy");
-    final num totalCo2e = countTotal(user.roleId);
+    final num totalCo2e = countTotal();
 
     // "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg",
     return Container(

@@ -24,7 +24,7 @@ class _UserInfoState extends State<UserInfo> {
 
   @override
   Widget build(BuildContext context) {
-   final User user = context.watch<AuthenticationBloc>().state.user!;
+    final User user = context.watch<AuthenticationBloc>().state.user!;
     return SafeArea(
       child: SingleChildScrollView(
         child: Container(

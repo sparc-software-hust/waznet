@@ -186,7 +186,7 @@ class _PhoneNumberBoxState extends State<PhoneNumberBox> {
                       FocusScope.of(context).unfocus();
                     },
                     padding: const EdgeInsets.only(left: 12),
-                    placeholder: "Nhập số điện thoại của bạn",
+                    placeholder: "Nhập số điện thoại",
                     keyboardType: TextInputType.phone,
                     placeholderStyle: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder, fontFamily: "Inter"
@@ -295,7 +295,6 @@ class RegisterBox extends StatefulWidget {
 class _RegisterBoxState extends State<RegisterBox> {
   final ColorConstants colorConstants = ColorConstants();
   DateTime? _selectedDate;
-  DateTime? _picked;
   bool isLoading = false;
   FToast fToast = FToast();
 
@@ -357,10 +356,13 @@ class _RegisterBoxState extends State<RegisterBox> {
 
     return BackgroundWithTransparentBox(
       child: Column(children: [
+        const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerLeft,
           child: InkWell(
-            onTap: () => widget.callbackEditPhoneNumber(),
+            onTap: () {
+              widget.callbackEditPhoneNumber();
+            },
             child: Icon(PhosphorIcons.regular.arrowLeft, size: 24, color: colorConstants.textHeader)),
         ),
         Text("Hoàn tất đăng ký",
@@ -414,18 +416,21 @@ class _RegisterBoxState extends State<RegisterBox> {
             context: context,
             initDate: _selectedDate ,
             onCancel: () {
-              _picked = _selectedDate;
+              setState(() {
+                _selectedDate = null;
+              });
+              registerData["birth"] = "";
               Navigator.pop(context);
             },
             onSave: () {
               setState(() {
-                _selectedDate = _picked ?? DateTime.now();    
+                _selectedDate = _selectedDate ?? DateTime.now();    
               });
-              registerData["birth"] = DateFormat("yyyy-MM-dd").format(_selectedDate!);
+              registerData["birth"] = _selectedDate!.toIso8601String();
               Navigator.pop(context);
             },
             onDateTimeChanged: (date) {
-              _picked = date;
+              _selectedDate = date;
             }
           ),
           child: Container(
