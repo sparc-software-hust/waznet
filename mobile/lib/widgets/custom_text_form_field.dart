@@ -49,10 +49,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.errorText != oldWidget.errorText || widget.validator!(_controller.text) != oldWidget.validator!(_controller.text)) {
-      isValid = widget.validator != null
-          ? widget.validator!(_controller.text)
-          : false;
+    if (widget.errorText != null && oldWidget.errorText != null && widget.validator != null && oldWidget.validator != null) {
+      if (widget.errorText != oldWidget.errorText ||  widget.validator!(_controller.text) != oldWidget.validator!(_controller.text)) {
+        isValid = widget.validator != null
+            ? widget.validator!(_controller.text)
+            : false;
+      }
     }
   }
 
