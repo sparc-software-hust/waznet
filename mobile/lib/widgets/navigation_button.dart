@@ -1,3 +1,4 @@
+import 'package:cecr_unwomen/widgets/confirm_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -61,38 +62,56 @@ class NavigationButton extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => onTap == null ? null : onTap!(),
+          onTap: () async {
+            if (isWarning) {
+              final bool? isConfirm = await showDialog(
+                context: context,
+                builder: (context) => ConfirmCard(
+                  title: "Xác nhận ${text.toLowerCase()}",
+                  subtitle: "Bạn có chắc chắn muốn thực hiện hành động này?",
+                  dangerousTextInButton: "Xác nhận",
+                  onClick: () {
+                    Navigator.pop(context, true);
+                  },
+                ),
+              );
+              if (isConfirm == null) return;
+              onTap?.call();
+            } else {
+              onTap?.call();
+            }
+          },
           child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: subTitleWidget != null ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: iconBgColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, size: 20, color: iconColor),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: subTitleWidget != null ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 14),
-                  Flexible(
-                    child: subTitleWidget != null
-                        ? Column(
-                            children: [
-                              option,
-                              subTitleWidget ?? Container(),
-                            ],
-                          )
-                        : option,
-                  ),
-                ],
-              )),
+                  child: Icon(icon, size: 20, color: iconColor),
+                ),
+                const SizedBox(width: 14),
+                Flexible(
+                  child: subTitleWidget != null
+                      ? Column(
+                          children: [
+                            option,
+                            subTitleWidget ?? Container(),
+                          ],
+                        )
+                      : option,
+                ),
+              ],
+            )),
         ),
       ),
     );

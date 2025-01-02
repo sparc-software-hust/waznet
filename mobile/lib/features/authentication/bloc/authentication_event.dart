@@ -10,6 +10,8 @@ class AuthSubscription extends AuthenticationEvent {}
 
 class LogoutRequest extends AuthenticationEvent {}
 
+class DeleteAccount extends AuthenticationEvent {}
+
 class AutoLogin extends AuthenticationEvent {}
 
 class UpdateInfo extends AuthenticationEvent {
