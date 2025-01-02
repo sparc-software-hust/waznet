@@ -384,7 +384,7 @@ class _RegisterBoxState extends State<RegisterBox> {
             Expanded(
               child: CustomTextField(
                 label: "Họ",
-                placeholder: "họ",
+                placeholder: "Nhập họ",
                 keyword: "first_name",
                 hasBorder: false,
                 callback: (value, keyword) {
@@ -395,8 +395,8 @@ class _RegisterBoxState extends State<RegisterBox> {
             const SizedBox(width: 16),
             Expanded(
               child: CustomTextField(
-                placeholder: "tên",
-                label: "Tên",
+                placeholder: "Nhập tên",
+                label: " Tên",
                 keyword: "last_name",
                 hasBorder: false,
                 callback: (value, keyword) {
@@ -466,7 +466,7 @@ class _RegisterBoxState extends State<RegisterBox> {
         const SizedBox(height: 12),
         CustomTextField(
           label: "Số điện thoại",
-          placeholder: "số điện thoại",
+          placeholder: "Nhập số điện thoại",
           isOnlyNumber: true,
           keyword: "phone_number",
           validator: (value) {
@@ -485,7 +485,7 @@ class _RegisterBoxState extends State<RegisterBox> {
         const SizedBox(height: 12),
         CustomTextField(
           label: "Mật khẩu",
-          placeholder: "mật khẩu",
+          placeholder: "Nhập mật khẩu",
           keyword: "password",
           validator: (value) {
             if (value != null && value.length < 8) {
@@ -569,9 +569,9 @@ class _RegisterBoxState extends State<RegisterBox> {
                     Radio(
                       activeColor: colorConstants.bgClickable,
                       fillColor: WidgetStateProperty.all(colorConstants.bgClickable),
-                      value: 3,
+                      value: 0,
                       groupValue: registerData["gender"],
-                      onChanged: (_) => setState(() => registerData["gender"] = 2)
+                      onChanged: (_) => setState(() => registerData["gender"] = 0)
                     ),
                     Text("Khác",
                       style: TextStyle(
@@ -681,7 +681,7 @@ class _RegisterBoxState extends State<RegisterBox> {
         const SizedBox(height: 12),
         CustomTextField(
           label: "Địa chỉ (không bắt buộc)",
-          placeholder: "địa chỉ",
+          placeholder: "Nhập địa chỉ",
           keyword: "location",
           hasBorder: false,
           multiline: true,
