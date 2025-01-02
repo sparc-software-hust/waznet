@@ -16,13 +16,14 @@ defmodule CecrUnwomenWeb.Models.User do
     field :location, :string
     field :refresh_token, :string
     field :verified, :boolean
+    field :is_removed, :boolean, default: false
 
     belongs_to :role, Role, foreign_key: :role_id, type: :integer
     timestamps()
   end
 
   @required_fields [:id, :first_name, :last_name, :phone_number, :password_hash, :role_id, :refresh_token]
-  @optional_fields [:avatar_url, :email, :gender, :date_of_birth, :location, :verified]
+  @optional_fields [:avatar_url, :email, :gender, :date_of_birth, :location, :verified, :is_removed]
 
   def changeset(user, params \\ %{}) do
     user

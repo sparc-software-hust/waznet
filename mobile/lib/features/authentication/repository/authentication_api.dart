@@ -25,4 +25,10 @@ class AuthenticationApi {
     const String url = "/user/logout";
     await dioConfigInterceptor.post(url, data: {"user_id": userId});
   }
+
+  static Future<Map> deleteUser() async {
+    const String url = "/user/delete_user";
+    final Response response = await dioConfigInterceptor.post(url);
+    return response.data;
+  }
 }

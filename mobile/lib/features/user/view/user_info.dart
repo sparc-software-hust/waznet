@@ -140,6 +140,15 @@ class _UserInfoState extends State<UserInfo> {
                   context.read<AuthenticationBloc>().add(LogoutRequest());
                 },
               ),
+              NavigationButton(
+                text: "Xóa tài khoản",
+                isWarning: true,
+                icon: PhosphorIcons.regular.userMinus,
+                onTap: () {
+                  context.read<AuthenticationBloc>().add(DeleteAccount());
+                  // context.read<AuthenticationBloc>().add(LogoutRequest());
+                },
+              ),
             ],
           ),
         ),

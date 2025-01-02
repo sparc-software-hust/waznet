@@ -11,6 +11,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<LogoutRequest>(_onLogoutRequest);
     on<AutoLogin>(_onAutoLogin);
     on<UpdateInfo>(_onUpdateInfo);
+    on<DeleteAccount>(_onDeleteAccount);
   }
 
   Future<void> _onAuthSubscription(AuthSubscription event, Emitter emit) async {
@@ -59,6 +60,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       print('gndfkj:$e');
       emit(state.copyWith(status: AuthenticationStatus.error));
     }
+  }
+
+  void _onDeleteAccount(DeleteAccount event, Emitter emit) {
+    AuthRepository.deleteAccount();
   }
 
   Future<void> _onUpdateInfo(UpdateInfo event, Emitter emit) async {

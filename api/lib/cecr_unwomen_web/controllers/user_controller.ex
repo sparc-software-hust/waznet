@@ -23,7 +23,7 @@ defmodule CecrUnwomenWeb.UserController do
 
     is_ready_to_insert = !is_nil(first_name) && !is_nil(last_name) && is_pass_password
     response = cond do
-      !is_pass_phone_number -> Helper.response_json_message(false, "Số điện thoại không đúng hoặc đã tồn tại!", 279)
+      !is_pass_phone_number -> Helper.response_json_message(false, "Số điện thoại đã tồn tại hoặc đã bị xoá khỏi hệ thống", 279)
       !is_ready_to_insert -> Helper.response_json_message(false, "Bạn nhập thiếu các thông tin cần thiết! Vui lòng kiểm tra lại!", 301)
       !is_pass_admin_role -> Helper.response_json_message(false, "Bạn không thể đăng ký làm admin!", 301)
       true ->
@@ -89,7 +89,7 @@ defmodule CecrUnwomenWeb.UserController do
       !is_pass_phone_number -> Helper.response_json_message(false, "Không tìm thấy số điện thoại!", 280)
       !is_pass_password_length -> Helper.response_json_message(false, "Sai số điện thoại hoặc mật khẩu", 301)
       true ->
-        from(u in User, where: u.phone_number == ^phone_number, select: u)
+        from(u in User, where: u.phone_number == ^phone_number and u.is_removed != true, select: u)
         |> Repo.one
         |> case do
           nil -> Helper.response_json_message(false, "Không tìm thấy tài khoản!", 302)
@@ -127,6 +127,22 @@ defmodule CecrUnwomenWeb.UserController do
         end
     end
 
+    json conn, res
+  end
+
+  def delete_user(conn, _params) do
+    user_id = conn.assigns.user.user_id
+    res = Repo.get_by(User, %{id: user_id, is_removed: false})
+    |> case do
+      nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+      user ->
+        Ecto.Changeset.change(user, %{is_removed: true, refresh_token: nil})
+        |> Repo.update
+        |> case do
+          {:ok, _} -> Helper.response_json_message(true, "Xóa người dùng thành công!")
+          _ -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
+        end
+    end
     json conn, res
   end
 
