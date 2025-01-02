@@ -54,6 +54,23 @@ class AuthRepository {
     }
   }
 
+  static Future<void> deleteAccount() async {
+    try {
+      final Map res = await AuthenticationApi.deleteUser();
+      final bool isSuccess = res["success"];
+      if (isSuccess) {
+        await AuthRepository.logoutNoCredentials();
+        _controller.add(AuthenticationStatus.unauthorized);
+      } else {
+        _controller.add(AuthenticationStatus.authorized);
+        // _controller.add(AuthenticationStatus.authorized);
+      }
+    } catch (e) {
+      print('gndkjf:$e');
+      _controller.add(AuthenticationStatus.error);
+    }
+  }
+
   static Future<void> logout() async {
     await AuthRepository.logoutNoCredentials();
     // await AuthenticationApi.logout(userId);
