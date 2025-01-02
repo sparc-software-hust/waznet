@@ -4,8 +4,8 @@ import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
+import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -133,7 +133,21 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                       _buildDateField(
                         label: 'Ngày sinh',
                         value: birthDate,
-                        onTap: () => _showDatePicker()
+                        onTap: () => Utils.showDatePicker(
+                          context: context,
+                          onCancel: () {
+                            birthDate = DateTime.parse(birthDateController.text);
+                            Navigator.pop(context);
+                          },
+                          onSave: () {
+                            birthDate = birthDate ?? DateTime.now();
+                            birthDateController.text = DateFormat("dd/MM/yyyy").format(birthDate!);
+                            Navigator.pop(context);
+                          },
+                          onDateTimeChanged: (date) {
+                            birthDate = date;
+                          },
+                        )
                       ),
                       const SizedBox(height: 16),
                       _buildGenderSelection(),
@@ -204,72 +218,6 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
       ),
     );
   }
-
-
-
-  void _showDatePicker() {
-      showCupertinoModalPopup<void>(
-        context: context,
-        builder: (BuildContext context) => Material(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            child: Container(
-              height: 300,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
-              color: const Color(0xffFFFFFF),
-              child: Column(
-                children: [
-                  Container(
-                    height: 5,
-                    width: 45,
-                    margin: const EdgeInsets.only(top: 6, bottom: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xffC1C1C2),
-                      borderRadius: BorderRadius.circular(100)
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          birthDate = DateTime.parse(birthDateController.text);
-                          Navigator.pop(context);
-                        } ,
-                        child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                      ),
-                      Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
-                      InkWell(
-                        onTap: () {
-                          birthDate = birthDate ?? DateTime.now();
-                          birthDateController.text = DateFormat("dd/MM/yyyy").format(birthDate!);
-                          // setState(() => userClone = userClone.copyWith(dateOfBirth: birthDate));
-                          Navigator.pop(context);
-                        } ,
-                        child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                      )
-                    ],
-                  ),
-                  Flexible(
-                    child:  CupertinoDatePicker(
-                      initialDateTime: userClone.dateOfBirth ?? DateTime.now(),
-                      mode: CupertinoDatePickerMode.date,
-                      use24hFormat: true,
-                      onDateTimeChanged: (DateTime newDate) {
-                        birthDate = newDate;
-                      },
-                      dateOrder: DatePickerDateOrder.dmy,
-                    ),
-                  )
-                ],
-              )
-            ),
-          ),
-        ),
-      );
-    }
-
 
   Widget _buildTextField({
     required String label,

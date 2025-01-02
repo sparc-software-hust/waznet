@@ -38,7 +38,10 @@ defmodule CecrUnwomenWeb.UserController do
         {_, refresh_token, _} = Helper.create_token(data_jwt, :refresh_token)
         {_, access_token, access_exp} = Helper.create_token(data_jwt, :access_token)
 
-        birth = if is_nil(birth), do: nil, else: Date.from_iso8601!(birth)
+        birth = if is_nil(birth), do: nil, else:  
+          String.split(birth, "T")
+          |> List.first()
+          |> Date.from_iso8601!()
 
         User.changeset(%User{}, %{
           id: user_id,
@@ -48,7 +51,7 @@ defmodule CecrUnwomenWeb.UserController do
           phone_number: phone_number,
           password_hash: password_hash,
           refresh_token: refresh_token,
-          birth: birth,
+          date_of_birth: birth,
           location: location,
           gender: gender
         })

@@ -1,6 +1,7 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/secrets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -64,6 +65,76 @@ class Utils {
           }
         );
       }
+    );
+  }
+
+  static void showDatePicker({
+    required BuildContext context,
+    required Function() onCancel,
+    required Function() onSave,
+    required void Function(DateTime) onDateTimeChanged,
+    DateTime? initDate,
+    CupertinoDatePickerMode mode = CupertinoDatePickerMode.date,
+  }) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Material(
+        borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+          child: Container(
+              height: 300,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
+              color: const Color(0xffFFFFFF),
+              child: Column(
+                children: [
+                  Container(
+                    height: 5,
+                    width: 45,
+                    margin: const EdgeInsets.only(top: 6, bottom: 12),
+                    decoration: BoxDecoration(
+                        color: const Color(0xffC1C1C2),
+                        borderRadius: BorderRadius.circular(100)),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                          onTap: onCancel,
+                          child: Text(
+                            "Huỷ",
+                            style: ColorConstants().fastStyle(
+                                16, FontWeight.w500, const Color(0xff4CAF50)),
+                          )),
+                      Text(
+                        "Chọn thời gian",
+                        style: ColorConstants().fastStyle(
+                            16, FontWeight.w700, const Color(0xff29292A)),
+                      ),
+                      InkWell(
+                          onTap: onSave,
+                          child: Text(
+                            "Lưu",
+                            style: ColorConstants().fastStyle(
+                                16, FontWeight.w500, const Color(0xff4CAF50)),
+                          ))
+                    ],
+                  ),
+                  Flexible(
+                    child: CupertinoDatePicker(
+                      initialDateTime: initDate ?? DateTime.now(),
+                      mode: mode,
+                      use24hFormat: true,
+                      onDateTimeChanged: onDateTimeChanged,
+                      dateOrder: DatePickerDateOrder.dmy,
+                    ),
+                  )
+                ],
+              )),
+        ),
+      ),
     );
   }
 }

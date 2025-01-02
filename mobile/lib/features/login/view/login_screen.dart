@@ -2,6 +2,7 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/login/login.dart';
+import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -471,11 +472,31 @@ class _RegisterBoxState extends State<RegisterBox> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildHeaderWidget("Ngày sinh"),
+        _buildHeaderWidget("Ngày sinh (không bắt buộc)"),
         InkWell(
           radius: 8,
           // canRequestFocus: false,
-          onTap: () => _showDatePicker(),
+          onTap: () => Utils.showDatePicker(
+            context: context,
+            initDate: _selectedDate ,
+            onCancel: () {
+              setState(() {
+                _selectedDate = null;
+              });
+              registerData["birth"] = "";
+              Navigator.pop(context);
+            },
+            onSave: () {
+              setState(() {
+                _selectedDate = _selectedDate ?? DateTime.now();    
+              });
+              registerData["birth"] = _selectedDate!.toIso8601String();
+              Navigator.pop(context);
+            },
+            onDateTimeChanged: (date) {
+              _selectedDate = date;
+            }
+          ),
           child: Container(
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -709,7 +730,7 @@ class _RegisterBoxState extends State<RegisterBox> {
 
         const SizedBox(height: 12),
         CustomTextField(
-          label: "Địa chỉ",
+          label: "Địa chỉ (không bắt buộc)",
           placeholder: "địa chỉ",
           keyword: "location",
           hasBorder: false,
