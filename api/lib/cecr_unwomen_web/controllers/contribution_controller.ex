@@ -307,7 +307,8 @@ defmodule CecrUnwomenWeb.ContributionController do
           end
 
         today = Helper.get_vietnam_date_today()
-        {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
         overall_data_one_month = get_overall_contribution_one_month(user_id, role_id, start_month, end_month)
 
         sum_factors = if role_id == 2 do
@@ -346,7 +347,8 @@ defmodule CecrUnwomenWeb.ContributionController do
         scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
 
         today = Helper.get_vietnam_date_today()
-        {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
         {overall_scrapers_one_month, overall_households_one_month} = get_user_contributions_by_range(start_month, end_month)
         {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
 
