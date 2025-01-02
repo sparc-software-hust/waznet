@@ -668,7 +668,7 @@ class _RegisterBoxState extends State<RegisterBox> {
             const SizedBox(height: 12),
             CustomTextField(
               label: "Mã",
-              placeholder: "mã đăng ký admin",
+              placeholder: "Nhập mã đăng ký admin",
               keyword: "code",
               hasBorder: false,
               callback: (value, keyword) {
