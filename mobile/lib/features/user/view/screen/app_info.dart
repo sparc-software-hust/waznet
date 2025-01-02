@@ -1,5 +1,6 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
+import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/navigation_button.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -39,9 +40,9 @@ class AppInfo extends StatelessWidget {
                 height: 100,
                 child: Image.asset("assets/icon/logo_green.png",)
               ),
-              Text("Waznet", style: colorConstants.fastStyle(26, FontWeight.w900, const Color(0xff4CAF50))),
+              Text("WazNet", style: colorConstants.fastStyle(26, FontWeight.w900, const Color(0xff4CAF50))),
               const SizedBox(height: 20,),
-              Text("Phiên bản 0.0.0", style: colorConstants.placeholderStyle()),
+              Text("Phiên bản 1.0.0", style: colorConstants.placeholderStyle()),
               Text.rich(
                 TextSpan(
                   children: [
@@ -56,6 +57,9 @@ class AppInfo extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: NavigationButton(
+                  onTap: () => Utils.showDialogWarningError(
+                    context, false, "Chức năng đang được phát triển"
+                  ),
                   icon: PhosphorIcons.regular.globe,
                   text: "Trang web",
                 ),
@@ -63,6 +67,9 @@ class AppInfo extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: NavigationButton(
+                  onTap: () => Utils.showDialogWarningError(
+                    context, false, "Chức năng đang được phát triển"
+                  ),
                   icon: PhosphorIcons.regular.briefcase,
                   text: "Đối tác",
                 ),

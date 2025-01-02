@@ -383,7 +383,7 @@ class _RegisterBoxState extends State<RegisterBox> {
           children: [
             Expanded(
               child: CustomTextField(
-                label: "Họ",
+                label: "Họ (không bắt buộc)",
                 placeholder: "Nhập họ",
                 keyword: "first_name",
                 hasBorder: false,
@@ -396,7 +396,7 @@ class _RegisterBoxState extends State<RegisterBox> {
             Expanded(
               child: CustomTextField(
                 placeholder: "Nhập tên",
-                label: " Tên",
+                label: " Tên (không bắt buộc)",
                 keyword: "last_name",
                 hasBorder: false,
                 callback: (value, keyword) {

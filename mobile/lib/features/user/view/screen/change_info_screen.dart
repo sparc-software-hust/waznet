@@ -93,13 +93,16 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                             Positioned(
                               right: 0,
                               bottom: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFE8F5E9),
-                                  shape: BoxShape.circle,
+                              child: InkWell(
+                                onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE8F5E9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt, size: 20),
                                 ),
-                                child: const Icon(Icons.camera_alt, size: 20),
                               ),
                             ),
                           ],
