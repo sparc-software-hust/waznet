@@ -78,8 +78,10 @@ class _UserInfoState extends State<UserInfo> {
                 text: "Nhắc nhập liệu",
                 icon: PhosphorIcons.regular.alarm,
                 hasSwitch: true,
-                onToggleSwitch: (p0) => () => Utils.showDialogWarningError(
-                    context, false, "Chức năng đang được phát triển"),
+                onToggleSwitch: (p0) {
+                  return Utils.showDialogWarningError(
+                    context, false, "Chức năng đang được phát triển");
+                },
                 subTitleWidget: Column(
                   children: [
                     Text(
@@ -99,7 +101,9 @@ class _UserInfoState extends State<UserInfo> {
                             context: context,
                             onCancel: () => Navigator.pop(context),
                             onSave: () => Navigator.pop(context),
-                            onDateTimeChanged: (p0) {},
+                            onDateTimeChanged: (p0) {
+                              // return Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển");
+                            },
                             mode: CupertinoDatePickerMode.time
                           ),
                           child: Text("14:00", style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),)
@@ -125,7 +129,7 @@ class _UserInfoState extends State<UserInfo> {
                 text: "Xác thực sinh trắc học",
                 icon: PhosphorIcons.regular.fingerprint,
                 hasSwitch: true,
-                onToggleSwitch: (p0) => () => Utils.showDialogWarningError(
+                onToggleSwitch: (p0) => Utils.showDialogWarningError(
                     context, false, "Chức năng đang được phát triển"),
               ),
               NavigationButton(

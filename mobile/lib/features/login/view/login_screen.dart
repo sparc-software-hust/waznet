@@ -472,7 +472,7 @@ class _RegisterBoxState extends State<RegisterBox> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildHeaderWidget("Ngày sinh"),
+        _buildHeaderWidget("Ngày sinh (không bắt buộc)"),
         InkWell(
           radius: 8,
           // canRequestFocus: false,
@@ -730,7 +730,7 @@ class _RegisterBoxState extends State<RegisterBox> {
 
         const SizedBox(height: 12),
         CustomTextField(
-          label: "Địa chỉ",
+          label: "Địa chỉ (không bắt buộc)",
           placeholder: "địa chỉ",
           keyword: "location",
           hasBorder: false,
