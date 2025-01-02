@@ -171,7 +171,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                     userClone = userClone.copyWith(
                       firstName: firstNameController.text,
                       lastName: lastNameController.text,
-                      phoneNumber: phoneController.text,
+                      // phoneNumber: phoneController.text,
                       location: addressController.text,
                       gender: gender,
                       dateOfBirth: birthDate

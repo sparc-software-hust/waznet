@@ -35,7 +35,22 @@ void main() async {
   //     }
   //   });
   // }
-  runApp(const MyApp());
+  runApp(const App());
+}
+
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      lazy: false,
+      create: (context) => AuthenticationBloc()
+        ..add(AuthSubscription())
+        ..add(AutoLogin()),
+      child: const MyApp()
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -45,7 +60,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const App(),
+      home: const BlocEntireApp(),
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Inter'
@@ -71,20 +86,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
-class App extends StatelessWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      lazy: false,
-      create: (context) => AuthenticationBloc()
-        ..add(AuthSubscription())
-        ..add(AutoLogin()),
-      child: const BlocEntireApp()
-    );
-  }
-}
 
 class BlocEntireApp extends StatelessWidget {
   const BlocEntireApp({super.key});

@@ -39,9 +39,9 @@ class AppInfo extends StatelessWidget {
                 height: 100,
                 child: Image.asset("assets/icon/logo_green.png",)
               ),
-              Text("Waznet", style: colorConstants.fastStyle(26, FontWeight.w900, const Color(0xff4CAF50))),
+              Text("WazNet", style: colorConstants.fastStyle(26, FontWeight.w900, const Color(0xff4CAF50))),
               const SizedBox(height: 20,),
-              Text("Phiên bản 0.0.0", style: colorConstants.placeholderStyle()),
+              Text("Phiên bản 1.0.0", style: colorConstants.placeholderStyle()),
               Text.rich(
                 TextSpan(
                   children: [
