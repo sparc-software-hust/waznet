@@ -15,4 +15,13 @@ class UserApi {
     final Response res = await dioConfigInterceptor.post(url, data: jsonEncode(data));
     return res.data["data"];
   }
+
+  static Future<Map> changePassword(
+      String newPassword, String oldPassword) async {
+
+    const String url = "/user/change_password";
+    final Response res = await dioConfigInterceptor.post(url,
+        data: {"new_password": newPassword, "old_password": oldPassword});
+    return res.data;
+  }
 }

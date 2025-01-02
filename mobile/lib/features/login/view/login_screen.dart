@@ -3,12 +3,12 @@ import 'package:cecr_unwomen/features/authentication/repository/authentication_r
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/login/login.dart';
 import 'package:cecr_unwomen/utils.dart';
+import 'package:cecr_unwomen/widgets/custom_text_form_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 
@@ -349,70 +349,6 @@ class _RegisterBoxState extends State<RegisterBox> {
       ),
     );
   }
-  void _showDatePicker() {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (BuildContext context) => Material(
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-          child: Container(
-            height: 300,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
-            color: const Color(0xffFFFFFF),
-            child: Column(
-              children: [
-                Container(
-                  height: 5,
-                  width: 45,
-                  margin: const EdgeInsets.only(top: 6, bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xffC1C1C2),
-                    borderRadius: BorderRadius.circular(100)
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        registerData["birth"] = "";
-                        setState(() => _selectedDate = null);
-                        Navigator.pop(context);
-                      } ,
-                      child: Text("Huỷ", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                    ),
-                    Text("Chọn thời gian", style: colorConstants.fastStyle(16, FontWeight.w700, const Color(0xff29292A)),),
-                    InkWell(
-                      onTap: () {
-                        if (_selectedDate != null) {
-                          setState(() => _selectedDate);
-                          registerData["birth"] = DateFormat("yyyy-MM-dd").format(_selectedDate!);
-                        }
-                        Navigator.pop(context);
-                      } ,
-                      child: Text("Lưu", style: colorConstants.fastStyle(16, FontWeight.w500, const Color(0xff4CAF50)),)
-                    )
-                  ],
-                ),
-                Flexible(
-                  child:  CupertinoDatePicker(
-                    initialDateTime: _selectedDate ?? DateTime.now(),
-                    mode: CupertinoDatePickerMode.date,
-                    use24hFormat: true,
-                    onDateTimeChanged: (DateTime newDate) {
-                      _selectedDate = newDate;
-                    },
-                    dateOrder: DatePickerDateOrder.dmy,
-                  ),
-                )
-              ],
-            )
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +388,7 @@ class _RegisterBoxState extends State<RegisterBox> {
                 keyword: "first_name",
                 hasBorder: false,
                 callback: (value, keyword) {
-                  setState(() { registerData["first_name"] = value.trim(); });
+                  registerData["first_name"] = value.trim();
                 },
               ),
             ),
@@ -464,7 +400,7 @@ class _RegisterBoxState extends State<RegisterBox> {
                 keyword: "last_name",
                 hasBorder: false,
                 callback: (value, keyword) {
-                  setState(() { registerData["last_name"] = value.trim(); });
+                  registerData["last_name"] = value.trim();
                   // context.read<LoginBloc>().add(LoginNameChanged(name: value));
                 },
               ),
@@ -533,9 +469,16 @@ class _RegisterBoxState extends State<RegisterBox> {
           placeholder: "số điện thoại",
           isOnlyNumber: true,
           keyword: "phone_number",
+          validator: (value) {
+            if (value != null && value.length != 10) {
+              return false;
+            }
+            return true;
+          },
+          errorText: "Vui lòng nhập đúng định dạng 10 chữ số",
           hasBorder: false,
           callback: (value, keyword) {
-            setState(() { registerData["phone_number"] = value; });
+            registerData["phone_number"] = value;
           },
         ),
 
@@ -544,10 +487,17 @@ class _RegisterBoxState extends State<RegisterBox> {
           label: "Mật khẩu",
           placeholder: "mật khẩu",
           keyword: "password",
+          validator: (value) {
+            if (value != null && value.length < 8) {
+              return false;
+            }
+            return true;
+          },
+          errorText: "Mật khẩu phải có ít nhất 8 ký tự",
           hasBorder: false,
           isPassword: true,
           callback: (value, keyword) {
-            setState(() { registerData["password"] = value; });
+            registerData["password"] = value;
           },
         ),
 
@@ -722,7 +672,7 @@ class _RegisterBoxState extends State<RegisterBox> {
               keyword: "code",
               hasBorder: false,
               callback: (value, keyword) {
-                setState(() { registerData["code"] = value; });
+                registerData["code"] = value; 
               },
             ),
           ],
@@ -736,7 +686,7 @@ class _RegisterBoxState extends State<RegisterBox> {
           hasBorder: false,
           multiline: true,
           callback: (value, keyword) {
-            setState(() { registerData["location"] = value; });
+            registerData["location"] = value; 
           },
         ),
         const SizedBox(height: 24),
@@ -772,115 +722,6 @@ class _RegisterBoxState extends State<RegisterBox> {
   }
 }
 
-
-
-class CustomTextField extends StatefulWidget {
-  const CustomTextField({super.key, required this.placeholder, required this.callback, required this.keyword, this.label, this.hasBorder = false, this.multiline = false, this.isOnlyNumber = false, this.isPassword = false});
-  final String placeholder;
-  final Function callback;
-  final String keyword;
-  final String? label;
-  final bool hasBorder;
-  final bool multiline;
-  final bool isOnlyNumber;
-  final bool isPassword;
-
-  @override
-  State<CustomTextField> createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  final ColorConstants colorConstants = ColorConstants();
-  final TextEditingController _controller = TextEditingController();
-  bool showPassword = false;
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.label != null)
-        Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          alignment: Alignment.centerLeft,
-          child: Text(widget.label!,
-            style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w600, color: colorConstants.textSubHeader
-            )
-          ),
-        ),
-        Container(
-          height: widget.multiline ? 80 : 44,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: widget.hasBorder ? Border.all(color: colorConstants.border) : null
-          ),
-          child: CupertinoTextField(
-            autofocus: true,
-            cursorColor: colorConstants.bgClickable,
-            cursorHeight: 16,
-            textInputAction: TextInputAction.next,
-            obscureText: widget.isPassword ? !showPassword : false,
-            maxLines: widget.multiline ? 3 : 1,
-            controller: _controller,
-            onTapOutside: (_) {
-              FocusScope.of(context).unfocus();
-            },
-            padding: const EdgeInsets.only(left: 12),
-            placeholder: "Nhập ${widget.placeholder}",
-            keyboardType: widget.isOnlyNumber ? TextInputType.phone : null,
-            placeholderStyle: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder, fontFamily: "Inter"
-            ),
-            style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader, fontFamily: "Inter"
-            ),
-            inputFormatters: [
-              LengthLimitingTextInputFormatter(widget.multiline ? 200 : widget.isOnlyNumber ? 10 : 50),
-            ],
-            onChanged: (value) {
-              setState(() {});
-              widget.callback(value, widget.keyword);
-            },
-            suffix: _controller.text.isEmpty ? null : InkWell(
-              canRequestFocus: false,
-              onTap: () {
-                if (widget.isPassword) {
-                  setState(() {
-                    showPassword = !showPassword;
-                  });
-                } else {
-                  _controller.clear();
-                  setState(() {});
-                }
-              },
-              child: widget.isPassword ? Container(
-                margin: const EdgeInsets.only(right: 12),
-                child: Icon(showPassword ? PhosphorIcons.regular.eye :
-                  PhosphorIcons.regular.eyeSlash, size: 20, color: colorConstants.textHeader)
-              ) :
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                child: Icon(PhosphorIcons.regular.x, size: 20, color: colorConstants.textHeader)),
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class PasswordBox extends StatefulWidget {
   const PasswordBox({super.key, required this.callbackEditPhoneNumber});
   final Function callbackEditPhoneNumber;
@@ -901,6 +742,8 @@ class _PasswordBoxState extends State<PasswordBox> {
   }
   @override
   Widget build(BuildContext context) {
+    final status = context.watch<LoginBloc>().state.status;
+
     return BackgroundWithTransparentBox(
       child: Column(children: [
         Align(
@@ -933,64 +776,26 @@ class _PasswordBoxState extends State<PasswordBox> {
           }
         ),
         const SizedBox(height: 24),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text("Mật khẩu",
-            style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w600, color: colorConstants.textSubHeader
-            )
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colorConstants.border)
-          ),
-          child: CupertinoTextField(
-            controller: _controller,
-            onTapOutside: (_) {
-              FocusScope.of(context).unfocus();
-            },
-            cursorHeight: 16,
-            cursorColor: colorConstants.bgClickable,
-            autofocus: true,
-            obscureText: showPassword ? false : true,
-            padding: const EdgeInsets.only(left: 12),
-            placeholder: "Nhập mật khẩu của bạn",
-            prefix: Container(
-              margin: const EdgeInsets.only(left: 12),
-              child: Icon(PhosphorIcons.regular.lock, size: 20, color: colorConstants.textPlaceholder)),
-            placeholderStyle: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textPlaceholder, fontFamily: "Inter",
-            ),
-            style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w500, color: colorConstants.textHeader, fontFamily: "Inter"
-            ),
-            onChanged: (value) {
-              context.read<LoginBloc>().add(LoginPasswordChanged(password: value));
-              setState(() {});
-            },
-            suffix: InkWell(
-              canRequestFocus: false,
-              onTap: () {
-                setState(() {
-                  showPassword = !showPassword;
-                });
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 12),
-                child: Icon(showPassword ? PhosphorIcons.regular.eye :
-                  PhosphorIcons.regular.eyeSlash, size: 20, color: colorConstants.textHeader)
-                ),
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+        CustomTextField(
+          label: "Mật khẩu",
+          placeholder: "Nhập mật khẩu của bạn",
+          keyword: "password",
+          validator: (value) {
+            if (value != null && value.length < 8) {
+              return false;
+            }
+            if (status == LoginStatus.fail) {
+              return false;
+            }
+            return true;
+          },
+          errorText: status == LoginStatus.fail ? "Sai tài khoản hoặc mật khẩu"  :"Mật khẩu phải có ít nhất 8 ký tự",
+          hasBorder: false,
+          isPassword: true,
+          callback: (value, keyword) {
+            context.read<LoginBloc>().add(LoginPasswordChanged(password: value));
+            setState(() {});
+          },
         ),
         const SizedBox(height: 24),
         Builder(
