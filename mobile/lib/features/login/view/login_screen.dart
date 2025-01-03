@@ -388,7 +388,9 @@ class _RegisterBoxState extends State<RegisterBox> {
                 keyword: "first_name",
                 hasBorder: false,
                 callback: (value, keyword) {
-                  registerData["first_name"] = value.trim();
+                  setState(() {
+                    registerData["first_name"] = value.trim();
+                  });
                 },
               ),
             ),
@@ -400,7 +402,9 @@ class _RegisterBoxState extends State<RegisterBox> {
                 keyword: "last_name",
                 hasBorder: false,
                 callback: (value, keyword) {
-                  registerData["last_name"] = value.trim();
+                  setState(() {
+                    registerData["last_name"] = value.trim();
+                  });
                   // context.read<LoginBloc>().add(LoginNameChanged(name: value));
                 },
               ),
@@ -478,7 +482,9 @@ class _RegisterBoxState extends State<RegisterBox> {
           errorText: "Vui lòng nhập đúng định dạng 10 chữ số",
           hasBorder: false,
           callback: (value, keyword) {
-            registerData["phone_number"] = value;
+            setState(() {
+              registerData["phone_number"] = value;
+            });
           },
         ),
 
@@ -497,7 +503,9 @@ class _RegisterBoxState extends State<RegisterBox> {
           hasBorder: false,
           isPassword: true,
           callback: (value, keyword) {
-            registerData["password"] = value;
+            setState(() {
+              registerData["password"] = value;
+            });
           },
         ),
 
