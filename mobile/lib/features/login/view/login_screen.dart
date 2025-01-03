@@ -319,7 +319,7 @@ class _RegisterBoxState extends State<RegisterBox> {
   }
 
   _callRegisterApi() async {
-    print('registerApi: $registerData');
+    // print('registerApi: $registerData');
     final Map res = await AuthRepository.register(registerData);
     final bool isSuccess = res["success"];
     if (!isSuccess) {

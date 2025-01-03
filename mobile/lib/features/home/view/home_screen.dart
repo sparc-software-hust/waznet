@@ -1,4 +1,5 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
+import 'package:cecr_unwomen/constants/extension/datetime_extension.dart';
 import 'package:cecr_unwomen/features/authentication/authentication.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/firebase/firebase.dart';
@@ -14,8 +15,11 @@ import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -90,6 +94,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final Map allData = isHouseholdTab ? (householdData['statistic'] ?? {}) : (scraperData['statistic'] ?? {});
     final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
+
+     Widget buildChart() {
+      switch (roleId) {
+        case 2:
+          return HouseholdChart(statistic: allData);
+        case 3: 
+          return ScraperChart(statistic: allData);
+        default:
+          return AdminChart(statistic: allData, isHouseholdTab: isHouseholdTab,);
+      }
+    }
+
     final Widget adminWidget = Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -156,6 +172,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
+                        buildChart(),
+                        const SizedBox(height: 24,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -190,11 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  if (roleId == 2) 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _buildHouseHoldChart()
-                  )
                 ]
               ),
             ),
@@ -258,10 +271,76 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
+}
+
+class CardInfoWidget extends StatelessWidget {
+  const CardInfoWidget({super.key, required this.icon, required this.text, required this.number});
+  final Widget icon;
+  final String text;
+  final String number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -5,
+            bottom: -20,
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [Color(0xFFFFFCF0), Color(0xFFC8E6C9)], // Define your gradient colors here
+                  tileMode: TileMode.clamp,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds);
+              },
+              child: icon
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text,
+                    style: const TextStyle(
+                        color: Color(0xFF666667),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(height: 10),
+                Text(number,
+                    style: const TextStyle(
+                        color: Color(0xFF29292A),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 
-  Widget _buildHouseHoldChart() {
-    List data = (householdData['statistic'] ?? {})["sum_factors"] ?? [];
+
+
+
+class HouseholdChart extends StatelessWidget {
+  final Map statistic;
+  const HouseholdChart({super.key,required this.statistic});
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorConstants colorCons = ColorConstants();
+    List data = statistic["sum_factors"] ?? [];
     List recycled = data.where((e) => (e["factor_name"] ?? "").contains("kilo")).map((e) {
       e.putIfAbsent("color", () {
         switch (e["factor_name"]) {
@@ -429,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+
     return Column(
       children: [
         buildChartItem(),
@@ -437,63 +517,251 @@ class _HomeScreenState extends State<HomeScreen> {
       ]
     );
   }
-
 }
 
-class CardInfoWidget extends StatelessWidget {
-  const CardInfoWidget({super.key, required this.icon, required this.text, required this.number});
-  final Widget icon;
-  final String text;
-  final String number;
+
+class ScraperChart extends StatelessWidget {
+  final Map statistic;
+  const ScraperChart({super.key,required this.statistic});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -5,
-            bottom: -20,
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return const LinearGradient(
-                  colors: [Color(0xFFFFFCF0), Color(0xFFC8E6C9)], // Define your gradient colors here
-                  tileMode: TileMode.clamp,
-                  begin: Alignment.centerLeft,
-                  end: Alignment.bottomRight,
-                ).createShader(bounds);
-              },
-              child: icon
+    final ColorConstants colorCons = ColorConstants();
+    List data = statistic["sum_factors"] ?? [];
+    List collected = data.where((e) => (e["factor_name"] ?? "").contains("collected")).map((e) {
+      e.putIfAbsent("color", () {
+        switch (e["factor_name"]) {
+          case "one_kilo_plastic_collected":
+            return const Color(0xffA569BD);
+          case "one_kilo_paper_collected":
+            return const Color(0xff58D68D);
+          case "one_kilo_metal_garbage_collected":
+            return const Color(0xff5DADE2);
+          default:
+            return const Color(0xffF1948A);
+        }
+      });
+      return e;
+    }).toList();
+
+
+    String convertCollectedCountToTitle(String key) {
+      switch(key) {
+        case "one_kilo_plastic_collected":
+          return "Nhựa";
+        case "one_kilo_paper_collected":
+          return "Giấy";
+        case "one_kilo_metal_garbage_collected":
+          return "Kim loại";
+        default: 
+          return "";
+      }
+    }
+
+    Widget label(String title, double value, Color color,) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 14,
+              width: 14,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color
+              ),
             ),
+            const SizedBox(width: 6,),
+            Expanded(
+              child: Text(
+                "$title (${value.toString()} kg)",
+                style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff333334)),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    Widget buildChartItem() {
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Khối lượng thu gom theo loại", 
+                style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xffE3E3E5)
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                child: Row(
+                  children: [
+                    Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                    Text(" Tháng này",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                  ],
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12,),
           Container(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            height: 180,
+            decoration: BoxDecoration(
+              color: const Color(0xffFFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(color: const Color(0xff18274B).withOpacity(0.12),spreadRadius: -2, blurRadius: 4, offset: const Offset(0, 2)),
+                BoxShadow(color: const Color(0xff18274B).withOpacity(0.08),spreadRadius: -2, blurRadius: 4, offset: const Offset(0, 4))
+              ]
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+            child: Row(
               children: [
-                Text(text,
-                    style: const TextStyle(
-                        color: Color(0xFF666667),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500)),
-                const SizedBox(height: 10),
-                Text(number,
-                    style: const TextStyle(
-                        color: Color(0xFF29292A),
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700)),
+                Expanded(
+                  child: PieChart(
+                    PieChartData(
+                      startDegreeOffset: -90,
+                      sections: collected.map((e) {
+                        return PieChartSectionData(
+                          radius: 25,
+                          title: "",
+                          value: e["quantity"] ?? 0,
+                          color: e["color"] ?? const Color(0xffF1948A)
+                        );
+                      }).toList()
+                    )
+                  ),
+                ),
+                const SizedBox(width: 15,),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: collected.map((e) {
+                      return label(
+                        convertCollectedCountToTitle(e["factor_name"] ?? ""),
+                        e["quantity"] ?? 0,
+                        e["color"] ?? const Color(0xffF1948A)
+                      );
+                    }).toList()
+                  ),
+                )
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }
+
+    return buildChartItem();
+  } 
 }
 
+class AdminChart extends StatelessWidget {
+  final Map statistic;
+  final bool isHouseholdTab;
+  const AdminChart({super.key,required this.statistic, required this.isHouseholdTab});
 
+  @override
+  Widget build(BuildContext context) {
+    final ColorConstants colorCons = ColorConstants();
+    List data = statistic["overall_data_one_month"] ?? [];
+    DateTime now = DateTime.now();
+    final Map<String, double> data7Days = {};
+    for (int i = 0; i < 7; i++) {
+      final DateTime date = now.subtract(Duration(days: i));  
+      final value = data
+        .where((e) => e["date"] != null && DateTime.parse(e["date"]).isSameDate(date))
+        .map<double>((e) => isHouseholdTab 
+          ? ((e["kg_co2e_plastic_reduced"] ?? 0) + (e["kg_co2e_recycle_reduced"] ?? 0))
+          : (e["kg_co2e_reduced"] ?? 0) 
+        )
+        .fold(0.0, (prev, curr) {
+          return prev + curr;
+        });
+      
+      data7Days.putIfAbsent(i == 0 ? " Hôm\nnay" : DateFormat("d/M").format(date), () => value);
+    }
+
+    Widget buildChartItem() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Giảm phát thải CO₂ trong 7 ngày qua", 
+            style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
+          ),
+          const SizedBox(height: 12,),
+          Container(
+            height: 250,
+            decoration: BoxDecoration(
+              color: const Color(0xffFFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(color: const Color(0xff18274B).withOpacity(0.12),spreadRadius: -2, blurRadius: 4, offset: const Offset(0, 2)),
+                BoxShadow(color: const Color(0xff18274B).withOpacity(0.08),spreadRadius: -2, blurRadius: 4, offset: const Offset(0, 4))
+              ]
+            ),
+            padding: const EdgeInsets.only(top: 10, right: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("  kgCO₂e", style: colorCons.fastStyle(12, FontWeight.w400, const Color(0xff808082)),),
+                const SizedBox(height: 6,),
+                Expanded(
+                  child: SfCartesianChart(
+                    enableAxisAnimation: true,
+                    plotAreaBorderWidth: 0,
+                    primaryXAxis: CategoryAxis(
+                      majorGridLines: const MajorGridLines(width: 0),
+                      majorTickLines: const MajorTickLines(size: 0, color: Color(0xffF4F4F5)),
+                      labelStyle: colorCons.fastStyle(14,FontWeight.w400, const Color(0xff808082)),
+                      axisLine: const AxisLine(color: Color(0xffE3E3E5), width: 1),
+                      axisLabelFormatter: (axisLabelRenderArgs) {
+                        return ChartAxisLabel(axisLabelRenderArgs.text, colorCons.fastStyle(14,FontWeight.w400, const Color(0xff808082)));
+                      },
+                    ),
+                    primaryYAxis: NumericAxis(
+                      majorGridLines: const MajorGridLines(dashArray: <double>[6, 4], color: Color(0x4dc1c1c2), width: 1),
+                      labelStyle: colorCons.fastStyle(14,FontWeight.w400, const Color(0xff808082)),
+                      axisLine: const AxisLine(width: 0),
+                      majorTickLines: const MajorTickLines(size: 0),
+                    ),
+                    series: [
+                      ColumnSeries<MapEntry<String, double>, String>(
+                        dataLabelMapper: (data, _) => data.value.floor().toString(),
+                        dataLabelSettings: DataLabelSettings(
+                          isVisible: true,
+                          labelAlignment: ChartDataLabelAlignment.outer,
+                          textStyle: colorCons.fastStyle(12, FontWeight.w400, const Color(0xffC1C1C2))
+                        ),                 
+                        dataSource: data7Days.entries.toList(),
+                        gradient: const LinearGradient(colors: [
+                          Color(0xff4CAF50),
+                          Color(0xffA5D6A7)
+                        ]),
+                        xValueMapper: (data, _) => data.key,
+                        yValueMapper: (data, _) => data.value,
+                        borderRadius: const BorderRadius.all(Radius.circular(14)),
+                        width: 0.35, 
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    
+   return buildChartItem();
+  }
+}
