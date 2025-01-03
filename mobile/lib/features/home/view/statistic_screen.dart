@@ -46,19 +46,20 @@ class _StatisticScreenState extends State<StatisticScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Dữ liệu", style: colorCons.fastStyle(18, FontWeight.w600, const Color(0xFF29292A))),
-              InkWell(
-                onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                child: Container(
-                  height: 40,
-                  width: 40,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: PhosphorIcon(PhosphorIcons.regular.export,
-                      size: 24, color: colorCons.primaryBlack1),
-                ),
-              ),
+              const SizedBox(width: 16),
+              // InkWell(
+              //   onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+              //   child: Container(
+              //     height: 40,
+              //     width: 40,
+              //     decoration: const BoxDecoration(
+              //       shape: BoxShape.circle,
+              //       color: Colors.white,
+              //     ),
+              //     child: PhosphorIcon(PhosphorIcons.regular.export,
+              //         size: 24, color: colorCons.primaryBlack1),
+              //   ),
+              // ),
             ],
           )
         ),
