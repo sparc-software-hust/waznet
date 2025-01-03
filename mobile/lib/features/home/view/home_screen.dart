@@ -674,7 +674,7 @@ class AdminChart extends StatelessWidget {
     final ColorConstants colorCons = ColorConstants();
     List data = statistic["overall_data_one_month"] ?? [];
     DateTime now = DateTime.now();
-    final Map<String, double> data7Days = {};
+    Map<String, double> data7Days = {};
     for (int i = 0; i < 7; i++) {
       final DateTime date = now.subtract(Duration(days: i));  
       final value = data
@@ -688,7 +688,9 @@ class AdminChart extends StatelessWidget {
         });
       
       data7Days.putIfAbsent(i == 0 ? " Hôm\nnay" : DateFormat("d/M").format(date), () => value);
-    }
+    }  
+    // reversed
+    data7Days = Map.fromEntries( data7Days.entries.toList().reversed);
 
     Widget buildChartItem() {
       return Column(
