@@ -476,6 +476,7 @@ class HouseholdChart extends StatelessWidget {
                 Expanded(
                   child: PieChart(
                     PieChartData(
+                      startDegreeOffset: -90,
                       sections: (isRecyled ? recycled : rejected).map((e) {
                         return PieChartSectionData(
                           radius: 20,
