@@ -40,14 +40,10 @@ class _UserInfoState extends State<UserInfo> {
                 const SizedBox(height: 40),
                 ClipRRect(
                 borderRadius: BorderRadius.circular(104),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(104),
-                  onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                  child: CustomCircleAvatar(
-                      size: 104,
-                      avatarUrl: user.avatarUrl,
-                    ),
-                ),
+                child: CustomCircleAvatar(
+                    size: 104,
+                    avatarUrl: user.avatarUrl,
+                  ),
               ),
                 const SizedBox(height: 10),
                 Text("${user.firstName} ${user.lastName}", style: colorCons.fastStyle(18,FontWeight.w700, const Color(0xFF333334))),
@@ -82,45 +78,45 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                NavigationButton(
-                  text: "Nhắc nhập liệu",
-                  icon: PhosphorIcons.regular.alarm,
-                  hasSwitch: true,
-                  onToggleSwitch: (p0) {
-                    return Utils.showDialogWarningError(
-                      context, false, "Chức năng đang được phát triển");
-                  },
-                  subTitleWidget: Column(
-                    children: [
-                      Text(
-                        "Ứng dụng sẽ gửi thông báo nhắc bạn nhập dữ liệu mỗi ngày",
-                        style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff666667)),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 6.0),
-                        child: Divider(color: Color(0xffF4F4F5)),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Thời gian", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff333334)),),
-                          InkWell(
-                            onTap: () => Utils.showDatePicker(
-                              context: context,
-                              onCancel: () => Navigator.pop(context),
-                              onSave: () => Navigator.pop(context),
-                              onDateTimeChanged: (p0) {
-                                // return Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển");
-                              },
-                              mode: CupertinoDatePickerMode.time
-                            ),
-                            child: Text("14:00", style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),)
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                // NavigationButton(
+                //   text: "Nhắc nhập liệu",
+                //   icon: PhosphorIcons.regular.alarm,
+                //   hasSwitch: true,
+                //   onToggleSwitch: (p0) {
+                //     return Utils.showDialogWarningError(
+                //       context, false, "Chức năng đang được phát triển");
+                //   },
+                //   subTitleWidget: Column(
+                //     children: [
+                //       Text(
+                //         "Ứng dụng sẽ gửi thông báo nhắc bạn nhập dữ liệu mỗi ngày",
+                //         style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff666667)),
+                //       ),
+                //       const Padding(
+                //         padding: EdgeInsets.symmetric(vertical: 6.0),
+                //         child: Divider(color: Color(0xffF4F4F5)),
+                //       ),
+                //       Row(
+                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //         children: [
+                //           Text("Thời gian", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff333334)),),
+                //           InkWell(
+                //             onTap: () => Utils.showDatePicker(
+                //               context: context,
+                //               onCancel: () => Navigator.pop(context),
+                //               onSave: () => Navigator.pop(context),
+                //               onDateTimeChanged: (p0) {
+                //                 // return Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển");
+                //               },
+                //               mode: CupertinoDatePickerMode.time
+                //             ),
+                //             child: Text("14:00", style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),)
+                //           )
+                //         ],
+                //       )
+                //     ],
+                //   ),
+                // ),
                 NavigationButton(
                   text: "Về chúng tôi",
                   icon: PhosphorIcons.regular.users,
@@ -139,13 +135,13 @@ class _UserInfoState extends State<UserInfo> {
                                 child: const ChangePasswordScreen())));
                     },
                 ),
-                NavigationButton(
-                  text: "Xác thực sinh trắc học",
-                  icon: PhosphorIcons.regular.fingerprint,
-                  hasSwitch: true,
-                  onToggleSwitch: (p0) => Utils.showDialogWarningError(
-                      context, false, "Chức năng đang được phát triển"),
-                ),
+                // NavigationButton(
+                //   text: "Xác thực sinh trắc học",
+                //   icon: PhosphorIcons.regular.fingerprint,
+                //   hasSwitch: true,
+                //   onToggleSwitch: (p0) => Utils.showDialogWarningError(
+                //       context, false, "Chức năng đang được phát triển"),
+                // ),
                 NavigationButton(
                   text: "Đăng xuất",
                   isWarning: true,

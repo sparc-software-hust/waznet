@@ -90,21 +90,21 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                               size: 104,
                               avatarUrl: userClone.avatarUrl,
                             ),
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: InkWell(
-                                onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE8F5E9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.camera_alt, size: 20),
-                                ),
-                              ),
-                            ),
+                            // Positioned(
+                            //   right: 0,
+                            //   bottom: 0,
+                            //   child: InkWell(
+                            //     onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                            //     child: Container(
+                            //       padding: const EdgeInsets.all(8),
+                            //       decoration: const BoxDecoration(
+                            //         color: Color(0xFFE8F5E9),
+                            //         shape: BoxShape.circle,
+                            //       ),
+                            //       child: const Icon(Icons.camera_alt, size: 20),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),

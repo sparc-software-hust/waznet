@@ -124,19 +124,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    InkWell(
-                      onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                      child: Container(
-                        height: 40,
-                        width: 40,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                        ),
-                        child: PhosphorIcon(PhosphorIcons.regular.bell,
-                            size: 24, color: colorCons.primaryBlack1),
-                      ),
-                    ),
+                    const SizedBox(width: 10),
+                    // InkWell(
+                    //   onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
+                    //   child: Container(
+                    //     height: 40,
+                    //     width: 40,
+                    //     decoration: const BoxDecoration(
+                    //       shape: BoxShape.circle,
+                    //       color: Colors.white,
+                    //     ),
+                    //     child: PhosphorIcon(PhosphorIcons.regular.bell,
+                    //         size: 24, color: colorCons.primaryBlack1),
+                    //   ),
+                    // ),
                   ],
                 );
               }
