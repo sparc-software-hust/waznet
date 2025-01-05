@@ -2,7 +2,6 @@ import 'package:cecr_unwomen/features/authentication/repository/authentication_r
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/features/user/view/bloc/change_password_bloc/change_password_event.dart';
 import 'package:cecr_unwomen/features/user/view/bloc/change_password_bloc/change_password_state.dart';
-import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChangePasswordBloc

@@ -4,7 +4,7 @@ class TempApi {
   static Future<Map> contributionData(Map data) async {
     try {
       const String url = "/contribution/contribute_data";
-      print('data:$data');
+      // print('data:$data');
       final res = await dioConfigInterceptor.post(url, data: data);
       return res.data;
     } catch (e) {

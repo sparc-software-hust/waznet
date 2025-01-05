@@ -72,7 +72,7 @@ If all files are decrypted, done! You can run code normally.
 ## Roadmap
 - iOS/Android Push Notification
 - Custom time schedule for sending reminder notification to users
-- ZNS to forgot password flow
+- ZNS to forgot password flow (on my way to find another solution)
 - Export Excel statistics
 
 ## Contact
