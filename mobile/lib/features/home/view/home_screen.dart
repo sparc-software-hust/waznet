@@ -12,7 +12,9 @@ import 'package:cecr_unwomen/features/user/view/user_info.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
+import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -98,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
      Widget buildChart() {
       switch (roleId) {
         case 2:
-          return HouseholdChart(statistic: allData);
+          return const HouseholdChart();
         case 3: 
           return ScraperChart(statistic: allData);
         default:
@@ -333,14 +335,49 @@ class CardInfoWidget extends StatelessWidget {
 
 
 
-class HouseholdChart extends StatelessWidget {
-  final Map statistic;
-  const HouseholdChart({super.key,required this.statistic});
+class HouseholdChart extends StatefulWidget {
+  const HouseholdChart({super.key});
+
+  @override
+  State<HouseholdChart> createState() => _HouseholdChartState();
+}
+
+class _HouseholdChartState extends State<HouseholdChart> {
+  TimeFilterOptions option = TimeFilterOptions.thisMonth;
+  Map dataStatistic = {};
+  late DateTime start;
+  late DateTime end;
+  
+  @override
+  void initState() {
+    super.initState();
+    callApiGetFilterOverallData();
+  }
+
+
+  callApiGetFilterOverallData({bool isCustomRange = false}) async {
+    if (!mounted) return;
+    if (!isCustomRange) {
+      Map dateMap = TimeFilterHelper.getDateRange(option);
+      start = dateMap["startDate"];
+      end = dateMap["endDate"];
+    }
+
+    final data  = await TempApi.getFilterOverallData(
+      start: start,
+      end: end
+    );
+
+    if (!(data["success"] ?? false)) return;
+    setState(() {
+      dataStatistic = data["data"];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["sum_factors"] ?? [];
+    List data = dataStatistic["sum_factors"] ?? [];
     List recycled = data.where((e) => (e["factor_name"] ?? "").contains("kilo")).map((e) {
       e.putIfAbsent("color", () {
         switch (e["factor_name"]) {
@@ -444,17 +481,46 @@ class HouseholdChart extends StatelessWidget {
                 isRecyled ? "Đóng góp tái chế rác thải" : "Đóng góp giảm thiểu đồ nhựa", 
                 style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: const Color(0xffE3E3E5)
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
-                    Text(" Tháng này",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
-                  ],
+              InkWell(
+                onTap: () {
+                  showCupertinoModalPopup(
+                    context: context, 
+                    builder: (context) {
+                      return TimeFilter(
+                        option: option,
+                        start: start,
+                        end: end,
+                        onSave: (e) {
+                          setState(() {
+                            option = e;
+                          });
+                          if (!TimeFilterHelper.isCustomOption(option)) {
+                            callApiGetFilterOverallData();
+                          }
+                        },
+                        onSaveCustomRange: (startDate, endDate) {
+                          setState(() {
+                            start = startDate;
+                            end = endDate;
+                          });
+                          callApiGetFilterOverallData(isCustomRange: true);
+                        },
+                      );
+                    }
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xffE3E3E5)
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                      Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -471,7 +537,7 @@ class HouseholdChart extends StatelessWidget {
               ]
             ),
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-            child: Row(
+            child:  Row(
               children: [
                 Expanded(
                   child: PieChart(
@@ -510,7 +576,7 @@ class HouseholdChart extends StatelessWidget {
     }
 
 
-    return Column(
+    return  Column(
       children: [
         buildChartItem(),
         const SizedBox(height: 32,),
@@ -521,14 +587,51 @@ class HouseholdChart extends StatelessWidget {
 }
 
 
-class ScraperChart extends StatelessWidget {
+class ScraperChart extends StatefulWidget {
   final Map statistic;
   const ScraperChart({super.key,required this.statistic});
 
   @override
+  State<ScraperChart> createState() => _ScraperChartState();
+}
+
+class _ScraperChartState extends State<ScraperChart> {
+  TimeFilterOptions option = TimeFilterOptions.thisMonth;
+  Map dataStatistic = {};
+  late DateTime start;
+  late DateTime end;
+  
+  @override
+  void initState() {
+    super.initState();
+    callApiGetFilterOverallData();
+  }
+
+
+  callApiGetFilterOverallData({bool isCustomRange = false}) async {
+    if (!mounted) return;
+    if (!isCustomRange) {
+      Map dateMap = TimeFilterHelper.getDateRange(option);
+      start = dateMap["startDate"];
+      end = dateMap["endDate"];
+    }
+
+    final data  = await TempApi.getFilterOverallData(
+      start: start,
+      end: end
+    );
+
+    if (!(data["success"] ?? false)) return;
+    setState(() {
+      dataStatistic = data["data"];
+    });
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["sum_factors"] ?? [];
+    List data = dataStatistic["sum_factors"] ?? [];
     List collected = data.where((e) => (e["factor_name"] ?? "").contains("collected")).map((e) {
       e.putIfAbsent("color", () {
         switch (e["factor_name"]) {
@@ -596,17 +699,46 @@ class ScraperChart extends StatelessWidget {
                 "Khối lượng thu gom theo loại", 
                 style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: const Color(0xffE3E3E5)
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
-                    Text(" Tháng này",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
-                  ],
+              InkWell(
+                onTap: () {
+                  showCupertinoModalPopup(
+                    context: context, 
+                    builder: (context) {
+                      return TimeFilter(
+                        option: option,
+                        start: start,
+                        end: end,
+                        onSave: (e) {
+                          setState(() {
+                            option = e;
+                          });
+                          if (!TimeFilterHelper.isCustomOption(option)) {
+                            callApiGetFilterOverallData();
+                          }
+                        },
+                        onSaveCustomRange: (startDate,endDate) {
+                          setState(() {
+                            start = startDate;
+                            end = endDate;
+                          });
+                          callApiGetFilterOverallData(isCustomRange: true);
+                        },
+                      );
+                    }
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xffE3E3E5)
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                      Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                    ],
+                  ),
                 ),
               ),
             ],

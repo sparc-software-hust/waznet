@@ -139,7 +139,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                         onTap: () => Utils.showDatePicker(
                           context: context,
                           onCancel: () {
-                            birthDate = DateTime.parse(birthDateController.text);
+                            birthDate = DateFormat("dd/MM/yyyy").parse(birthDateController.text);
                             Navigator.pop(context);
                           },
                           onSave: () {
@@ -150,6 +150,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                           onDateTimeChanged: (date) {
                             birthDate = date;
                           },
+                          initDate: birthDate
                         )
                       ),
                       const SizedBox(height: 16),

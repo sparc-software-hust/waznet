@@ -309,7 +309,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         today = Helper.get_vietnam_date_today()
         # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
         {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
-        overall_data_one_month = get_overall_contribution_one_month(user_id, role_id, start_month, end_month)
+        overall_data_one_month = get_overall_contribution_by_time(user_id, role_id, start_month, end_month)
 
         sum_factors = if role_id == 2 do
           HouseholdContribution
@@ -368,10 +368,73 @@ defmodule CecrUnwomenWeb.ContributionController do
     json conn, res
   end
 
-  defp get_overall_contribution_one_month(user_id, role_id, start_month, end_month) do
+  def get_filter_overall_data(conn, params) do
+    user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
+    start_date = Date.from_iso8601!(params["start"])
+    end_date =  Date.from_iso8601!(params["end"])
+    IO.inspect(params)
+    
+    res = cond do
+      role_id != 1 ->
+        sum_factors = if role_id == 2 do
+          HouseholdContribution
+          |> join(:inner, [hc], hcf in HouseholdConstantFactor, on: hc.factor_id == hcf.id)
+          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_date and hc.date <= ^end_date)
+          |> group_by([hc, hcf], [hc.factor_id, hcf.name])
+        else
+          ScraperContribution
+          |> join(:inner, [hc], scf in ScrapConstantFactor, on: hc.factor_id == scf.id)
+          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_date and hc.date <= ^end_date)
+          |> group_by([hc, scf], [hc.factor_id, scf.name])
+        end
+        |> order_by([hc], asc: hc.factor_id)
+        |> select([hc, f], %{
+          factor_id: hc.factor_id,
+          factor_name: f.name,
+          quantity: sum(hc.quantity)
+        })
+        |> Repo.all
+
+        overall = %{:sum_factors => sum_factors}
+
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+
+      role_id == 1 ->
+        keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
+        count_household_user = User |> where([u], u.role_id == ^2) |> Repo.aggregate(:count)
+        household_overall_data = Helper.aggregate_with_fields(OverallHouseholdContribution, keys) |> Map.put(:count_household, count_household_user)
+
+        count_scraper_user = User |> where([u], u.role_id == ^3) |> Repo.aggregate(:count)
+        keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
+        scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
+
+        today = Helper.get_vietnam_date_today()
+        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
+        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
+        {overall_scrapers_one_month, overall_households_one_month} = get_user_contributions_by_range(start_month, end_month)
+        {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
+
+        overall = %{
+          household_overall_data: household_overall_data
+            |> Map.put(:total_kgco2e_seven_days, household_total_kgco2e_seven_days)
+            |> Map.put(:overall_data_one_month, overall_households_one_month),
+
+          scraper_overall_data: scraper_overall_data
+            |> Map.put(:total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
+            |> Map.put(:overall_data_one_month, overall_scrapers_one_month)
+        }
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
+      true ->
+        Helper.response_json_message(false, "Bạn không có đủ quyền thực hiện thao tác!", 402)
+    end
+    json conn, res
+  end
+  
+  defp get_overall_contribution_by_time(user_id, role_id, start_date, end_date) do
     model_overall = if role_id == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
     model_overall = model_overall
-    |> where([m], m.user_id == ^user_id and m.date >= ^start_month and m.date <= ^end_month)
+    |> where([m], m.user_id == ^user_id and m.date >= ^start_date and m.date <= ^end_date)
     |> order_by([m], desc: m.date)
 
     if role_id == 3 do
