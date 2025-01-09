@@ -1,4 +1,5 @@
 import 'package:cecr_unwomen/http.dart';
+import 'package:intl/intl.dart';
 
 class TempApi {
   static Future<Map> contributionData(Map data) async {
@@ -47,6 +48,24 @@ class TempApi {
     try {
       const String url = "/contribution/get_overall_data";
       final res = await dioConfigInterceptor.get(url);
+      return res.data;
+    } catch (e) {
+      return {"success": false};
+    }
+  }
+
+  static Future<Map> getFilterOverallData({required DateTime start,required DateTime end}) async {
+    String startDate =  DateFormat('yyyy-MM-dd').format(start);
+    String endDate = DateFormat('yyyy-MM-dd').format(end);
+
+    try {
+      const String url = "/contribution/get_filter_overall_data";
+      final res = await dioConfigInterceptor.get(
+        url, queryParameters: {
+          "start": startDate,
+          "end": endDate
+        } 
+      );
       return res.data;
     } catch (e) {
       return {"success": false};

@@ -30,7 +30,9 @@ class _ContributionScreenState extends State<ContributionScreen> {
   double totalkgCO2e = 0.0;
   List inputData = [];
   DateTime _selectedDate = DateTime.now();
+  DateTime _displayDate = DateTime.now();
   FToast fToast = FToast();
+  bool isErrorDate = false;
 
   @override
   void initState() {
@@ -72,17 +74,24 @@ class _ContributionScreenState extends State<ContributionScreen> {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+    Utils.showDatePicker(
+      context: context, 
+      onCancel: () {
+        _displayDate = _selectedDate;
+        Navigator.pop(context);
+      },
+      onSave: () {
+        setState(() {
+          _selectedDate = _displayDate;
+          isErrorDate = _selectedDate.isAfter(DateTime.now());
+        });
+        Navigator.pop(context);
+      }, 
+      onDateTimeChanged: (d) {
+        _displayDate = d;
+      },
+      initDate: _selectedDate
     );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
   }
 
   callApiToContributeData() async {
@@ -197,6 +206,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          border: isErrorDate ? Border.all(color: const Color(0xffFF4F3F)) : null
                         ),
                         child: Center(
                           child: Row(
@@ -215,6 +225,8 @@ class _ContributionScreenState extends State<ContributionScreen> {
                         )
                       ),
                     ),
+                    if (isErrorDate)
+                    const Text("Không thể chọn ngày này, hãy thử lại", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xffFF4F3F))),
                     const SizedBox(height: 16),
 
                     Column(
@@ -261,7 +273,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
                     width: double.maxFinite,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: !_validToSend() ? const Color(0xFFE3E3E5) : const Color(0xFF4CAF50),
+                      color: (!_validToSend() || isErrorDate) ? const Color(0xFFE3E3E5) : const Color(0xFF4CAF50),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text("Gửi dữ liệu", textAlign: TextAlign.center, style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),

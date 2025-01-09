@@ -12,7 +12,9 @@ import 'package:cecr_unwomen/features/user/view/user_info.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
+import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final Map householdData = {};
   final Map scraperData = {};
+  bool needGetDataChart = false;
 
   changeBar() {
     setState(() {
@@ -98,9 +101,9 @@ class _HomeScreenState extends State<HomeScreen> {
      Widget buildChart() {
       switch (roleId) {
         case 2:
-          return HouseholdChart(statistic: allData);
+          return HouseholdChart(needGetData: needGetDataChart,);
         case 3: 
-          return ScraperChart(statistic: allData);
+          return ScraperChart(needGetData: needGetDataChart,);
         default:
           return AdminChart(statistic: allData, isHouseholdTab: isHouseholdTab,);
       }
@@ -174,38 +177,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         buildChart(),
-                        const SizedBox(height: 24,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Builder(
-                              builder: (context) {
-                                // final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: Text(roleId == 1 ? "Người cung cấp số liệu" : "Thống kê số liệu đóng góp",
-                                      style: colorCons.fastStyle(
-                                          14, FontWeight.w600, const Color(0xFF666667))),
-                                );
-                              }
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-      
-                        if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
-                        ...allData["overall_data_one_month"].map((e) {
-                          final int roleIdUser = isHouseholdTab ? 2 : 3;
-                          return UserContributionWidget(oneDayData: {...e, "role_id": roleIdUser});
-                        }).toList()
-      
-                        else const Center(
-                          child: Text("Không có dữ liệu", style: TextStyle(
-                            color: Color(0xFF808082),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500)
+                        if (roleId == 1) 
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: StatisticScreen(
+                            roleId: roleId, 
+                            isHouseHoldTabAdminScreen: isHouseholdTab,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -223,8 +202,14 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () async {
+          setState(() {
+            needGetDataChart = false;
+          });
           final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
           if (!(shouldCallApi ?? false)) return;
+          setState(() {
+            needGetDataChart = true;
+          });
           callApiGetOverallData();
         },
         backgroundColor: const Color(0xFF4CAF50),
@@ -264,8 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _currentIndex == 0 ? adminWidget
           : _currentIndex == 1 ?
           StatisticScreen(
-            householdStatisticData: householdData["statistic"] ?? {},
-            scraperStatisticData: scraperData["statistic"] ?? {},
             roleId: roleId,
           )
           : const UserInfo(),
@@ -334,14 +317,58 @@ class CardInfoWidget extends StatelessWidget {
 
 
 
-class HouseholdChart extends StatelessWidget {
-  final Map statistic;
-  const HouseholdChart({super.key,required this.statistic});
+class HouseholdChart extends StatefulWidget {
+  final bool needGetData;
+  const HouseholdChart({super.key, this.needGetData = false});
+
+  @override
+  State<HouseholdChart> createState() => _HouseholdChartState();
+}
+
+class _HouseholdChartState extends State<HouseholdChart> {
+  TimeFilterOptions option = TimeFilterOptions.thisMonth;
+  Map dataStatistic = {};
+  late DateTime start;
+  late DateTime end;
+  
+  @override
+  void initState() {
+    super.initState();
+    callApiGetFilterOverallData();
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+      if (widget.needGetData != oldWidget.needGetData) {
+        callApiGetFilterOverallData();
+      }
+  }
+
+
+  callApiGetFilterOverallData({bool isCustomRange = false}) async {
+    if (!mounted) return;
+    if (!isCustomRange) {
+      Map dateMap = TimeFilterHelper.getDateRange(option);
+      start = dateMap["start_date"];
+      end = dateMap["end_date"];
+    }
+
+    final data  = await TempApi.getFilterOverallData(
+      start: start,
+      end: end
+    );
+
+    if (!(data["success"] ?? false)) return;
+    setState(() {
+      dataStatistic = data["data"];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["sum_factors"] ?? [];
+    List data = dataStatistic["sum_factors"] ?? [];
     List recycled = data.where((e) => (e["factor_name"] ?? "").contains("kilo")).map((e) {
       e.putIfAbsent("color", () {
         switch (e["factor_name"]) {
@@ -445,17 +472,46 @@ class HouseholdChart extends StatelessWidget {
                 isRecyled ? "Đóng góp tái chế rác thải" : "Đóng góp giảm thiểu đồ nhựa", 
                 style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: const Color(0xffE3E3E5)
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
-                    Text(" Tháng này",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
-                  ],
+              InkWell(
+                onTap: () {
+                  showCupertinoModalPopup(
+                    context: context, 
+                    builder: (context) {
+                      return TimeFilter(
+                        option: option,
+                        start: start,
+                        end: end,
+                        onSave: (e) {
+                          setState(() {
+                            option = e;
+                          });
+                          if (!TimeFilterHelper.isCustomOption(option)) {
+                            callApiGetFilterOverallData();
+                          }
+                        },
+                        onSaveCustomRange: (startDate, endDate) {
+                          setState(() {
+                            start = startDate;
+                            end = endDate;
+                          });
+                          callApiGetFilterOverallData(isCustomRange: true);
+                        },
+                      );
+                    }
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xffE3E3E5)
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                      Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -472,7 +528,7 @@ class HouseholdChart extends StatelessWidget {
               ]
             ),
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-            child: Row(
+            child:  Row(
               children: [
                 Expanded(
                   child: PieChart(
@@ -511,7 +567,7 @@ class HouseholdChart extends StatelessWidget {
     }
 
 
-    return Column(
+    return  Column(
       children: [
         buildChartItem(),
         const SizedBox(height: 32,),
@@ -522,14 +578,59 @@ class HouseholdChart extends StatelessWidget {
 }
 
 
-class ScraperChart extends StatelessWidget {
-  final Map statistic;
-  const ScraperChart({super.key,required this.statistic});
+class ScraperChart extends StatefulWidget {
+  final bool needGetData;
+  const ScraperChart({super.key, this.needGetData = false});
+
+  @override
+  State<ScraperChart> createState() => _ScraperChartState();
+}
+
+class _ScraperChartState extends State<ScraperChart> {
+  TimeFilterOptions option = TimeFilterOptions.thisMonth;
+  Map dataStatistic = {};
+  late DateTime start;
+  late DateTime end;
+  
+  @override
+  void initState() {
+    super.initState();
+    callApiGetFilterOverallData();
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+      if (widget.needGetData != oldWidget.needGetData) {
+        callApiGetFilterOverallData();
+      }
+  }
+
+
+  callApiGetFilterOverallData({bool isCustomRange = false}) async {
+    if (!mounted) return;
+    if (!isCustomRange) {
+      Map dateMap = TimeFilterHelper.getDateRange(option);
+      start = dateMap["start_date"];
+      end = dateMap["end_date"];
+    }
+
+    final data  = await TempApi.getFilterOverallData(
+      start: start,
+      end: end
+    );
+
+    if (!(data["success"] ?? false)) return;
+    setState(() {
+      dataStatistic = data["data"];
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["sum_factors"] ?? [];
+    List data = dataStatistic["sum_factors"] ?? [];
     List collected = data.where((e) => (e["factor_name"] ?? "").contains("collected")).map((e) {
       e.putIfAbsent("color", () {
         switch (e["factor_name"]) {
@@ -597,17 +698,46 @@ class ScraperChart extends StatelessWidget {
                 "Khối lượng thu gom theo loại", 
                 style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: const Color(0xffE3E3E5)
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
-                    Text(" Tháng này",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
-                  ],
+              InkWell(
+                onTap: () {
+                  showCupertinoModalPopup(
+                    context: context, 
+                    builder: (context) {
+                      return TimeFilter(
+                        option: option,
+                        start: start,
+                        end: end,
+                        onSave: (e) {
+                          setState(() {
+                            option = e;
+                          });
+                          if (!TimeFilterHelper.isCustomOption(option)) {
+                            callApiGetFilterOverallData();
+                          }
+                        },
+                        onSaveCustomRange: (startDate,endDate) {
+                          setState(() {
+                            start = startDate;
+                            end = endDate;
+                          });
+                          callApiGetFilterOverallData(isCustomRange: true);
+                        },
+                      );
+                    }
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xffE3E3E5)
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                      Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -674,17 +804,14 @@ class AdminChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["overall_data_one_month"] ?? [];
+    List data = statistic["total_kgco2e_seven_days"] ?? [];
     DateTime now = DateTime.now();
     Map<String, double> data7Days = {};
     for (int i = 0; i < 7; i++) {
       final DateTime date = now.subtract(Duration(days: i));  
       final value = data
         .where((e) => e["date"] != null && DateTime.parse(e["date"]).isSameDate(date))
-        .map<double>((e) => isHouseholdTab 
-          ? ((e["kg_co2e_plastic_reduced"] ?? 0) + (e["kg_co2e_recycle_reduced"] ?? 0))
-          : (e["kg_co2e_reduced"] ?? 0) 
-        )
+        .map<double>((e) => e["total_kg_co2e"])
         .fold(0.0, (prev, curr) {
           return prev + curr;
         });
