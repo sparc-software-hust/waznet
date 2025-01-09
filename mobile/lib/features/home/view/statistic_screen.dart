@@ -62,7 +62,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     );
     isLoading = false;
     if (!(data["success"] ?? false)) return;
-
+    await Future.delayed(const Duration(milliseconds: 200));
     switch (widget.roleId) {
       case 1:
         setState(() {
