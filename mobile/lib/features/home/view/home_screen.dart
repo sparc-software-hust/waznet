@@ -175,38 +175,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         buildChart(),
-                        const SizedBox(height: 24,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Builder(
-                              builder: (context) {
-                                // final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: Text(roleId == 1 ? "Người cung cấp số liệu" : "Thống kê số liệu đóng góp",
-                                      style: colorCons.fastStyle(
-                                          14, FontWeight.w600, const Color(0xFF666667))),
-                                );
-                              }
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-      
-                        if (allData["overall_data_one_month"] != null && allData["overall_data_one_month"].isNotEmpty)
-                        ...allData["overall_data_one_month"].map((e) {
-                          final int roleIdUser = isHouseholdTab ? 2 : 3;
-                          return UserContributionWidget(oneDayData: {...e, "role_id": roleIdUser});
-                        }).toList()
-      
-                        else const Center(
-                          child: Text("Không có dữ liệu", style: TextStyle(
-                            color: Color(0xFF808082),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500)
+                        if (roleId == 1) 
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: StatisticScreen(
+                            roleId: roleId, 
+                            isHouseHoldTabAdminScreen: isHouseholdTab,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -265,8 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _currentIndex == 0 ? adminWidget
           : _currentIndex == 1 ?
           StatisticScreen(
-            householdStatisticData: householdData["statistic"] ?? {},
-            scraperStatisticData: scraperData["statistic"] ?? {},
             roleId: roleId,
           )
           : const UserInfo(),
@@ -359,8 +333,8 @@ class _HouseholdChartState extends State<HouseholdChart> {
     if (!mounted) return;
     if (!isCustomRange) {
       Map dateMap = TimeFilterHelper.getDateRange(option);
-      start = dateMap["startDate"];
-      end = dateMap["endDate"];
+      start = dateMap["start_date"];
+      end = dateMap["end_date"];
     }
 
     final data  = await TempApi.getFilterOverallData(
@@ -805,17 +779,14 @@ class AdminChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorConstants colorCons = ColorConstants();
-    List data = statistic["overall_data_one_month"] ?? [];
+    List data = statistic["total_kgco2e_seven_days"] ?? [];
     DateTime now = DateTime.now();
     Map<String, double> data7Days = {};
     for (int i = 0; i < 7; i++) {
       final DateTime date = now.subtract(Duration(days: i));  
       final value = data
         .where((e) => e["date"] != null && DateTime.parse(e["date"]).isSameDate(date))
-        .map<double>((e) => isHouseholdTab 
-          ? ((e["kg_co2e_plastic_reduced"] ?? 0) + (e["kg_co2e_recycle_reduced"] ?? 0))
-          : (e["kg_co2e_reduced"] ?? 0) 
-        )
+        .map<double>((e) => e["total_kg_co2e"])
         .fold(0.0, (prev, curr) {
           return prev + curr;
         });

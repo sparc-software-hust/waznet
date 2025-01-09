@@ -306,34 +306,8 @@ defmodule CecrUnwomenWeb.ContributionController do
             inserted_at -> NaiveDateTime.utc_now() |> NaiveDateTime.diff(inserted_at, :day)
           end
 
-        today = Helper.get_vietnam_date_today()
-        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
-        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
-        overall_data_one_month = get_overall_contribution_by_time(user_id, role_id, start_month, end_month)
-
-        sum_factors = if role_id == 2 do
-          HouseholdContribution
-          |> join(:inner, [hc], hcf in HouseholdConstantFactor, on: hc.factor_id == hcf.id)
-          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_month and hc.date <= ^end_month)
-          |> group_by([hc, hcf], [hc.factor_id, hcf.name])
-        else
-          ScraperContribution
-          |> join(:inner, [hc], scf in ScrapConstantFactor, on: hc.factor_id == scf.id)
-          |> where([hc], hc.user_id == ^user_id and hc.date >= ^start_month and hc.date <= ^end_month)
-          |> group_by([hc, scf], [hc.factor_id, scf.name])
-        end
-        |> order_by([hc], asc: hc.factor_id)
-        |> select([hc, f], %{
-          factor_id: hc.factor_id,
-          factor_name: f.name,
-          quantity: sum(hc.quantity)
-        })
-        |> Repo.all
-
         overall = Helper.aggregate_with_fields(query, keys)
           |> Map.put(:days_joined, count_days_joined)
-          |> Map.put(:sum_factors, sum_factors)
-          |> Map.put(:overall_data_one_month, overall_data_one_month)
 
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
 
@@ -346,20 +320,14 @@ defmodule CecrUnwomenWeb.ContributionController do
         keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
         scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
 
-        today = Helper.get_vietnam_date_today()
-        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
-        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
-        {overall_scrapers_one_month, overall_households_one_month} = get_user_contributions_by_range(start_month, end_month)
         {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
 
         overall = %{
           household_overall_data: household_overall_data
-            |> Map.put(:total_kgco2e_seven_days, household_total_kgco2e_seven_days)
-            |> Map.put(:overall_data_one_month, overall_households_one_month),
+            |> Map.put(:total_kgco2e_seven_days, household_total_kgco2e_seven_days),
 
           scraper_overall_data: scraper_overall_data
             |> Map.put(:total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
-            |> Map.put(:overall_data_one_month, overall_scrapers_one_month)
         }
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
       true ->
@@ -373,7 +341,6 @@ defmodule CecrUnwomenWeb.ContributionController do
     role_id = conn.assigns.user.role_id
     start_date = Date.from_iso8601!(params["start"])
     end_date =  Date.from_iso8601!(params["end"])
-    IO.inspect(params)
     
     res = cond do
       role_id != 1 ->
@@ -395,34 +362,25 @@ defmodule CecrUnwomenWeb.ContributionController do
           quantity: sum(hc.quantity)
         })
         |> Repo.all
-
-        overall = %{:sum_factors => sum_factors}
+        
+        overall_data_by_time = get_overall_contribution_by_time(user_id, role_id, start_date, end_date)
+        overall = %{
+          sum_factors: sum_factors,
+          overall_data_by_time: overall_data_by_time
+        }
 
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
 
       role_id == 1 ->
-        keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
-        count_household_user = User |> where([u], u.role_id == ^2) |> Repo.aggregate(:count)
-        household_overall_data = Helper.aggregate_with_fields(OverallHouseholdContribution, keys) |> Map.put(:count_household, count_household_user)
-
-        count_scraper_user = User |> where([u], u.role_id == ^3) |> Repo.aggregate(:count)
-        keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
-        scraper_overall_data = Helper.aggregate_with_fields(OverallScraperContribution, keys) |> Map.put(:count_scraper, count_scraper_user)
-
-        today = Helper.get_vietnam_date_today()
-        # {start_month, end_month} = {Date.beginning_of_month(today), Date.end_of_month(today)}
-        {start_month, end_month} = {Date.new!(2024, 11, 01), Date.end_of_month(today)}
-        {overall_scrapers_one_month, overall_households_one_month} = get_user_contributions_by_range(start_month, end_month)
-        {scraper_total_kgco2e_seven_days, household_total_kgco2e_seven_days} = get_total_kgco2e_seven_days()
+        {overall_scrapers_by_time, overall_households_by_time} = get_user_contributions_by_range(start_date, end_date)
 
         overall = %{
-          household_overall_data: household_overall_data
-            |> Map.put(:total_kgco2e_seven_days, household_total_kgco2e_seven_days)
-            |> Map.put(:overall_data_one_month, overall_households_one_month),
-
-          scraper_overall_data: scraper_overall_data
-            |> Map.put(:total_kgco2e_seven_days, scraper_total_kgco2e_seven_days)
-            |> Map.put(:overall_data_one_month, overall_scrapers_one_month)
+          household_overall_data: %{
+            overall_data_by_time: overall_households_by_time
+          },
+          scraper_overall_data: %{
+            overall_data_by_time: overall_scrapers_by_time
+          }
         }
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", overall)
       true ->
@@ -462,10 +420,10 @@ defmodule CecrUnwomenWeb.ContributionController do
   end
 
   defp get_total_kgco2e_seven_days() do
-    to = "2024-11-11" |> Date.from_iso8601!()
-    # to = NaiveDateTime.local_now()
-    #   |> NaiveDateTime.add(7 * 3600, :second)
-    #   |> NaiveDateTime.to_date
+    # to = "2024-11-11" |> Date.from_iso8601!()
+    to = NaiveDateTime.local_now()
+      |> NaiveDateTime.add(7 * 3600, :second)
+      |> NaiveDateTime.to_date
 
     from = Date.add(to, -7)
 

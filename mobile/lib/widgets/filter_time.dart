@@ -399,8 +399,8 @@ class TimeFilterHelper {
 
 
     return {
-      "startDate": start,
-      "endDate": end
+      "start_date": start,
+      "end_date": end
     };
   }
 
