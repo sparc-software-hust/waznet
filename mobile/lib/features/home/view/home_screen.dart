@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final Map householdData = {};
   final Map scraperData = {};
+  bool needGetDataChart = false;
 
   changeBar() {
     setState(() {
@@ -100,9 +101,9 @@ class _HomeScreenState extends State<HomeScreen> {
      Widget buildChart() {
       switch (roleId) {
         case 2:
-          return const HouseholdChart();
+          return HouseholdChart(needGetData: needGetDataChart,);
         case 3: 
-          return ScraperChart(statistic: allData);
+          return ScraperChart(needGetData: needGetDataChart,);
         default:
           return AdminChart(statistic: allData, isHouseholdTab: isHouseholdTab,);
       }
@@ -200,8 +201,14 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () async {
+          setState(() {
+            needGetDataChart = false;
+          });
           final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
           if (!(shouldCallApi ?? false)) return;
+          setState(() {
+            needGetDataChart = true;
+          });
           callApiGetOverallData();
         },
         backgroundColor: const Color(0xFF4CAF50),
@@ -310,7 +317,8 @@ class CardInfoWidget extends StatelessWidget {
 
 
 class HouseholdChart extends StatefulWidget {
-  const HouseholdChart({super.key});
+  final bool needGetData;
+  const HouseholdChart({super.key, this.needGetData = false});
 
   @override
   State<HouseholdChart> createState() => _HouseholdChartState();
@@ -326,6 +334,14 @@ class _HouseholdChartState extends State<HouseholdChart> {
   void initState() {
     super.initState();
     callApiGetFilterOverallData();
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+      if (widget.needGetData != oldWidget.needGetData) {
+        callApiGetFilterOverallData();
+      }
   }
 
 
@@ -562,8 +578,8 @@ class _HouseholdChartState extends State<HouseholdChart> {
 
 
 class ScraperChart extends StatefulWidget {
-  final Map statistic;
-  const ScraperChart({super.key,required this.statistic});
+  final bool needGetData;
+  const ScraperChart({super.key, this.needGetData = false});
 
   @override
   State<ScraperChart> createState() => _ScraperChartState();
@@ -579,6 +595,14 @@ class _ScraperChartState extends State<ScraperChart> {
   void initState() {
     super.initState();
     callApiGetFilterOverallData();
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+      if (widget.needGetData != oldWidget.needGetData) {
+        callApiGetFilterOverallData();
+      }
   }
 
 
