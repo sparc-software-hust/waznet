@@ -182,7 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: StatisticScreen(
                             roleId: roleId, 
                             isHouseHoldTabAdminScreen: isHouseholdTab,
-                            needGetData: needGetDataChart,
                           ),
                         )
                       ],

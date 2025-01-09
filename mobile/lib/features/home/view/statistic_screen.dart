@@ -10,10 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
-  const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen, this.needGetData});
+  const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen});
   final int roleId;
   final bool? isHouseHoldTabAdminScreen;
-  final bool? needGetData;
 
   @override
   State<StatisticScreen> createState() => _StatisticScreenState();
@@ -39,10 +38,6 @@ class _StatisticScreenState extends State<StatisticScreen> {
   @override
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.needGetData != null && oldWidget.needGetData != null && widget.needGetData != oldWidget.needGetData) {
-      callApiGetFilterOverallData(isCustomRange: TimeFilterHelper.isCustomOption(option));
-    }
-
     if (widget.isHouseHoldTabAdminScreen != null && oldWidget.isHouseHoldTabAdminScreen != null
       && widget.isHouseHoldTabAdminScreen != oldWidget.isHouseHoldTabAdminScreen
     ) {
