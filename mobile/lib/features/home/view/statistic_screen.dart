@@ -24,6 +24,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
   Map scraperStatisticData = {};
   late bool isHouseholdTab;
   TimeFilterOptions option = TimeFilterOptions.thisMonth;
+  bool isLoading = false;
   late DateTime start;
   late DateTime end;
 
@@ -45,6 +46,9 @@ class _StatisticScreenState extends State<StatisticScreen> {
   }
 
   callApiGetFilterOverallData({bool isCustomRange = false}) async {
+    setState(() {
+      isLoading = true;
+    });
     if (!mounted) return;
     if (!isCustomRange) {
       Map dateMap = TimeFilterHelper.getDateRange(option);
@@ -56,7 +60,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
       start: start,
       end: end
     );
-
+    isLoading = false;
     if (!(data["success"] ?? false)) return;
 
     switch (widget.roleId) {
@@ -159,18 +163,24 @@ class _StatisticScreenState extends State<StatisticScreen> {
               ],
             ),
           ),
-          if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
-          ...allData["overall_data_by_time"].map((e) {
-            return UserContributionWidget(oneDayData: {...e, "role_id": _getRoleIdShowData()});
-          }).toList()
+          if (isLoading)
+          const CircularProgressIndicator(
+            color: Color(0xff4CAF50),
+            backgroundColor: Color(0xffC1C1C2),
+          )
           else
-            const Center(
-              child: Text("Không có dữ liệu", style: TextStyle(
-                color: Color(0xFF808082),
-                fontSize: 16,
-                fontWeight: FontWeight.w500)
+            if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
+            ...allData["overall_data_by_time"].map((e) {
+              return UserContributionWidget(oneDayData: {...e, "role_id": _getRoleIdShowData()});
+            }).toList()
+            else
+              const Center(
+                child: Text("Không có dữ liệu", style: TextStyle(
+                  color: Color(0xFF808082),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500)
+                ),
               ),
-            ),
         ],
       );
     }

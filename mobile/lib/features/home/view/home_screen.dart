@@ -586,8 +586,8 @@ class _ScraperChartState extends State<ScraperChart> {
     if (!mounted) return;
     if (!isCustomRange) {
       Map dateMap = TimeFilterHelper.getDateRange(option);
-      start = dateMap["startDate"];
-      end = dateMap["endDate"];
+      start = dateMap["start_date"];
+      end = dateMap["end_date"];
     }
 
     final data  = await TempApi.getFilterOverallData(
