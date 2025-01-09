@@ -40,14 +40,10 @@ class _UserInfoState extends State<UserInfo> {
                 const SizedBox(height: 40),
                 ClipRRect(
                 borderRadius: BorderRadius.circular(104),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(104),
-                  onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                  child: CustomCircleAvatar(
-                      size: 104,
-                      avatarUrl: user.avatarUrl,
-                    ),
-                ),
+                child: CustomCircleAvatar(
+                    size: 104,
+                    avatarUrl: user.avatarUrl,
+                  ),
               ),
                 const SizedBox(height: 10),
                 Text("${user.firstName} ${user.lastName}", style: colorCons.fastStyle(18,FontWeight.w700, const Color(0xFF333334))),

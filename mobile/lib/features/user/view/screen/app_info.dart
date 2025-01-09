@@ -54,26 +54,26 @@ class AppInfo extends StatelessWidget {
                 )
               ),
               const SizedBox(height: 30,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: NavigationButton(
-                  onTap: () => Utils.showDialogWarningError(
-                    context, false, "Chức năng đang được phát triển"
-                  ),
-                  icon: PhosphorIcons.regular.globe,
-                  text: "Trang web",
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: NavigationButton(
-                  onTap: () => Utils.showDialogWarningError(
-                    context, false, "Chức năng đang được phát triển"
-                  ),
-                  icon: PhosphorIcons.regular.briefcase,
-                  text: "Đối tác",
-                ),
-              )
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              //   child: NavigationButton(
+              //     onTap: () => Utils.showDialogWarningError(
+              //       context, false, "Chức năng đang được phát triển"
+              //     ),
+              //     icon: PhosphorIcons.regular.globe,
+              //     text: "Trang web",
+              //   ),
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              //   child: NavigationButton(
+              //     onTap: () => Utils.showDialogWarningError(
+              //       context, false, "Chức năng đang được phát triển"
+              //     ),
+              //     icon: PhosphorIcons.regular.briefcase,
+              //     text: "Đối tác",
+              //   ),
+              // )
           ],
         ),
       )
