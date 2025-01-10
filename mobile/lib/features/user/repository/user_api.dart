@@ -16,6 +16,12 @@ class UserApi {
     return res.data["data"];
   }
 
+  static Future<Map> setTimeReminded(Map data) async {
+    const String url = "/user/set_time_reminded";
+    final Response res = await dioConfigInterceptor.post(url, data: data);
+    return res.data["data"];
+  }
+
   static Future<Map> changePassword(
       String newPassword, String oldPassword) async {
 

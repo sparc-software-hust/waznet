@@ -11,6 +11,7 @@ class User extends Equatable {
   final Gender gender;
   final int roleId;
   final String? location;
+  final DateTime? timeReminded;
 
   const User({
     required this.id,
@@ -22,7 +23,8 @@ class User extends Equatable {
     this.dateOfBirth,
     this.gender = Gender.other,
     this.avatarUrl,
-    this.location
+    this.location,
+    this.timeReminded
   });
 
   factory User.fromJson(Map json) => User(
@@ -37,7 +39,10 @@ class User extends Equatable {
     avatarUrl: json["avatar_url"],
     gender: getGenderBasedOnInt(json["gender"]),
     roleId: json["role_id"],
-    location: json["location"]
+    location: json["location"],
+    timeReminded: json["time_reminded"] != null 
+      ? DateTime.tryParse(json["time_reminded"]) 
+      : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -50,7 +55,8 @@ class User extends Equatable {
     "gender": convertGenderToInt(gender),
     "avatar_url": avatarUrl,
     "role_id": roleId,
-    "location": location
+    "location": location,
+    "time_reminded": timeReminded?.toIso8601String()
   };
 
   User clone(Map data) => User.fromJson(data);
@@ -66,6 +72,7 @@ class User extends Equatable {
     Gender? gender,
     int? roleId,
     String? location,
+    DateTime? timeReminded,
   }) {
     return User(
       id: id ?? this.id,
@@ -78,13 +85,14 @@ class User extends Equatable {
       gender: gender ?? this.gender,
       roleId: roleId ?? this.roleId,
       location: location ?? this.location,
+      timeReminded: timeReminded ?? this.timeReminded
     );
   }
 
   
   @override
   List<Object?> get props => [
-    id, firstName, lastName, email, phoneNumber, dateOfBirth, avatarUrl, gender, roleId, location
+    id, firstName, lastName, email, phoneNumber, dateOfBirth, avatarUrl, gender, roleId, location, timeReminded
   ];
 }
 

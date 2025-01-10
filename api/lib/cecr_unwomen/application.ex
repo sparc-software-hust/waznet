@@ -12,6 +12,7 @@ defmodule CecrUnwomen.Application do
       CecrUnwomen.Consumer,
       {Redix, {get_redis_uri(), [name: :redix]}},
       CecrUnwomen.Workers.ConstantWorker,
+      CecrUnwomen.Scheduler
     ]
 
     opts = [strategy: :one_for_one, name: CecrUnwomen.Supervisor]

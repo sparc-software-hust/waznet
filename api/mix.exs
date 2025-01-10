@@ -42,7 +42,9 @@ defmodule CecrUnwomen.MixProject do
       {:redix, "~> 1.5.2"},
       {:amqp, "~> 3.3"},
       {:argon2_elixir, "~> 4.0"},
-      {:mogrify, "~> 0.9.3"}
+      {:mogrify, "~> 0.9.3"},
+      {:quantum, "~> 3.0"},
+      {:tzdata, "~> 1.0"} 
       # {:argon2_elixir, path: "deps/argon2_elixir"},
     ]
   end
