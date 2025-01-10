@@ -6,7 +6,7 @@
 
 **WazNet** (Waste zero, Net zero) is a mobile app that helps users track their contributions to greenhouse gas reduction.
 
-A product of SPARC Lab (HUST) and CECR.
+A product of SPARC Lab (HUST) and CECR. Available on [App Store](https://apps.apple.com/vn/app/waznet/id6738925384) and Google Play.
 
 ## Tech stacks
 - Mobile app built with Flutter
@@ -15,7 +15,7 @@ A product of SPARC Lab (HUST) and CECR.
 - Push Notifications via FCM
 - Back-end systems using Elixir, RabbitMQ, Redis, PostgreSQL
 - Build and deploy using Docker
-- Publish to Testflight (iOS), Play Console (Android) using Github Actions
+- Publish to App Store (iOS), Play Console (Android) using Github Actions
 
 ## Features
 - 3 roles: Admin, Household, Scraper
@@ -54,9 +54,14 @@ A product of SPARC Lab (HUST) and CECR.
 
 ## Installing
 
-Google Play: Closed Beta Testing (send email address to email in contact)
+Google Play:
+- Closed Beta Testing (send email address to email in contact)
+- Waiting to be published
 
-App Store: [TestFlight](https://testflight.apple.com/join/9wRutKJ9)
+App Store:
+- [TestFlight](https://testflight.apple.com/join/9wRutKJ9)
+- [App Store](https://apps.apple.com/vn/app/waznet/id6738925384)
+
 
 ## Building
 Project is using git-crypt to encrypt all credentials, contributors need to contact to repo's owner to get decryption key.
