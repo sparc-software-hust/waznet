@@ -1,4 +1,4 @@
-defmodule CecrUnWomen.ScheduledTask do
+defmodule CecrUnwomen.ScheduledTask do
   alias CecrUnwomen.{Utils.Helper, Repo, Consumer}
   alias CecrUnwomen.Workers.{ScheduleWorker, FcmWorker}
   alias CecrUnwomenWeb.Models.{
