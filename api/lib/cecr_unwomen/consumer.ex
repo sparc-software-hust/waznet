@@ -22,9 +22,11 @@ defmodule CecrUnwomen.Consumer do
 
     :ok = Basic.qos(chan, prefetch_count: 10)
     {:ok, _consumer_tag} = Basic.consume(chan, @delay_queue)
+    
+    Application.put_env(:cecr_unwomen, :r_channel, chan)
     {:ok, chan}
   end
-
+  
   def handle_call(:get_chan, _, chan) do
     {:reply, chan, chan}
   end
@@ -42,6 +44,7 @@ defmodule CecrUnwomen.Consumer do
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}}, chan) do
+    IO.inspect("publischs")
     consume(chan, tag, redelivered, payload)
     {:noreply, chan}
   end
@@ -68,12 +71,33 @@ defmodule CecrUnwomen.Consumer do
           {"x-message-ttl", :signedint, 3000}
         ]
       )
-
+    
     :ok = Exchange.direct(chan, @delay_exchange, durable: true)
 
     # phải có routing key cho exchange direct, nếu không sẽ không gửi được do rabbitmq không xác định được
     :ok = Queue.bind(chan, @delay_queue, @delay_exchange, routing_key: @delay_queue)
     :ok = Queue.bind(chan, @delay_3_sec_queue, @delay_exchange, routing_key: @delay_3_sec_queue)
+      
+    minutes = (1..30 |> Enum.to_list)
+    
+    Enum.each(minutes, fn min -> 
+      Queue.declare(chan, "wait_min_#{min}", durable: true,
+        arguments: [{"x-dead-letter-exchange", :longstr, @delay_exchange},
+                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
+                    {"x-message-ttl", :signedint, 60000 * min}]
+                  )
+      end
+    )
+    
+    hours = (1..24 |> Enum.to_list)
+    Enum.each(hours, fn hour ->
+      Queue.declare(chan, "wait_hour_#{hour}", durable: true,
+        arguments: [{"x-dead-letter-exchange", :longstr, @delay_exchange},
+                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
+                    {"x-message-ttl", :signedint, 3600000 * hour}]
+                  )
+    end
+    )
   end
 
   defp consume(channel, tag, redelivered, payload) do

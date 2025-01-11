@@ -93,6 +93,7 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                if (user.roleId != 1)
                 NavigationButton(
                   text: "Nhắc nhập liệu",
                   icon: PhosphorIcons.regular.alarm,
