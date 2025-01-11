@@ -42,6 +42,31 @@ class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
     final User user = context.watch<AuthenticationBloc>().state.user!;
+
+    void updateTimeReminded() async {
+      Map updatedUser = await UserApi.setTimeReminded({'time_reminded': remindedTime?.toIso8601String()});
+      if (context.mounted) {
+        if (updatedUser.isNotEmpty) {
+          context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(updatedUser)));
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: true, 
+              title: 'Cập nhật thành công'
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+        } else {
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: false, 
+              title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+        }
+      }
+    }
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
@@ -104,28 +129,7 @@ class _UserInfoState extends State<UserInfo> {
                     if (!toggle && remindedTime != null) {
                       remindedTime = null;
                     }
-
-                    Map updatedUser = await UserApi.setTimeReminded({'time_reminded': remindedTime?.toIso8601String()});
-                      if (context.mounted) {
-                        if (updatedUser.isNotEmpty) {
-                          context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(updatedUser)));
-                          fToast.showToast(
-                            child: const ToastContent(
-                              isSuccess: true, 
-                              title: 'Cập nhật thành công'
-                            ),
-                            gravity: ToastGravity.BOTTOM
-                          );
-                        } else {
-                          fToast.showToast(
-                            child: const ToastContent(
-                              isSuccess: false, 
-                              title: 'Cập nhật thất bại. Vui lòng thử lại sau'
-                            ),
-                            gravity: ToastGravity.BOTTOM
-                          );
-                        }
-                      }
+                    updateTimeReminded();
                   },
                   subTitleWidget: Column(
                     children: [
@@ -148,18 +152,21 @@ class _UserInfoState extends State<UserInfo> {
                                 trackingTime = DateTime.now();
                                 Navigator.pop(context);
                               },
-                              onSave: () {
+                              onSave: () async {
                                 setState(() {
                                   remindedTime = trackingTime;
                                 });
                                 Navigator.pop(context);
+                                
+                                updateTimeReminded();       
                               },
                               onDateTimeChanged: (time) {
                                 trackingTime = time;
                               },
-                              mode: CupertinoDatePickerMode.time
+                              mode: CupertinoDatePickerMode.time,
+                              initDate: user.timeReminded ?? trackingTime
                             ),
-                            child: Text(remindedTime == null ? "--:--" : DateFormat("hh:mm").format(remindedTime!) , 
+                            child: Text(remindedTime == null ? "--:--" : DateFormat("HH:mm").format(remindedTime!) , 
                               style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),
                             )
                           )

@@ -46,7 +46,7 @@ defmodule CecrUnwomen.Consumer do
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}}, chan) do
-    IO.inspect("msgggggggggggg")
+  # IO.inspect("msgggggggggggg")
     consume(chan, tag, redelivered, payload)
     {:noreply, chan}
   end
@@ -102,12 +102,10 @@ defmodule CecrUnwomen.Consumer do
     )
   end
 
-  defp consume(channel, tag, redelivered, payload) do
+  def consume(channel, tag, redelivered, payload) do
     case Jason.decode payload do
       {:ok, obj} -> case obj["action"] do
-        "broadcast_remind_to_input" ->  IO.inspect("cassaidniuasduisaduiadiuasu")
-          
-          # ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])
+        "broadcast_remind_to_input" -> ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])
         _ -> nil
         
         Basic.ack channel, tag
