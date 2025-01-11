@@ -1,6 +1,8 @@
 defmodule CecrUnwomen.Consumer do
   use GenServer
   use AMQP
+  
+  alias CecrUnwomen.Workers.{ ScheduleWorker }
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: ConsumerMQ)
@@ -44,7 +46,7 @@ defmodule CecrUnwomen.Consumer do
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}}, chan) do
-    IO.inspect("publischs")
+    IO.inspect("msgggggggggggg")
     consume(chan, tag, redelivered, payload)
     {:noreply, chan}
   end
@@ -89,7 +91,7 @@ defmodule CecrUnwomen.Consumer do
       end
     )
     
-    hours = (1..24 |> Enum.to_list)
+    hours = (1..12 |> Enum.to_list)
     Enum.each(hours, fn hour ->
       Queue.declare(chan, "wait_hour_#{hour}", durable: true,
         arguments: [{"x-dead-letter-exchange", :longstr, @delay_exchange},
@@ -101,15 +103,20 @@ defmodule CecrUnwomen.Consumer do
   end
 
   defp consume(channel, tag, redelivered, payload) do
-    number = String.to_integer(payload)
-
-    if number <= 10 do
-      :ok = Basic.ack(channel, tag)
-      IO.puts("Consumed a #{number}.")
-    else
-      :ok = Basic.reject(channel, tag, requeue: false)
-      IO.puts("#{number} is too big and was rejected.")
+    case Jason.decode payload do
+      {:ok, obj} -> case obj["action"] do
+        "broadcast_remind_to_input" ->  IO.inspect("cassaidniuasduisaduiadiuasu")
+          
+          # ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])
+        _ -> nil
+        
+        Basic.ack channel, tag
+      end
+      {:error, _} ->
+        Basic.reject channel, tag, requeue: false
     end
+    
+    
   rescue
     # You might also want to catch :exit signal in production code.
     # Make sure you call ack, nack or reject otherwise consumer will stop

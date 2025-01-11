@@ -117,4 +117,10 @@ defmodule CecrUnwomen.Utils.Helper do
     # |> NaiveDateTime.add(-10, :day)
     |> NaiveDateTime.to_date
   end
+  
+  def get_local_time_now_string(timezone) do
+    #Asia/Ho_Chi_Minh
+    DateTime.now!(timezone)
+    |> Calendar.strftime("%d/%m/%Y")
+  end
 end
