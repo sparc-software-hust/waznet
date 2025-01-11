@@ -105,10 +105,10 @@ defmodule CecrUnwomen.Consumer do
   def consume(channel, tag, redelivered, payload) do
     case Jason.decode payload do
       {:ok, obj} -> case obj["action"] do
-        "broadcast_remind_to_input" ->  spawn(fn -> ScheduleWorker.schedule_to_send_noti_vi([obj["data"]]) end)
-        _ -> nil
-        
-        Basic.ack channel, tag
+        "broadcast_remind_to_input" ->  spawn(fn -> 
+          ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])
+          Basic.ack channel, tag
+       end)
       end
       {:error, _} ->
         Basic.reject channel, tag, requeue: false
