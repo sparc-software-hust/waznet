@@ -1,9 +1,18 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/secrets.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Utils {
   static Future<String?> getFirebaseToken() async {
@@ -136,5 +145,80 @@ class Utils {
         ),
       ),
     );
+  }
+  
+  static openUrl(String? url) async{
+    Uri uri = Uri.parse(url ?? "");
+    if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  static Future checkUpdateApp(BuildContext context) async {
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      if (kDebugMode) return;
+      if (Platform.isAndroid){
+        InAppUpdate.checkForUpdate().then((res) {
+          if (res.flexibleUpdateAllowed) {
+            InAppUpdate.startFlexibleUpdate();
+          }
+        });
+      } else {
+        String url = "https://itunes.apple.com/lookup?bundleId=vn.sparc.waznet";
+        PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        String versionCurrent = packageInfo.version;
+        if (sharedPreferences.getString("current_version") != versionCurrent) {
+          sharedPreferences.setString("current_version", versionCurrent);
+          sharedPreferences.setBool("show_update_dialog", true);
+        }
+        bool isShowDialogUpdate = sharedPreferences.getBool("show_update_dialog") ?? false;
+        var res = await Dio().get(url);
+        var versionCurrentStore = (jsonDecode(res.data))["results"][0]["version"];
+        if (int.parse("${versionCurrentStore.split(".").join()}") > int.parse(versionCurrent.split(".").join()) && isShowDialogUpdate && context.mounted) {
+          return showDialog(
+            context: context,
+            builder: (BuildContext c) {
+              return CupertinoAlertDialog(
+                title: const Text("Có bản cập nhật mới", style: TextStyle(fontWeight: FontWeight.w600, fontFamily: "Inter", fontSize: 18)),
+                content: const Text("Vui lòng cập nhật ứng dụng để trải nghiệm thêm các tính năng mới", style: TextStyle(fontFamily: "Inter", fontSize: 14),),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    child: const Text(
+                      "Cập nhật",
+                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.blueAccent, fontFamily: "Inter",),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Utils.openUrl("https://apps.apple.com/us/app/waznet/id6738925384");
+                    },
+                  ),
+                  CupertinoDialogAction(
+                    child: const Text(
+                      "Không nhắc lại",
+                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.blueAccent, fontFamily: "Inter",),
+                    ),
+                    onPressed: () {
+                      sharedPreferences.setBool("show_update_dialog", false);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  CupertinoDialogAction(
+                    child: const Text(
+                      "Để sau",
+                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.blueAccent, fontFamily: "Inter",),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                ]
+              );
+          });
+        }
+      }      
+    } catch (e, t) { 
+      print("_________________________________________________checkUpdateApp Error: $e \n $t");
+    }
   }
 }
