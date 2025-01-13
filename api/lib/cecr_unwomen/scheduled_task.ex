@@ -1,6 +1,6 @@
 defmodule CecrUnwomen.ScheduledTask do
-  alias CecrUnwomen.{Utils.Helper, Repo, Consumer}
-  alias CecrUnwomen.Workers.{ScheduleWorker, FcmWorker}
+  alias CecrUnwomen.{Utils.Helper, Repo}
+  alias CecrUnwomen.Workers.ScheduleWorker
   alias CecrUnwomenWeb.Models.{
     User,
     FirebaseToken
@@ -16,6 +16,7 @@ defmodule CecrUnwomen.ScheduledTask do
       where: not is_nil(u.time_reminded),
       select: %{
         "user_id" => u.id,
+        "role_id" => u.role_id,
         "token" => ft.token,
         "time_reminded" => u.time_reminded,
       }
@@ -30,21 +31,19 @@ defmodule CecrUnwomen.ScheduledTask do
         "minute" => minute
       }
       token = item["token"]
+      role_id = item["role_id"]
 
       Map.update(acc, user_id, %{
         "user_id" => user_id,
         "time_reminded" => time_reminded,
-        "tokens" => [token]
+        "tokens" => [token],
+        "role_id" => role_id,
       }, fn existing ->
         Map.update(existing, "tokens", [token], fn tokens -> tokens ++ [token] end)
       end)
     end)
     |> Map.values()
 
-    # channel  =  Application.get_env(:cecr_unwomen, :r_channel)
-    
-    # AMQP.Basic.publish channel, "", "wait_min_30", "djhasbdjbsb", persistent: true
-    
     ScheduleWorker.schedule_to_send_noti_vi(user_to_remind) 
   end
 end
