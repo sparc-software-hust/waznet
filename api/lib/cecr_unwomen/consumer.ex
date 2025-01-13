@@ -5,8 +5,8 @@ defmodule CecrUnwomen.Consumer do
   alias CecrUnwomen.Workers.{ ScheduleWorker }
 
   @channel :default
-  @delay_exchange "delay_exchange"
-  @delay_3_sec_queue "delay_3_sec_queue"
+  # @delay_exchange "delay_exchange"
+  # @delay_3_sec_queue "delay_3_sec_queue"
   @delay_queue "delay_queue"
   @delay_queue_error "#{@delay_queue}_error"
 
@@ -30,7 +30,6 @@ defmodule CecrUnwomen.Consumer do
     :ok = Basic.qos(chan, prefetch_count: 10)
     {:ok, _consumer_tag} = Basic.consume(chan, @delay_queue)
     
-    Application.put_env(:cecr_unwomen, :r_channel, chan)
     {:ok, chan}
   end
   
@@ -84,7 +83,7 @@ defmodule CecrUnwomen.Consumer do
         ]
       )
 
-    # Queue.delete(chan, @delay_3_sec_queue, if_empty: true)
+    # Queue.delete(chan, "delay_3_sec_queue", if_empty: true)
     # {:ok, _} =
     #   Queue.declare(chan, @delay_3_sec_queue,
     #     durable: true,
@@ -121,6 +120,7 @@ defmodule CecrUnwomen.Consumer do
     case Jason.decode payload do
       {:ok, obj} -> case obj["action"] do
         "broadcast_remind_to_input" ->  spawn(fn ->  ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])   end)
+        _ -> raise("not detect action #{obj}")
               
         Basic.ack channel, tag
       end

@@ -17,68 +17,6 @@ defmodule CecrUnwomen.Workers.ScheduleWorker do
         tokens = get_in(u, ["tokens"]) || ""
         user_id = get_in(u, ["user_id"])
         role_id = get_in(u, ["role_id"])
-
-        if (hour > 12) do
-          task = %{
-            action: "broadcast_remind_to_input",
-            data: %{
-              "time_reminded" => %{
-                "hour" => hour - 12,
-                "minute" => min
-              },
-              "tokens" => tokens,
-              "user_id" => user_id,
-              "role_id" => role_id
-            }
-          }
-          AMQP.Basic.publish channel, "", "wait_hour_12", Jason.encode!(task), persistent: true
-        else 
-          if (hour > 0) do
-            task = %{
-              action: "broadcast_remind_to_input",
-              data: %{
-                "time_reminded" => %{
-                  "hour" => 0,
-                  "minute" => min
-                },
-                "tokens" => tokens,
-                "user_id" => user_id,
-                "role_id" => role_id    
-              }
-            }
-            AMQP.Basic.publish channel, "", "wait_hour_#{hour}", Jason.encode!(task), persistent: true
-          else 
-            if (min > 30) do
-              task = %{
-                action: "broadcast_remind_to_input",
-                data: %{
-                  "time_reminded" => %{
-                    "hour" => 0,
-                    "minute" => min - 30
-                  },
-                  "tokens" => tokens,
-                  "user_id" => user_id,
-                  "role_id" => role_id       
-                }
-              }
-              AMQP.Basic.publish channel, "", "wait_min_30", Jason.encode!(task), persistent: true
-            else 
-              task = %{
-                action: "broadcast_remind_to_input",
-                data: %{
-                  "time_reminded" => %{
-                    "hour" => 0,
-                    "minute" => 0
-                  },
-                  "tokens" => tokens,
-                  "user_id" => user_id,
-                  "role_id" => role_id
-                }
-              }
-              AMQP.Basic.publish channel, "", "wait_min_#{min}", Jason.encode!(task), persistent: true
-            end
-          end          
-        end
         
         if (hour == 0 && min == 0) do
           date = DateTime.now!("Asia/Ho_Chi_Minh") |> DateTime.to_date()
@@ -109,6 +47,31 @@ defmodule CecrUnwomen.Workers.ScheduleWorker do
               }
             )
           end
+        else 
+          {queue_name, adjusted_time} = cond do
+            hour > 12 -> 
+              {"wait_hour_12", %{"hour" => hour - 12, "minute" => min}}
+            
+            hour > 0 -> 
+              {"wait_hour_#{hour}", %{"hour" => 0, "minute" => min}}
+            
+            min > 30 -> 
+              {"wait_min_30", %{"hour" => 0, "minute" => min - 30}}
+            
+            true -> 
+              {"wait_min_#{min}", %{"hour" => 0, "minute" => 0}}
+          end
+          
+          task = %{
+            action: "broadcast_remind_to_input",
+            data: %{
+              "time_reminded" => adjusted_time,
+              "tokens" => tokens,
+              "user_id" => user_id,
+              "role_id" => role_id
+            }
+          }
+          AMQP.Basic.publish channel, "", queue_name, Jason.encode!(task), persistent: true
         end
         
       {:error, _} -> nil
