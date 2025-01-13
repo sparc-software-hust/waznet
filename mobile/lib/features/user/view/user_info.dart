@@ -67,6 +67,27 @@ class _UserInfoState extends State<UserInfo> {
       }
     }
 
+    void showTimePicker() => Utils.showDatePicker(
+      context: context,
+      onCancel: () {
+        trackingTime = DateTime.now();
+        Navigator.pop(context);
+      },
+      onSave: () async {
+        setState(() {
+          remindedTime = trackingTime;
+        });
+        Navigator.pop(context);
+        
+        updateTimeReminded();       
+      },
+      onDateTimeChanged: (time) {
+        trackingTime = time;
+      },
+      mode: CupertinoDatePickerMode.time,
+      initDate: user.timeReminded ?? trackingTime
+    );
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
@@ -124,12 +145,17 @@ class _UserInfoState extends State<UserInfo> {
                   icon: PhosphorIcons.regular.alarm,
                   hasSwitch: true,
                   valueSwitch: user.timeReminded != null,
-                  onToggleSwitch: remindedTime == null ? null : (toggle) async {
-                    // tat switch -> reset time
-                    if (!toggle && remindedTime != null) {
-                      remindedTime = null;
+                  onToggleSwitch: (toggle) async {
+                    if (toggle) {
+                      showTimePicker();
+                      updateTimeReminded();
+                    } else {
+                      // tat switch -> reset time
+                      if (!toggle && remindedTime != null) {
+                        remindedTime = null;
+                      }
+                      updateTimeReminded();
                     }
-                    updateTimeReminded();
                   },
                   subTitleWidget: Column(
                     children: [
@@ -146,26 +172,7 @@ class _UserInfoState extends State<UserInfo> {
                         children: [
                           Text("Thời gian", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff333334)),),
                           InkWell(
-                            onTap: () => Utils.showDatePicker(
-                              context: context,
-                              onCancel: () {
-                                trackingTime = DateTime.now();
-                                Navigator.pop(context);
-                              },
-                              onSave: () async {
-                                setState(() {
-                                  remindedTime = trackingTime;
-                                });
-                                Navigator.pop(context);
-                                
-                                updateTimeReminded();       
-                              },
-                              onDateTimeChanged: (time) {
-                                trackingTime = time;
-                              },
-                              mode: CupertinoDatePickerMode.time,
-                              initDate: user.timeReminded ?? trackingTime
-                            ),
+                            onTap: showTimePicker,
                             child: Text(remindedTime == null ? "--:--" : DateFormat("HH:mm").format(remindedTime!) , 
                               style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),
                             )
