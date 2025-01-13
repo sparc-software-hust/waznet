@@ -73,7 +73,8 @@ defmodule CecrUnwomen.Consumer do
     # test: AMQP.Basic.publish(chan, "", "delay_3_sec_queue", "5", persitent: true)
 
     {:ok, _} = Queue.declare(chan, @delay_queue_error, durable: true)
-
+    
+    # Exchange.delete(chan, "delay_exchange")
     {:ok, _} =
       Queue.declare(chan, @delay_queue,
         durable: true,
