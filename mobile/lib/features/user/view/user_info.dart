@@ -2,6 +2,8 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
+import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
+import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/features/user/view/bloc/change_password_bloc/change_password_bloc.dart';
 import 'package:cecr_unwomen/features/user/view/screen/app_info.dart';
 import 'package:cecr_unwomen/features/user/view/screen/change_info_screen.dart';
@@ -12,6 +14,8 @@ import 'package:cecr_unwomen/widgets/navigation_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserInfo extends StatefulWidget {
@@ -23,10 +27,46 @@ class UserInfo extends StatefulWidget {
 
 class _UserInfoState extends State<UserInfo> {
   final ColorConstants colorCons = ColorConstants();
+  DateTime? remindedTime;
+  DateTime trackingTime = DateTime.now();
+  FToast fToast = FToast();
+
+  @override
+  void initState() {
+    super.initState();
+    final User user = context.read<AuthenticationBloc>().state.user!;
+    remindedTime = user.timeReminded;
+    fToast.init(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     final User user = context.watch<AuthenticationBloc>().state.user!;
+
+    void updateTimeReminded() async {
+      Map updatedUser = await UserApi.setTimeReminded({'time_reminded': remindedTime?.toIso8601String()});
+      if (context.mounted) {
+        if (updatedUser.isNotEmpty) {
+          context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(updatedUser)));
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: true, 
+              title: 'Cập nhật thành công'
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+        } else {
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: false, 
+              title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+        }
+      }
+    }
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
@@ -78,45 +118,63 @@ class _UserInfoState extends State<UserInfo> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // NavigationButton(
-                //   text: "Nhắc nhập liệu",
-                //   icon: PhosphorIcons.regular.alarm,
-                //   hasSwitch: true,
-                //   onToggleSwitch: (p0) {
-                //     return Utils.showDialogWarningError(
-                //       context, false, "Chức năng đang được phát triển");
-                //   },
-                //   subTitleWidget: Column(
-                //     children: [
-                //       Text(
-                //         "Ứng dụng sẽ gửi thông báo nhắc bạn nhập dữ liệu mỗi ngày",
-                //         style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff666667)),
-                //       ),
-                //       const Padding(
-                //         padding: EdgeInsets.symmetric(vertical: 6.0),
-                //         child: Divider(color: Color(0xffF4F4F5)),
-                //       ),
-                //       Row(
-                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //         children: [
-                //           Text("Thời gian", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff333334)),),
-                //           InkWell(
-                //             onTap: () => Utils.showDatePicker(
-                //               context: context,
-                //               onCancel: () => Navigator.pop(context),
-                //               onSave: () => Navigator.pop(context),
-                //               onDateTimeChanged: (p0) {
-                //                 // return Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển");
-                //               },
-                //               mode: CupertinoDatePickerMode.time
-                //             ),
-                //             child: Text("14:00", style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),)
-                //           )
-                //         ],
-                //       )
-                //     ],
-                //   ),
-                // ),
+                if (user.roleId != 1)
+                NavigationButton(
+                  text: "Nhắc nhập liệu",
+                  icon: PhosphorIcons.regular.alarm,
+                  hasSwitch: true,
+                  valueSwitch: user.timeReminded != null,
+                  onToggleSwitch: remindedTime == null ? null : (toggle) async {
+                    // tat switch -> reset time
+                    if (!toggle && remindedTime != null) {
+                      remindedTime = null;
+                    }
+                    updateTimeReminded();
+                  },
+                  subTitleWidget: Column(
+                    children: [
+                      Text(
+                        "Ứng dụng sẽ gửi thông báo nhắc bạn nhập dữ liệu mỗi ngày",
+                        style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff666667)),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6.0),
+                        child: Divider(color: Color(0xffF4F4F5)),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Thời gian", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff333334)),),
+                          InkWell(
+                            onTap: () => Utils.showDatePicker(
+                              context: context,
+                              onCancel: () {
+                                trackingTime = DateTime.now();
+                                Navigator.pop(context);
+                              },
+                              onSave: () async {
+                                setState(() {
+                                  remindedTime = trackingTime;
+                                });
+                                Navigator.pop(context);
+                                
+                                updateTimeReminded();       
+                              },
+                              onDateTimeChanged: (time) {
+                                trackingTime = time;
+                              },
+                              mode: CupertinoDatePickerMode.time,
+                              initDate: user.timeReminded ?? trackingTime
+                            ),
+                            child: Text(remindedTime == null ? "--:--" : DateFormat("HH:mm").format(remindedTime!) , 
+                              style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4CAF50)),
+                            )
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                ),
                 NavigationButton(
                   text: "Về chúng tôi",
                   icon: PhosphorIcons.regular.users,

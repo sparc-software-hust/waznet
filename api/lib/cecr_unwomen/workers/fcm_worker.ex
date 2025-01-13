@@ -23,7 +23,7 @@ defmodule CecrUnwomen.Workers.FcmWorker do
       #   true -> FcmPayload.create_payload(:ios, token, notification_field, data_ios_string)
       # end
 
-      if (token != nil), do: spawn(fn -> ApiHandler.post(:json, @url_firebase_messaging, payload, headers, []) |> IO.inspect(label: "hehehe") end)
+      if (token != nil), do: spawn(fn -> ApiHandler.post(:json, @url_firebase_messaging, payload, headers, []) end)
     end)
 
   rescue
