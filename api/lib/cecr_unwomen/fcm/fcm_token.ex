@@ -5,13 +5,13 @@ defmodule CecrUnwomen.Fcm.FcmToken do
   alias CecrUnwomen. { Utils.ApiHandler }
 
   def load_credentials() do
-		is_prod = System.get_env("MIX_ENV") == "prod" || false
+    is_prod = System.get_env("MIX_ENV") == "prod" || false
     path_credentials = if is_prod do
-			:code.priv_dir(:cecr_unwomen)
-			|> Path.join("/certs/cecr-unwomen-fcm.json")
-		else
-			"priv/certs/cecr-unwomen-fcm.json"
-		end
+      :code.priv_dir(:cecr_unwomen)
+      |> Path.join("/certs/cecr-unwomen-fcm.json")
+    else
+      "priv/certs/cecr-unwomen-fcm.json"
+    end
     credentials = path_credentials
     |> File.read!()
     |> Jason.decode!()
