@@ -1,10 +1,12 @@
 defmodule CecrUnwomen.Consumer do
   use GenServer
   use AMQP
+  
+  alias CecrUnwomen.Workers.{ ScheduleWorker }
 
   @channel :default
   # @delay_exchange "delay_exchange"
-  @delay_3_sec_queue "delay_3_sec_queue"
+  # @delay_3_sec_queue "delay_3_sec_queue"
   @delay_queue "delay_queue"
   @delay_queue_error "#{@delay_queue}_error"
 
@@ -27,9 +29,10 @@ defmodule CecrUnwomen.Consumer do
 
     :ok = Basic.qos(chan, prefetch_count: 10)
     {:ok, _consumer_tag} = Basic.consume(chan, @delay_queue)
+    
     {:ok, chan}
   end
-
+  
   def handle_call(:get_chan, _, chan) do
     {:reply, chan, chan}
   end
@@ -60,6 +63,7 @@ defmodule CecrUnwomen.Consumer do
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}}, chan) do
+  # IO.inspect("msgggggggggggg")
     consume(chan, tag, redelivered, payload)
     {:noreply, chan}
   end
@@ -69,7 +73,8 @@ defmodule CecrUnwomen.Consumer do
     # test: AMQP.Basic.publish(chan, "", "delay_3_sec_queue", "5", persitent: true)
 
     {:ok, _} = Queue.declare(chan, @delay_queue_error, durable: true)
-
+    
+    # Exchange.delete(chan, "delay_exchange")
     {:ok, _} =
       Queue.declare(chan, @delay_queue,
         durable: true,
@@ -79,33 +84,52 @@ defmodule CecrUnwomen.Consumer do
         ]
       )
 
-    {:ok, _} =
-      Queue.declare(chan, @delay_3_sec_queue,
-        durable: true,
-        arguments: [
-          {"x-dead-letter-exchange", :longstr, ""},
-          {"x-dead-letter-routing-key", :longstr, @delay_queue},
-          {"x-message-ttl", :signedint, 3000}
-        ]
-      )
-
-    # without consume
-    # :ok = Exchange.direct(chan, @delay_exchange, durable: true)
-    # # phải có routing key cho exchange direct, nếu không sẽ không gửi được do rabbitmq không xác định được
-    # :ok = Queue.bind(chan, @delay_queue, @delay_exchange, routing_key: @delay_queue)
-    # :ok = Queue.bind(chan, @delay_3_sec_queue, @delay_exchange, routing_key: @delay_3_sec_queue)
+    # Queue.delete(chan, "delay_3_sec_queue", if_empty: true)
+    # {:ok, _} =
+    #   Queue.declare(chan, @delay_3_sec_queue,
+    #     durable: true,
+    #     arguments: [
+    #       {"x-dead-letter-exchange", :longstr, ""},
+    #       {"x-dead-letter-routing-key", :longstr, @delay_queue},
+    #       {"x-message-ttl", :signedint, 3000}
+    #     ]
+    #   )
+      
+    minutes = (1..30 |> Enum.to_list)
+    
+    Enum.each(minutes, fn min -> 
+      Queue.declare(chan, "wait_min_#{min}", durable: true,
+        arguments: [{"x-dead-letter-exchange", :longstr, ""},
+                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
+                    {"x-message-ttl", :signedint, 60000 * min}]
+                  )
+      end
+    )
+    
+    hours = (1..12 |> Enum.to_list)
+    Enum.each(hours, fn hour ->
+      Queue.declare(chan, "wait_hour_#{hour}", durable: true,
+        arguments: [{"x-dead-letter-exchange", :longstr, ""},
+                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
+                    {"x-message-ttl", :signedint, 3600000 * hour}]
+                  )
+    end
+    )
   end
 
-  defp consume(channel, tag, redelivered, payload) do
-    number = String.to_integer(payload)
-
-    if number <= 10 do
-      :ok = Basic.ack(channel, tag)
-      IO.puts("Consumed a #{number}.")
-    else
-      :ok = Basic.reject(channel, tag, requeue: false)
-      IO.puts("#{number} is too big and was rejected.")
+  def consume(channel, tag, redelivered, payload) do
+    case Jason.decode payload do
+      {:ok, obj} -> case obj["action"] do
+        "broadcast_remind_to_input" ->  spawn(fn ->  ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])   end)
+        _ -> raise("not detect action #{obj}")
+              
+        Basic.ack channel, tag
+      end
+      {:error, _} ->
+        Basic.reject channel, tag, requeue: false
     end
+    
+    
   rescue
     # You might also want to catch :exit signal in production code.
     # Make sure you call ack, nack or reject otherwise consumer will stop

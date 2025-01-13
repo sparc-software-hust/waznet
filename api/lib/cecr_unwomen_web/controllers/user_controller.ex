@@ -221,6 +221,37 @@ defmodule CecrUnwomenWeb.UserController do
     end
     json conn, response
   end
+  
+  def set_time_reminded(conn, params) do
+    user_id = conn.assigns.user.user_id
+    time_reminded = params["time_reminded"]
+
+    response = Repo.get_by(User, id: user_id)
+    |> case do
+      nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+      user ->
+        data_changes = %{
+          time_reminded: if (!is_nil(time_reminded)) do
+              NaiveDateTime.from_iso8601!(time_reminded)
+              |> NaiveDateTime.truncate(:second)
+            else 
+              nil
+            end
+        } 
+                     
+        Ecto.Changeset.change(user, data_changes)
+        |> Repo.update
+        |> case do
+          {:ok, updated_user} ->
+            updated_user_map = Helper.get_user_map_from_struct(updated_user)
+            RedisDB.update_user(updated_user_map)
+            Helper.response_json_with_data(true, "Cập nhật thông tin người dùng thành công!", updated_user_map)
+
+          _ -> Helper.response_json_message(false, "Không thể cập nhật thông tin!", 321)
+        end
+    end
+    json conn, response
+  end
 
   def change_password(conn, params) do
     user_id = conn.assigns.user.user_id

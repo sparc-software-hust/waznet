@@ -26,6 +26,7 @@ defmodule CecrUnwomenWeb.Router do
       post "/delete_user", UserController, :delete_user
       post "/get_info", UserController, :get_info
       post "/update_info", UserController, :update_info
+      post "/set_time_reminded", UserController, :set_time_reminded
       post "/change_password", UserController, :change_password
       post "/add_firebase_token", UserController, :add_firebase_token
     end
