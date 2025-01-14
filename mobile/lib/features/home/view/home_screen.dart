@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map householdData = {};
   final Map scraperData = {};
   bool needGetDataChart = false;
+  bool needGetDataAdmin = false;
 
   changeBar() {
     setState(() {
@@ -164,32 +165,41 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollControllerHome,
-              child: Column(
-                children: [
-                  BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
-                  CardStatistic(
-                    isHouseholdTab: isHouseholdTab, 
-                    statistic: allData
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        buildChart(),
-                        if (roleId == 1) 
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16.0),
-                          child: StatisticScreen(
-                            roleId: roleId, 
-                            isHouseHoldTabAdminScreen: isHouseholdTab,
-                          ),
-                        )
-                      ],
+            child: RefreshIndicator.adaptive(
+              onRefresh: () {
+                setState(() {
+                  needGetDataAdmin = !needGetDataAdmin;
+                });
+                return callApiGetOverallData();
+              },
+              child: SingleChildScrollView(
+                controller: _scrollControllerHome,
+                child: Column(
+                  children: [
+                    BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
+                    CardStatistic(
+                      isHouseholdTab: isHouseholdTab, 
+                      statistic: allData
                     ),
-                  ),
-                ]
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          buildChart(),
+                          if (roleId == 1) 
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0),
+                            child: StatisticScreen(
+                              roleId: roleId, 
+                              isHouseHoldTabAdminScreen: isHouseholdTab,
+                              needGetDataAdmin: needGetDataAdmin,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ]
+                ),
               ),
             ),
           )
@@ -202,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF4F4F5),
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
-        onPressed: () async {
+        onPressed: () async {          
           setState(() {
             needGetDataChart = false;
           });

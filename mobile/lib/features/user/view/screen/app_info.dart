@@ -1,7 +1,5 @@
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
-import 'package:cecr_unwomen/utils.dart';
-import 'package:cecr_unwomen/widgets/navigation_button.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

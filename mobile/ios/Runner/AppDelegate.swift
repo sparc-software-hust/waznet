@@ -3,6 +3,7 @@ import UIKit
 import Firebase
 import FirebaseCore
 import FirebaseMessaging
+import flutter_local_notifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,7 +11,10 @@ import FirebaseMessaging
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-      FirebaseApp.configure()
+    FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+    FirebaseApp.configure()
 //      UNUserNotificationCenter.current().delegate = self
 //
 //      let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
@@ -21,6 +25,9 @@ import FirebaseMessaging
 //
 //      application.registerForRemoteNotifications()
     GeneratedPluginRegistrant.register(with: self)
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

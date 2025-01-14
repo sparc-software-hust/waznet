@@ -45,6 +45,12 @@ class _TimeFilterState extends State<TimeFilter> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Material(
         borderRadius: const BorderRadius.only(

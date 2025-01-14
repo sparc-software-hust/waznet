@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:cecr_unwomen/features/firebase/bloc/firebase_event.dart';
 import 'package:cecr_unwomen/features/firebase/bloc/firebase_state.dart';
 import 'package:cecr_unwomen/features/firebase/repository/firebase_repository.dart';
+import 'package:cecr_unwomen/service/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class FirebaseBloc extends Bloc<FirebaseEvent, FirebaseState>{
@@ -33,7 +34,7 @@ class FirebaseBloc extends Bloc<FirebaseEvent, FirebaseState>{
     await emit.onEach(FirebaseMessaging.onMessage,
       onData: (RemoteMessage message) async {
         if (message.notification == null) return;
-        print('Message foreground also contained a notification: ${message.notification}');
+        NotificationService.showNotification(message.notification!.title ?? "", message.notification!.body ?? "");
       },
       onError: (e, t) => emit(state.copyWith(FirebaseStatus.noToken))
     );
