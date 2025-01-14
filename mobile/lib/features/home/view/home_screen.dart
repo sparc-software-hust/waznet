@@ -57,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    Utils.checkUpdateApp(context);
     final User? user = context.read<AuthenticationBloc>().state.user;
     if (user == null) return;
     isHouseholdTab = user.roleId != 3;

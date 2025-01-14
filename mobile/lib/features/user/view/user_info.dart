@@ -148,7 +148,6 @@ class _UserInfoState extends State<UserInfo> {
                   onToggleSwitch: (toggle) async {
                     if (toggle) {
                       showTimePicker();
-                      updateTimeReminded();
                     } else {
                       // tat switch -> reset time
                       if (!toggle && remindedTime != null) {
