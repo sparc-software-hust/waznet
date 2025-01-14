@@ -29,6 +29,6 @@ class NotificationService {
       iOS: DarwinNotificationDetails()
     );
 
-    await flutterLocalNotificationsPlugin.show( 0, title, body, details);
+    await flutterLocalNotificationsPlugin.show((DateTime.now().millisecondsSinceEpoch / 10000).ceil(), title, body, details);
   }
 }

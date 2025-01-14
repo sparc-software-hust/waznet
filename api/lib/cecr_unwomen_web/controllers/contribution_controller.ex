@@ -142,19 +142,7 @@ defmodule CecrUnwomenWeb.ContributionController do
     )
     |> Repo.all
     # fold cac token thuoc cung 1 user lai ve 1 map 
-    |> Enum.reduce(%{}, fn item, acc ->
-      user_id = item["user_id"]
-      token = item["token"]
-
-      Map.update(acc, user_id, %{
-        "user_id" => user_id,
-        "tokens" => [token],
-      }, fn existing ->
-        Map.update(existing, "tokens", [token], fn tokens -> tokens ++ [token] end)
-      end)
-    end)
-    |> Map.values()
-    |> IO.inspect()
+    |> Helper.fold_fcm_token()
     
     Enum.each(admin_fcm_tokens, fn t -> 
       tokens = t["tokens"]

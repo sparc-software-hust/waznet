@@ -123,4 +123,25 @@ defmodule CecrUnwomen.Utils.Helper do
     DateTime.now!(timezone)
     |> Calendar.strftime("%d/%m/%Y")
   end
+  
+  def fold_fcm_token(map, extra_fields \\ %{}) do
+    map
+    |> Enum.reduce(%{}, fn item, acc ->
+      user_id = item["user_id"]
+      token = item["token"]
+      
+      base_map = Map.merge(
+        %{
+          "user_id" => user_id,
+          "tokens" => [token]
+        },
+        extra_fields
+      )
+
+      Map.update(acc, user_id, base_map, fn existing ->
+        Map.update(existing, "tokens", [token], fn tokens -> tokens ++ [token] end)
+      end)
+    end)
+    |> Map.values()
+  end
 end

@@ -23,7 +23,7 @@ void main() async {
     provisional: false,
     sound: true,
   );
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions();
+  // await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions();
   // da listen trong firebase bloc
   // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
   //   // print('Message data: ${message.toMap()}');
