@@ -3,16 +3,16 @@ import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/temp_api.dart';
-import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
-  const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen});
+  const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen, this.needGetDataAdmin});
   final int roleId;
   final bool? isHouseHoldTabAdminScreen;
+  final bool? needGetDataAdmin;
 
   @override
   State<StatisticScreen> createState() => _StatisticScreenState();
@@ -42,6 +42,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
       && widget.isHouseHoldTabAdminScreen != oldWidget.isHouseHoldTabAdminScreen
     ) {
       isHouseholdTab = widget.isHouseHoldTabAdminScreen!;
+    } 
+
+    if (widget.needGetDataAdmin != null && oldWidget.needGetDataAdmin != null
+      && widget.needGetDataAdmin!= oldWidget.needGetDataAdmin
+    ) {
+      callApiGetFilterOverallData();
     } 
   }
 
@@ -214,8 +220,14 @@ class _StatisticScreenState extends State<StatisticScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: SingleChildScrollView(
-              child: buildStatistic()
+            child: RefreshIndicator.adaptive(
+
+            onRefresh: () {
+              return callApiGetFilterOverallData();
+            },
+              child: SingleChildScrollView(
+                child: buildStatistic()
+              ),
             ),
           ),
         ),

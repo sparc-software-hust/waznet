@@ -1,5 +1,6 @@
 import 'package:cecr_unwomen/features/login/view/login_screen.dart';
 import 'package:cecr_unwomen/features/home/view/home_screen.dart';
+import 'package:cecr_unwomen/service/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  NotificationService.init();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
@@ -21,20 +23,14 @@ void main() async {
     provisional: false,
     sound: true,
   );
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true,badge: true,sound: true);
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions();
+  // da listen trong firebase bloc
+  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //   // print('Message data: ${message.toMap()}');
+  //   if (message.notification != null) {
+  //     NotificationService.showNotification(message.notification!.title ?? "", message.notification!.body ?? "");
+  //   }});
 
-  // if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-  //   String? token = await FirebaseMessaging.instance.getToken();
-  //   print("token: $token");
-  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  //     print('Got a message whilst in the foreground!');
-  //     print('Message data: ${message.data}');
-
-  //     if (message.notification != null) {
-  //       print('Message also contained a notification: ${message.notification}');
-  //     }
-  //   });
-  // }
   runApp(const App());
 }
 
