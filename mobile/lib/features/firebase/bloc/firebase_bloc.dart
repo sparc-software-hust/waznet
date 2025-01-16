@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:cecr_unwomen/features/firebase/bloc/firebase_event.dart';
 import 'package:cecr_unwomen/features/firebase/bloc/firebase_state.dart';
@@ -34,7 +36,12 @@ class FirebaseBloc extends Bloc<FirebaseEvent, FirebaseState>{
     await emit.onEach(FirebaseMessaging.onMessage,
       onData: (RemoteMessage message) async {
         if (message.notification == null) return;
-        NotificationService.showNotification(message.notification!.title ?? "", message.notification!.body ?? "");
+        if (message.data.isNotEmpty && message.data["type"] != null) {
+          NotificationService.showNotification(message.notification!.title ?? "", message.notification!.body ?? "", jsonEncode(message.data));
+        }
+        else {
+          NotificationService.showNotification(message.notification!.title ?? "", message.notification!.body ?? "", null);
+        }
       },
       onError: (e, t) => emit(state.copyWith(FirebaseStatus.noToken))
     );
