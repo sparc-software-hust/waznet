@@ -1,5 +1,4 @@
 defmodule CecrUnwomen.Workers.FcmWorker do
-  alias ElixirLS.LanguageServer.Providers.CodeAction.Helpers
   alias CecrUnwomenWeb.Models.FirebaseToken
   alias CecrUnwomen. {Fcm.FcmPayload, Repo, Utils.ApiHandler}
   import Ecto.Query
