@@ -214,10 +214,10 @@ class HomeScreenState extends State<HomeScreen> {
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () async {          
-          needGetDataChart = false;
-          final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
-          if (!(shouldCallApi ?? false)) return;
           needGetDataChart = true;
+          final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
+          needGetDataChart = false;
+          if (!(shouldCallApi ?? false)) return;
           callApiGetOverallData();
         },
         backgroundColor: const Color(0xFF4CAF50),

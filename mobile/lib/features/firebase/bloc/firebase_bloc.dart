@@ -50,7 +50,10 @@ class FirebaseBloc extends Bloc<FirebaseEvent, FirebaseState>{
   Future<void> _onOpenMessageBackground(OpenMessageBackground event, Emitter emit) async {
     await emit.onEach(FirebaseMessaging.onMessageOpenedApp,
       onData: (RemoteMessage message) async {
-        print('_onOpenMessageBackground:${message.notification?.body}');
+        if (message.notification == null) return;
+        if (message.data.isNotEmpty && message.data["type"] != null) {
+          notificationTapBackground(message.data);
+        }
         // emit(state.copyWith(FirebaseStatus.haveToken));
       },
       onError: (e, t) => emit(state.copyWith(FirebaseStatus.noToken))
@@ -59,6 +62,12 @@ class FirebaseBloc extends Bloc<FirebaseEvent, FirebaseState>{
 
   Future<void> _onOpenMessageTerminated(OpenMessageTerminated event, Emitter emit) async {
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) print('terminated noti:$initialMessage');
+    
+    if (initialMessage != null) {
+      if (initialMessage.notification == null) return;
+      if (initialMessage.data.isNotEmpty && initialMessage.data["type"] != null) {
+        notificationTapBackground(initialMessage.data);
+      }
+    }
   }
 }

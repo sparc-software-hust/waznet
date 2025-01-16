@@ -6,14 +6,10 @@ import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-class NotificationService {
-  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  static Future<void>  onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
-    final data = jsonDecode(notificationResponse.payload!);
-    
-    if (data["type"] == null) return;
-    switch (data["type"]) {
+@pragma('vm:entry-point')
+void notificationTapBackground(data) async {
+  // handle action
+  switch (data["type"]) {
       case "user_contribute_data":
         Map oneDayData = data["role_id"] == 3 ? {
           "kg_co2e_plastic_reduced": double.tryParse(data["kg_co2e_plastic_reduced"]) ?? 0,
@@ -26,7 +22,8 @@ class NotificationService {
           "expense_reduced": double.tryParse(data["expense_reduced"]) ?? 0,
           "date": data["date"]
         };
-        Navigator.push(Utils.globalContext!, MaterialPageRoute(builder: (context) => Material(
+        Navigator.push(Utils.globalContext!, MaterialPageRoute(
+        builder: (context) => Material(
           child: UserContributionDetailScreen(
               oneDayData: oneDayData,
               userId: data["user_id"],
@@ -44,7 +41,9 @@ class NotificationService {
         int roleId = int.parse(data["role_id"]);
         final homeScreenKey =  Utils.globalHomeKey;
         if (homeScreenKey.currentState == null) return;
+        if (homeScreenKey.currentState!.needGetDataChart) return;
         homeScreenKey.currentState!.needGetDataChart = false;
+        
         final bool? shouldCallApi = await Navigator.push(homeScreenKey.currentState!.context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
         if (!(shouldCallApi ?? false)) return;
         homeScreenKey.currentState!.needGetDataChart = true;
@@ -52,12 +51,23 @@ class NotificationService {
         break;
       default:
         return;
-    }
-
-
   }
+}
+class NotificationService {
+  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  static Future<void>  onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
+    final data = jsonDecode(notificationResponse.payload!);
+
+    if (data["type"] == null) return;
+    notificationTapBackground(data);
+  }
+
   static Future<void>  onDidReceiveBackgroundNotificationResponse(NotificationResponse notificationResponse) async {
-    // print(notificationResponse.payload);
+    // final data = jsonDecode(notificationResponse.payload!);
+
+    // if (data["type"] == null) return;
+    // notificationTapBackground(data);
   }
 
   static void init(){
