@@ -19,8 +19,8 @@ defmodule CecrUnwomenWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/upload",
-    from: "/app/api/static",
-    gzip: true
+    from: "/app/api/static"
+    # gzip: true
     # only: CecrUnwomenWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
