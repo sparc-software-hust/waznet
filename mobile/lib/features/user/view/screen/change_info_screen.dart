@@ -75,27 +75,26 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
 
 
   void updateInfo({required Map userResponse, isSuccess = true}) {
-    if (context.mounted) {
-      if (userResponse.isNotEmpty && isSuccess) {
-        context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(userResponse)));
-        fToast.showToast(
-          child: const ToastContent(
-            isSuccess: true, 
-            title: 'Cập nhật thành công'
-          ),
-          gravity: ToastGravity.BOTTOM
-        );
-      } else {
-        fToast.showToast(
-          child: const ToastContent(
-            isSuccess: false, 
-            title: 'Cập nhật thất bại. Vui lòng thử lại sau'
-          ),
-          gravity: ToastGravity.BOTTOM
-        );
-      }
-      Navigator.pop(context);
+    if (context.mounted) return;
+    if (userResponse.isNotEmpty && isSuccess) {
+      context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(userResponse)));
+      fToast.showToast(
+        child: const ToastContent(
+          isSuccess: true, 
+          title: 'Cập nhật thành công'
+        ),
+        gravity: ToastGravity.BOTTOM
+      );
+    } else {
+      fToast.showToast(
+        child: const ToastContent(
+          isSuccess: false, 
+          title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+        ),
+        gravity: ToastGravity.BOTTOM
+      );
     }
+    Navigator.pop(context);
   }
 
   @override
