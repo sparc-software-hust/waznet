@@ -4,6 +4,7 @@ defmodule CecrUnwomenWeb.ContributionController do
 
   alias CecrUnwomenWeb.Models.{
     User,
+    FirebaseToken,
     ScraperContribution,
     HouseholdContribution,
     OverallScraperContribution,
@@ -11,7 +12,8 @@ defmodule CecrUnwomenWeb.ContributionController do
     HouseholdConstantFactor,
     ScrapConstantFactor
   }
-
+  
+  alias CecrUnwomen.Workers.FcmWorker
   alias CecrUnwomen.{Utils.Helper, Repo}
 
   def contribute_data(conn, params) do
@@ -58,7 +60,10 @@ defmodule CecrUnwomenWeb.ContributionController do
           Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
         |> case do
-          {:ok, overall_data} -> Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
+          {:ok, overall_data} -> 
+            send_noti_to_admin(user_id, overall_data, date)
+            Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
+            
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
@@ -101,7 +106,9 @@ defmodule CecrUnwomenWeb.ContributionController do
           Helper.aggregate_with_fields(OverallHouseholdContribution, keys)
         end)
         |> case do
-          {:ok, overall_data} -> Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
+          {:ok, overall_data} -> 
+            send_noti_to_admin(user_id, overall_data, date)
+            Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
@@ -109,6 +116,66 @@ defmodule CecrUnwomenWeb.ContributionController do
     end
 
     json(conn, res)
+  end
+  
+  defp send_noti_to_admin(user_id, data, date) do
+    user_info = from(
+      u in User,
+      where: u.id == ^user_id,
+      select: %{
+        "first_name" => u.first_name,
+        "last_name" => u.last_name,
+        "role_id" => u.role_id,
+        "avatar_url" => u.avatar_url
+      }
+    ) 
+    |> Repo.one 
+    
+    admin_fcm_tokens = from(
+      u in User,
+      join: ft in FirebaseToken,
+      on: u.id == ft.user_id,
+      where: u.role_id == 1,
+      select: %{
+        "user_id" => u.id,
+        "token" => ft.token,
+      }
+    )
+    |> Repo.all
+    # fold cac token thuoc cung 1 user lai ve 1 map 
+    |> Helper.fold_fcm_token()
+    
+    Enum.each(admin_fcm_tokens, fn t -> 
+      tokens = t["tokens"]
+      date_string = Calendar.strftime(date, "%d/%m/%Y")
+      user_name = "#{user_info["first_name"]} #{user_info["last_name"]}"
+      role_name = if (user_info["role_id"] == 2), do: "hộ gia đình", else: "người thu gom"
+      role_id = user_info["role_id"]
+      avatar_url = user_info["avatar_url"]
+        
+      FcmWorker.send_firebase_notification(
+        Enum.map(tokens, fn t -> %{"token" => t} end),
+        %{
+          "title" => "#{user_name} (#{role_name}) vừa nhập dữ liệu ngày #{date_string}",
+          "body" => "Có dữ liệu đóng góp mới. Ấn vào thông báo để xem thông tin"
+        },
+        %{
+          "type" => "user_contribute_data",
+          "date" => date,
+          "formatted_date" => date_string,
+          "name" => user_name,
+          "role_id" => role_id,
+          "user_id" => user_id,
+          "avatar_url" => avatar_url,
+          "kg_co2e_reduced" => Map.get(data,:kg_co2e_reduced),
+          "kg_collected" => Map.get(data,:kg_collected),
+          "expense_reduced" => Map.get(data,:expense_reduced),
+          "kg_co2e_plastic_reduced" => Map.get(data, :kg_co2e_plastic_reduced),
+          "kg_co2e_recycle_reduced" => Map.get(data, :kg_co2e_recycle_reduced),
+          "kg_recycle_collected" => Map.get(data,:kg_recycle_collected),
+        }
+      )
+    end)
   end
 
   def edit_factor_quantity(conn, params) do

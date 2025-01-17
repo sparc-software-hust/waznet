@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "vn.sparc.waznet"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -40,7 +40,7 @@ android {
         ndk {
           debugSymbolLevel 'FULL'
         }
-
+        multiDexEnabled true
     }
 
     signingConfigs {

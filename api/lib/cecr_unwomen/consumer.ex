@@ -122,9 +122,9 @@ defmodule CecrUnwomen.Consumer do
       {:ok, obj} -> case obj["action"] do
         "broadcast_remind_to_input" ->  spawn(fn ->  ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])   end)
         _ -> raise("not detect action #{obj}")
-              
-        Basic.ack channel, tag
       end
+      Basic.ack channel, tag
+      
       {:error, _} ->
         Basic.reject channel, tag, requeue: false
     end

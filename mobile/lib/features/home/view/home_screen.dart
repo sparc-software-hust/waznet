@@ -27,10 +27,10 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final ColorConstants colorCons = ColorConstants();
   final ScrollController _scrollControllerHome = ScrollController();
   bool isHouseholdTab = true;
@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map householdData = {};
   final Map scraperData = {};
   bool needGetDataChart = false;
+  bool needGetDataAdmin = false;
 
   changeBar() {
     setState(() {
@@ -57,6 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    Utils.checkUpdateApp(context);
+    Utils.globalContext = context;
     final User? user = context.read<AuthenticationBloc>().state.user;
     if (user == null) return;
     isHouseholdTab = user.roleId != 3;
@@ -163,32 +166,41 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollControllerHome,
-              child: Column(
-                children: [
-                  BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
-                  CardStatistic(
-                    isHouseholdTab: isHouseholdTab, 
-                    statistic: allData
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        buildChart(),
-                        if (roleId == 1) 
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16.0),
-                          child: StatisticScreen(
-                            roleId: roleId, 
-                            isHouseHoldTabAdminScreen: isHouseholdTab,
-                          ),
-                        )
-                      ],
+            child: RefreshIndicator.adaptive(
+              onRefresh: () {
+                setState(() {
+                  needGetDataAdmin = !needGetDataAdmin;
+                });
+                return callApiGetOverallData();
+              },
+              child: SingleChildScrollView(
+                controller: _scrollControllerHome,
+                child: Column(
+                  children: [
+                    BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
+                    CardStatistic(
+                      isHouseholdTab: isHouseholdTab, 
+                      statistic: allData
                     ),
-                  ),
-                ]
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          buildChart(),
+                          if (roleId == 1) 
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0),
+                            child: StatisticScreen(
+                              roleId: roleId, 
+                              isHouseHoldTabAdminScreen: isHouseholdTab,
+                              needGetDataAdmin: needGetDataAdmin,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ]
+                ),
               ),
             ),
           )
@@ -201,15 +213,11 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF4F4F5),
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
-        onPressed: () async {
-          setState(() {
-            needGetDataChart = false;
-          });
+        onPressed: () async {          
+          needGetDataChart = true;
           final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
+          needGetDataChart = false;
           if (!(shouldCallApi ?? false)) return;
-          setState(() {
-            needGetDataChart = true;
-          });
           callApiGetOverallData();
         },
         backgroundColor: const Color(0xFF4CAF50),
