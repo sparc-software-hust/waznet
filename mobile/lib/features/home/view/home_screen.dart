@@ -101,7 +101,7 @@ class HomeScreenState extends State<HomeScreen> {
     final Map allData = isHouseholdTab ? (householdData['statistic'] ?? {}) : (scraperData['statistic'] ?? {});
     final int roleId = context.watch<AuthenticationBloc>().state.user!.roleId;
 
-     Widget buildChart() {
+    Widget buildChart() {
       switch (roleId) {
         case 2:
           return HouseholdChart(needGetData: needGetDataChart,);
@@ -121,7 +121,7 @@ class HomeScreenState extends State<HomeScreen> {
               builder: (context) {
                 final User? user = context.watch<AuthenticationBloc>().state.user;
                 if (user == null) return const SizedBox();
-      
+
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -213,7 +213,7 @@ class HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF4F4F5),
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
-        onPressed: () async {          
+        onPressed: () async {
           needGetDataChart = true;
           final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
           needGetDataChart = false;
