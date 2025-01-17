@@ -1,9 +1,7 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
-  alias CecrUnwomenWeb.Models.HouseholdContribution
-  alias CecrUnwomenWeb.Models.ScraperContribution
   alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
-  alias CecrUnwomenWeb.Models.{User, FirebaseToken, OverallHouseholdContribution, OverallScraperContribution}
+  alias CecrUnwomenWeb.Models.{User, FirebaseToken}
   import Ecto.Query
 
   def register(conn, params) do

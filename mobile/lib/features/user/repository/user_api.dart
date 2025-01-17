@@ -31,9 +31,15 @@ class UserApi {
     return res.data;
   }
 
-  static Future<Map> changeAvatar(data) async {
-    const String url = "/upload/upload_avatar";
-    final Response res = await dioConfigInterceptor.post(url, data: data);
-    return res.data;
+  static Future<Map> changeAvatar({required data, required onError}) async {
+    try {
+      const String url = "/upload/upload_avatar";
+      final Response res = await dioConfigInterceptor.post(url, data: data);
+      return res.data;
+    } 
+    catch (e) {
+      onError(e);
+      return {};
+    }
   }
 }

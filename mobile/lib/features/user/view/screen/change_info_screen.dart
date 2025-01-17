@@ -52,15 +52,19 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     fToast.init(context);
   }
 
-  Future<File> getImage() async {
+  Future<File?> getImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    File file = File(image!.path);
+    if (image == null) {
+      return null;
+    }
+    File file = File(image.path);
     return file;
   }
 
   void showLoadingDialog() {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return const Center(
@@ -144,12 +148,26 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                               bottom: 0,
                               child: InkWell(
                                 onTap: () async {
-                                  File pickedImg = await getImage();
+                                  File? pickedImg = await getImage();
+                                  if (pickedImg == null) return;
                                   showLoadingDialog();
                                   UserApi.changeAvatar(
-                                    FormData.fromMap({
+                                    data:  FormData.fromMap({
                                       "data": await MultipartFile.fromFile(pickedImg.path),
-                                      })
+                                    }),
+                                    onError: (err) {
+                                      if (context.mounted) {
+                                        // pop dialog loading
+                                        Navigator.of(context).pop();
+                                      }
+                                      fToast.showToast(
+                                        child: const ToastContent(
+                                          isSuccess: false, 
+                                          title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+                                        ),
+                                        gravity: ToastGravity.BOTTOM
+                                      );
+                                    }
                                   ).then((res) {
                                     if (context.mounted) {
                                       // pop dialog loading
