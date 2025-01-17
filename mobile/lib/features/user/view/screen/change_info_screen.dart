@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/authentication.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
@@ -6,9 +8,11 @@ import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -46,6 +50,51 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     birthDate = userClone.dateOfBirth;
     gender = userClone.gender;
     fToast.init(context);
+  }
+
+  Future<File> getImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    File file = File(image!.path);
+    return file;
+  }
+
+  void showLoadingDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xff4CAF50),
+            backgroundColor: Color(0xffC1C1C2),
+          ),
+        );
+      }
+    );
+  }
+
+
+  void updateInfo({required Map userResponse, isSuccess = true}) {
+    if (!context.mounted) return;
+    if (userResponse.isNotEmpty && isSuccess) {
+      context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(userResponse)));
+      fToast.showToast(
+        child: const ToastContent(
+          isSuccess: true, 
+          title: 'Cập nhật thành công'
+        ),
+        gravity: ToastGravity.BOTTOM
+      );
+    } else {
+      fToast.showToast(
+        child: const ToastContent(
+          isSuccess: false, 
+          title: 'Cập nhật thất bại. Vui lòng thử lại sau'
+        ),
+        gravity: ToastGravity.BOTTOM
+      );
+    }
+    Navigator.pop(context);
   }
 
   @override
@@ -90,21 +139,35 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                               size: 104,
                               avatarUrl: userClone.avatarUrl,
                             ),
-                            // Positioned(
-                            //   right: 0,
-                            //   bottom: 0,
-                            //   child: InkWell(
-                            //     onTap: () => Utils.showDialogWarningError(context, false, "Chức năng đang được phát triển"),
-                            //     child: Container(
-                            //       padding: const EdgeInsets.all(8),
-                            //       decoration: const BoxDecoration(
-                            //         color: Color(0xFFE8F5E9),
-                            //         shape: BoxShape.circle,
-                            //       ),
-                            //       child: const Icon(Icons.camera_alt, size: 20),
-                            //     ),
-                            //   ),
-                            // ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: InkWell(
+                                onTap: () async {
+                                  File pickedImg = await getImage();
+                                  showLoadingDialog();
+                                  UserApi.changeAvatar(
+                                    FormData.fromMap({
+                                      "data": await MultipartFile.fromFile(pickedImg.path),
+                                      })
+                                  ).then((res) {
+                                    if (context.mounted) {
+                                      // pop dialog loading
+                                      Navigator.of(context).pop();
+                                    }
+                                    updateInfo(userResponse: res["data"], isSuccess: res["success"]);
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE8F5E9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt, size: 20),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -181,27 +244,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                       dateOfBirth: birthDate
                     );
                     Map updatedUser = await UserApi.updateInfo(userClone.toJson());
-                    if (context.mounted) {
-                      if (updatedUser.isNotEmpty) {
-                        context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(updatedUser)));
-                        fToast.showToast(
-                          child: const ToastContent(
-                            isSuccess: true, 
-                            title: 'Cập nhật thành công'
-                          ),
-                          gravity: ToastGravity.BOTTOM
-                        );
-                      } else {
-                        fToast.showToast(
-                          child: const ToastContent(
-                            isSuccess: false, 
-                            title: 'Cập nhật thất bại. Vui lòng thử lại sau'
-                          ),
-                          gravity: ToastGravity.BOTTOM
-                        );
-                      }
-                      Navigator.pop(context);
-                    }
+                    updateInfo(userResponse: updatedUser);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
