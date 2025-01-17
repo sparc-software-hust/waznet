@@ -1,5 +1,5 @@
 defmodule CecrUnwomen.ScheduledTask do
-  alias CecrUnwomen.{Utils.Helper, Repo}
+  alias CecrUnwomen.{Repo}
   alias CecrUnwomen.Workers.ScheduleWorker
   alias CecrUnwomenWeb.Models.{
     User,
