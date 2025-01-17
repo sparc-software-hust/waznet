@@ -62,7 +62,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICES_ACCOUNT_JSON }}
           packageName: vn.sparc.waznet
           releaseFiles: mobile/build/app/outputs/bundle/release/app-release.aab
-          track: alpha
+          track: beta
           status: completed
 
   build-and-release-ios:
