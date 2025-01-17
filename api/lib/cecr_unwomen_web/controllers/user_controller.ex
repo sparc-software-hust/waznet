@@ -146,8 +146,9 @@ defmodule CecrUnwomenWeb.UserController do
     json conn, res
   end
 
-  def logout(conn, params) do
-    user_id = params["user_id"]
+  def logout(conn, _params) do
+    # user_id = params["user_id"]
+    user_id = conn.assigns.user.user_id
 
     # TODO: add token to blacklist with redis
     res = Repo.get_by(User, id: user_id)

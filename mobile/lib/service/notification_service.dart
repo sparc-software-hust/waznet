@@ -11,12 +11,10 @@ void notificationTapBackground(data) async {
   // handle action
   switch (data["type"]) {
       case "user_contribute_data":
-        Map oneDayData = data["role_id"] == 3 ? {
+        Map oneDayData = {
           "kg_co2e_plastic_reduced": double.tryParse(data["kg_co2e_plastic_reduced"]) ?? 0,
           "kg_co2e_recycle_reduced": double.tryParse(data["kg_co2e_recycle_reduced"]) ?? 0,
           "kg_recycle_collected": double.tryParse(data["kg_recycle_collected"]) ?? 0,
-          "date": data["date"]
-        } : {
           "kg_co2e_reduced": double.tryParse(data["kg_co2e_reduced"]) ?? 0,
           "kg_collected": double.tryParse(data["kg_collected"]) ?? 0,
           "expense_reduced": double.tryParse(data["expense_reduced"]) ?? 0,

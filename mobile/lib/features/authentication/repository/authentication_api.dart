@@ -21,9 +21,9 @@ class AuthenticationApi {
     return response.data;
   }
 
-  static Future<void> logout(String userId) async {
+  static Future<void> logout() async {
     const String url = "/user/logout";
-    await dioConfigInterceptor.post(url, data: {"user_id": userId});
+    await dioConfigInterceptor.post(url, data: {});
   }
 
   static Future<Map> deleteUser() async {
