@@ -75,7 +75,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
 
 
   void updateInfo({required Map userResponse, isSuccess = true}) {
-    if (context.mounted) return;
+    if (!context.mounted) return;
     if (userResponse.isNotEmpty && isSuccess) {
       context.read<AuthenticationBloc>().add(UpdateInfo(User.fromJson(userResponse)));
       fToast.showToast(
