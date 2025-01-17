@@ -30,4 +30,10 @@ class UserApi {
         data: {"new_password": newPassword, "old_password": oldPassword});
     return res.data;
   }
+
+  static Future<Map> changeAvatar(data) async {
+    const String url = "/upload/upload_avatar";
+    final Response res = await dioConfigInterceptor.post(url, data: data);
+    return res.data;
+  }
 }
