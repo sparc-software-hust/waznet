@@ -30,7 +30,7 @@ defmodule CecrUnwomenWeb.UploadController do
             env = System.get_env("MIX_ENV") || "dev"
             {new_path, new_extension} = format_image_to_jpg(path)
             static_dir = config_static_dir(env)
-            image_avatar_name = "#{user_id}_avatar#{new_extension}"
+            image_avatar_name = "#{user_id}_#{System.os_time(:second)}_avatar#{new_extension}"
             destination = "#{static_dir}/#{image_avatar_name}"
 
             File.cp(new_path, destination)
@@ -98,7 +98,7 @@ defmodule CecrUnwomenWeb.UploadController do
           {:ok, updated_user} ->
             updated_user_map = Helper.get_user_map_from_struct(updated_user)
             RedisDB.update_user(updated_user_map)
-            Helper.response_json_message(true, "Upload avatar thành công")
+            Helper.response_json_with_data(true, "Upload avatar thành công", updated_user_map)
 
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra! Vui lòng thử lại!", 403)
         end
