@@ -61,6 +61,7 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
 
   void showLoadingDialog() {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return const Center(
