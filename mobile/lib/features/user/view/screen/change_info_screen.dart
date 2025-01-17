@@ -150,10 +150,10 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                                   UserApi.changeAvatar(
                                     FormData.fromMap({
                                       "data": await MultipartFile.fromFile(pickedImg.path),
-                                      "test": "sdjkadsnkjasn"
                                       })
                                   ).then((res) {
                                     if (context.mounted) {
+                                      // pop dialog loading
                                       Navigator.of(context).pop();
                                     }
                                     updateInfo(userResponse: res["data"], isSuccess: res["success"]);
