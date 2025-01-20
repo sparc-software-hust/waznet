@@ -71,4 +71,22 @@ class TempApi {
       return {"success": false};
     }
   }
+
+  static Future<Map> getDetailDataByTime({required DateTime start,required DateTime end}) async {
+    String startDate =  DateFormat('yyyy-MM-dd').format(start);
+    String endDate = DateFormat('yyyy-MM-dd').format(end);
+
+    try {
+      const String url = "/contribution/get_detail_contribution_by_time";
+      final res = await dioConfigInterceptor.get(
+        url, queryParameters: {
+          "start": startDate,
+          "end": endDate
+        } 
+      );
+      return res.data;
+    } catch (e) {
+      return {"success": false};
+    }
+  }
 }
