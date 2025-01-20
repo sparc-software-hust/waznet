@@ -27,27 +27,30 @@ defmodule CecrUnwomenWeb.ContributionController do
 
       role_id == 3 ->
         constant_value = GenServer.call(ConstantWorker, :get_scrap_factors)
+        overall = Enum.reduce(data_entry, %{ kg_co2e_reduced: 0.0, expense_reduced: 0.0, kg_collected: 0.0 }, fn d, acc ->
+          %{"factor_id" => factor_id, "quantity" => quantity} = d
+
+          Map.update!(acc, :kg_collected, &(&1 + quantity))
+          |> Map.update!(:kg_co2e_reduced, &(&1 + constant_value[factor_id] * quantity))
+        end)
+
+        overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg_collected))
+        |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
+        |> Enum.into(%{})
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kg_co2e_reduced: 0.0, expense_reduced: 0.0, kg_collected: 0.0 }, fn d, acc ->
+          Enum.each(data_entry, fn d -> 
             %{"factor_id" => factor_id, "quantity" => quantity} = d
-
+            
             %ScraperContribution{
               date: date,
               user_id: user_id,
               factor_id: factor_id,
               quantity: :erlang.float(quantity)
             }
-            |> Repo.insert()
-
-            Map.update!(acc, :kg_collected, &(&1 + quantity))
-            |> Map.update!(:kg_co2e_reduced, &(&1 + constant_value[factor_id] * quantity))
+            |> Repo.insert()   
           end)
-
-          overall = Map.update!(overall, :expense_reduced, &(&1 + constant_value[4] * overall.kg_collected))
-          |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
-          |> Enum.into(%{})
-
+          
           %OverallScraperContribution{
             date: date,
             user_id: user_id,
@@ -60,8 +63,8 @@ defmodule CecrUnwomenWeb.ContributionController do
           Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
         |> case do
-          {:ok, overall_data} -> 
-            send_noti_to_admin(user_id, overall_data, date)
+          {:ok, overall_data} ->
+            send_noti_to_admin(user_id, overall, date)
             Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
             
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
@@ -69,13 +72,26 @@ defmodule CecrUnwomenWeb.ContributionController do
 
       role_id == 2 ->
         constant_value = GenServer.call(ConstantWorker, :get_household_factors)
+        overall = Enum.reduce(data_entry, %{ kg_co2e_plastic_reduced: 0.0, kg_co2e_recycle_reduced: 0.0, kg_recycle_collected: 0.0}, fn d, acc ->
+          %{"factor_id" => factor_id, "quantity" => quantity} = d
+          # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
+          quantity = if factor_id <= 4, do: round(quantity), else: quantity
+
+          if (factor_id <= 4) do
+            Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
+          else
+            Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
+            |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
+          end
+        end)
+        |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
+        |> Enum.into(%{})
 
         Repo.transaction(fn ->
-          overall = Enum.reduce(data_entry, %{ kg_co2e_plastic_reduced: 0.0, kg_co2e_recycle_reduced: 0.0, kg_recycle_collected: 0.0}, fn d, acc ->
+          Enum.each(data_entry, fn d -> 
             %{"factor_id" => factor_id, "quantity" => quantity} = d
-            # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
             quantity = if factor_id <= 4, do: round(quantity), else: quantity
-
+            
             %HouseholdContribution{
               date: date,
               user_id: user_id,
@@ -83,17 +99,8 @@ defmodule CecrUnwomenWeb.ContributionController do
               quantity: :erlang.float(quantity)
             }
             |> Repo.insert()
-
-            if (factor_id <= 4) do
-              Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
-            else
-              Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
-              |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
-            end
           end)
-          |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
-          |> Enum.into(%{})
-
+          
           %OverallHouseholdContribution{
             date: date,
             user_id: user_id,
@@ -107,7 +114,7 @@ defmodule CecrUnwomenWeb.ContributionController do
         end)
         |> case do
           {:ok, overall_data} -> 
-            send_noti_to_admin(user_id, overall_data, date)
+            send_noti_to_admin(user_id, overall, date)
             Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
