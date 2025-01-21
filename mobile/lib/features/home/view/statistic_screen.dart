@@ -18,6 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 
 class StatisticScreen extends StatefulWidget {
   const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen, this.needGetDataAdmin});
@@ -84,7 +85,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     );
     isLoading = false;
     if (!(data["success"] ?? false)) return;
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 450));
     switch (widget.roleId) {
       case 1:
         setState(() {
@@ -156,7 +157,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     return true;
   }
 
-  _createExcel({required bool hasDetail}) async {
+  void _createExcel({required bool hasDetail}) async {
     Excel excel = Excel.createExcel();
     excel.rename("Sheet1", "Hộ gia đình");
     Sheet sheetHouseHold = excel["Hộ gia đình"];
@@ -296,6 +297,32 @@ class _StatisticScreenState extends State<StatisticScreen> {
     });   
   }
 
+  Widget _buildShimmerEffectshimmerEffect(context, {int number = 10}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 12.0, left: 12.0, right: 12),
+      child: SingleChildScrollView(
+        child: Shimmer.fromColors(
+          baseColor:  const Color(0xffe2e5e8),
+          highlightColor:  Colors.grey.shade100,
+          enabled: true,
+          child: Column(
+            children: List.generate(number, (i) => i).map((_) => Padding(
+              padding: const EdgeInsets.only(bottom: 14.0),
+              child: Container(
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12)
+                ),
+              )
+            )).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Map allData = widget.roleId == 1 ?
@@ -365,10 +392,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
           ),
           if (isLoading)
-          const CircularProgressIndicator(
-            color: Color(0xff4CAF50),
-            backgroundColor: Color(0xffC1C1C2),
-          )
+           _buildShimmerEffectshimmerEffect(context)
           else
             if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
             ...allData["overall_data_by_time"].map((e) {
