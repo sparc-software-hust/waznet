@@ -43,6 +43,7 @@ dependencies:
   excel: ^4.0.6
   path_provider: ^2.1.5
   open_file: ^3.5.10
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
