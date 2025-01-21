@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserInfo extends StatefulWidget {
@@ -37,6 +38,11 @@ class _UserInfoState extends State<UserInfo> {
     final User user = context.read<AuthenticationBloc>().state.user!;
     remindedTime = user.timeReminded;
     fToast.init(context);
+  }
+
+  Future<String> getVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
   }
 
   @override
@@ -184,8 +190,12 @@ class _UserInfoState extends State<UserInfo> {
                 NavigationButton(
                   text: "Về chúng tôi",
                   icon: PhosphorIcons.regular.users,
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => AppInfo())),
+                  onTap: () async {
+                    String version = await getVersion();
+                    if (context.mounted) {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => AppInfo(version: version)));
+                    }
+                  } 
                 ),
                 NavigationButton(
                   text: "Thay đổi mật khẩu",

@@ -136,7 +136,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
       //     borderRadius: BorderRadius.circular(24),
       //   ),
       // ));
-      if (context.mounted) {
+      if (mounted) {
         Navigator.pop(context, true);
       }
     }

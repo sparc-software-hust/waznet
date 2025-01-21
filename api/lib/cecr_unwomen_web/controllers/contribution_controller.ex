@@ -573,4 +573,79 @@ defmodule CecrUnwomenWeb.ContributionController do
     {overall_scrapers, overall_households}
   end
 
+  def get_detail_contribution_by_time(conn, params) do
+    start_date = Date.from_iso8601!(params["start"])
+    end_date =  Date.from_iso8601!(params["end"])
+    role_id = conn.assigns.user.role_id
+    
+    res = cond do
+      role_id == 1 ->
+        detail_household = from(
+          hc in HouseholdContribution,
+          where: hc.date >= ^start_date and hc.date <= ^end_date,
+          # limit: 150,
+          select: %{
+            "date" => hc.date,
+            "factor_id" => hc.factor_id,
+            "quantity" => hc.quantity,
+            "user_id" => hc.user_id
+          }
+        ) 
+        |> Repo.all
+        |> Enum.group_by(fn entry -> {entry["date"], entry["user_id"]} end)
+        |> Enum.map(fn {{date, user_id}, entries} ->
+          factors = entries 
+            |> Enum.map(fn entry -> 
+              %{
+                "factor_id" => entry["factor_id"], 
+                "quantity" => entry["quantity"]
+              }
+            end)
+            
+          %{
+            "date" => date,
+            "user_id" => user_id,
+            "factors" => factors
+          }
+        end)
+        
+        detail_scraper = from(
+          sc in ScraperContribution,
+          where: sc.date >= ^start_date and sc.date <= ^end_date,
+          # limit: 150,
+          select: %{
+            "date" => sc.date,
+            "factor_id" => sc.factor_id,
+            "quantity" => sc.quantity,
+            "user_id" => sc.user_id
+          }
+        ) 
+        |> Repo.all
+        |> Enum.group_by(fn entry -> {entry["date"], entry["user_id"]} end)
+        |> Enum.map(fn {{date, user_id}, entries} ->
+          factors = entries 
+            |> Enum.map(fn entry -> 
+              %{
+                "factor_id" => entry["factor_id"], 
+                "quantity" => entry["quantity"]
+              }
+            end)
+            
+          %{
+            "date" => date,
+            "user_id" => user_id,
+            "factors" => factors
+          }
+        end)
+        
+        data = %{
+          "detail_household" => detail_household,
+          "detail_scraper" => detail_scraper
+        }
+        Helper.response_json_with_data(true, "Lấy dữ liệu thành công", data)
+        
+      true -> %{success: false, message: "Bạn không có quyền xem thông tin này!", code: 402}
+    end
+    json conn, res
+  end
 end
