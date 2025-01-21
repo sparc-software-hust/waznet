@@ -166,7 +166,9 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: RefreshIndicator.adaptive(
+            child: RefreshIndicator(
+              color: const Color(0xff4CAF50),
+              backgroundColor: const Color(0xFFE8FCE3),
               onRefresh: () {
                 setState(() {
                   needGetDataAdmin = !needGetDataAdmin;
@@ -174,6 +176,7 @@ class HomeScreenState extends State<HomeScreen> {
                 return callApiGetOverallData();
               },
               child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
                 controller: _scrollControllerHome,
                 child: Column(
                   children: [

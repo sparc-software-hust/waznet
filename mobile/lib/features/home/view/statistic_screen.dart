@@ -417,12 +417,14 @@ class _StatisticScreenState extends State<StatisticScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: RefreshIndicator.adaptive(
-
-            onRefresh: () {
-              return callApiGetFilterOverallData();
-            },
+            child: RefreshIndicator(
+              color: const Color(0xff4CAF50),
+              backgroundColor: const Color(0xFFE8FCE3),
+              onRefresh: () {
+                return callApiGetFilterOverallData();
+              },
               child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
                 child: buildStatistic()
               ),
             ),
