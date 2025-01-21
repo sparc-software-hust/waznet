@@ -5,18 +5,18 @@ import 'package:cecr_unwomen/constants/extension/datetime_extension.dart';
 import 'package:cecr_unwomen/constants/text_constants.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
+import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:collection/collection.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
@@ -41,10 +41,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
   bool isGetDetailSuccess = true;
   late DateTime start;
   late DateTime end;
+  FToast fToast = FToast();
 
   @override
   void initState() {
     super.initState();
+    fToast.init(context);
     callApiGetFilterOverallData();
     isHouseholdTab = widget.isHouseHoldTabAdminScreen ?? true;
   }
@@ -120,12 +122,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
       detailHouseholdStatisticData = householdStatisticData["overall_data_by_time"];
       detailScraperStatisticData = scraperStatisticData["overall_data_by_time"];
     }
-    var res = await TempApi.getDetailDataByTime(start: start, end: end);
+    Map res = await TempApi.getDetailDataByTime(start: start, end: end);
     if (!res["success"]) return false;
     
     detailHouseholdStatisticData = detailHouseholdStatisticData.map((e) {
       List detailHouseholdContribution = res["data"]["detail_household"];
-      var detailMap = detailHouseholdContribution.firstWhereOrNull((detail) {
+      Map? detailMap = detailHouseholdContribution.firstWhereOrNull((detail) {
         return detail["user_id"] == e["user_id"] && DateTime.parse(e["date"]).isSameDate(DateTime.parse(detail["date"]));
       });
       List factorMap =  detailMap == null ? [] : detailMap["factors"] ?? [];
@@ -138,10 +140,10 @@ class _StatisticScreenState extends State<StatisticScreen> {
 
     detailScraperStatisticData = detailScraperStatisticData .map((e) {
       List detailHouseholdContribution = res["data"]["detail_scraper"];
-      var detailMap = detailHouseholdContribution.firstWhereOrNull((detail) {
+      Map? detailMap = detailHouseholdContribution.firstWhereOrNull((detail) {
         return detail["user_id"] == e["user_id"] && DateTime.parse(e["date"]).isSameDate(DateTime.parse(detail["date"]));
       });
-      var factorMap = detailMap == null ? [] : detailMap["factors"]  ?? [];
+      List factorMap = detailMap == null ? [] : detailMap["factors"]  ?? [];
       Map<String, dynamic> result = e;
       result.addAll({
         "factors": factorMap
@@ -152,25 +154,8 @@ class _StatisticScreenState extends State<StatisticScreen> {
     return true;
   }
 
-  Future<bool> getPermission() async {
-    DeviceInfoPlugin plugin = DeviceInfoPlugin();
-    AndroidDeviceInfo android = await plugin.androidInfo;
-    if (android.version.sdkInt < 33) {
-      final permissionStatus = await Permission.storage.status;
-      if (permissionStatus.isDenied) {
-        await Permission.storage.request();
-      } 
-      return Permission.storage.isGranted;
-    }
-    return true;
-  }
-
   _createExcel({required bool hasDetail}) async {
-    if (Platform.isAndroid) {
-      bool isGranted = await getPermission();
-      if (!isGranted) return;
-    }
-    var excel = Excel.createExcel();
+    Excel excel = Excel.createExcel();
     excel.rename("Sheet1", "Hộ gia đình");
     Sheet sheetHouseHold = excel["Hộ gia đình"];
     Sheet sheetScrapper = excel["Người thu gom"];
@@ -195,7 +180,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     for (var data in detailHouseholdStatisticData) {
       List<CellValue> factors = !hasDetail ? [] : householdDetailContribution.keys.map((key) {
         List factorsDetail = data["factors"];
-        var val = factorsDetail.firstWhereOrNull((e) {
+        Map? val = factorsDetail.firstWhereOrNull((e) {
           return e["factor_id"] == key;
         });
         if (key <= 4) {
@@ -220,7 +205,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     for (var data in detailScraperStatisticData) {
       List<CellValue> factors = !hasDetail ? [] : scraperDetailContribution.keys.map((key) {
         List factorsDetail = data["factors"];
-        var val = factorsDetail.firstWhereOrNull((e) {
+        Map? val = factorsDetail.firstWhereOrNull((e) {
           return e["factor_id"] == key;
         });
 
@@ -268,12 +253,45 @@ class _StatisticScreenState extends State<StatisticScreen> {
       sheetScrapper.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0)).cellStyle = headerCellStyle;
     }
 
-    var fileBytes = excel.save();
-    var directory = await getApplicationDocumentsDirectory();
+    final fileBytes = excel.save();
+    final directory = await getApplicationDocumentsDirectory();
 
     String fileName = "WAZNET_Thong_Ke_${DateFormat("dd_MM_yyyy").format(start)}_${DateFormat("dd_MM_yyyy").format(end)}.xlsx";
     File("${directory.path}/$fileName").writeAsBytes(fileBytes ?? []);
-    await OpenFile.open("${directory.path}/$fileName");   
+    // voi android, can co app ho tro view xlsx
+    // voi ios, mo file in app 
+    await OpenFile.open("${directory.path}/$fileName").then((value) {
+      switch (value.type) {
+        case ResultType.noAppToOpen:
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: false, 
+              title: "Vui lòng đảm bảo thiết bị có cài đặt phần mềm hỗ trợ mở file excel",
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+          return;
+        case ResultType.permissionDenied:
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: false, 
+              title: "Không đủ quyền để mở file này",
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+          return;
+        case ResultType.error:
+          fToast.showToast(
+            child: const ToastContent(
+              isSuccess: false, 
+              title: "Có lỗi xảy ra khi mở file excel, vui lòng thử lại sau",
+            ),
+            gravity: ToastGravity.BOTTOM
+          );
+          return;
+        default: return;
+      }
+    });   
   }
 
   @override
