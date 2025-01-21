@@ -9,12 +9,14 @@ import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/temp_api.dart';
 import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:collection/collection.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class StatisticScreen extends StatefulWidget {
@@ -36,6 +38,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
   late bool isHouseholdTab;
   TimeFilterOptions option = TimeFilterOptions.thisMonth;
   bool isLoading = false;
+  bool isGetDetailSuccess = true;
   late DateTime start;
   late DateTime end;
 
@@ -113,10 +116,13 @@ class _StatisticScreenState extends State<StatisticScreen> {
   }
 
   Future<bool> _getDetailDataByTime() async {
-    detailHouseholdStatisticData = householdStatisticData["overall_data_by_time"];
-    detailScraperStatisticData = scraperStatisticData["overall_data_by_time"];
+    if (householdStatisticData["overall_data_by_time"] != null && scraperStatisticData["overall_data_by_time"] != null) {
+      detailHouseholdStatisticData = householdStatisticData["overall_data_by_time"];
+      detailScraperStatisticData = scraperStatisticData["overall_data_by_time"];
+    }
     var res = await TempApi.getDetailDataByTime(start: start, end: end);
     if (!res["success"]) return false;
+    
     detailHouseholdStatisticData = detailHouseholdStatisticData.map((e) {
       List detailHouseholdContribution = res["data"]["detail_household"];
       var detailMap = detailHouseholdContribution.firstWhereOrNull((detail) {
@@ -146,7 +152,24 @@ class _StatisticScreenState extends State<StatisticScreen> {
     return true;
   }
 
-  _createExcel() async {
+  Future<bool> getPermission() async {
+    DeviceInfoPlugin plugin = DeviceInfoPlugin();
+    AndroidDeviceInfo android = await plugin.androidInfo;
+    if (android.version.sdkInt < 33) {
+      final permissionStatus = await Permission.storage.status;
+      if (permissionStatus.isDenied) {
+        await Permission.storage.request();
+      } 
+      return Permission.storage.isGranted;
+    }
+    return true;
+  }
+
+  _createExcel({required bool hasDetail}) async {
+    if (Platform.isAndroid) {
+      bool isGranted = await getPermission();
+      if (!isGranted) return;
+    }
     var excel = Excel.createExcel();
     excel.rename("Sheet1", "Hộ gia đình");
     Sheet sheetHouseHold = excel["Hộ gia đình"];
@@ -159,59 +182,61 @@ class _StatisticScreenState extends State<StatisticScreen> {
       backgroundColorHex: ExcelColor.yellow400,
       textWrapping: TextWrapping.WrapText
     );
-    List headerHouseHold = [" Số thứ tự ", " Ngày nhập ", " Người nhập ", " Tổng lượng kgCO₂e giảm thiểu ", " Lượng giảm thải kgCO₂e từ việc hạn chế đồ nhựa ", " Lượng giảm thải kgCO₂e từ việc tái chế "] 
-        + householdDetailContribution.values.toList();
-    List headerScraper = [" Số thứ tự ", " Ngày nhập ", " Người nhập ", " Tổng lượng kgCO₂e giảm thiểu ", " Lượng giảm thải kgCO₂e từ việc thu gom ", " Tổng số rác tái chế đã thu gom được (kg) ", " Trung bình chi phí xử lý rác thải tiết kiệm được (VND) "]
-        + scraperDetailContribution.values.toList();
+    List headerHouseHold = [" Số thứ tự ", " Ngày nhập ", " Người nhập ", " Tổng lượng kgCO₂e giảm thiểu ", " Lượng giảm thải kgCO₂e từ việc hạn chế đồ nhựa ", " Lượng giảm thải kgCO₂e từ việc tái chế "];
+    List headerScraper = [" Số thứ tự ", " Ngày nhập ", " Người nhập ", " Tổng lượng kgCO₂e giảm thiểu ", " Lượng giảm thải kgCO₂e từ việc thu gom ", " Tổng số rác tái chế đã thu gom được (kg) ", " Trung bình chi phí xử lý rác thải tiết kiệm được (VND) "];
+    // Neu api lay detail success se them cac column count factor
+    if (hasDetail) {
+      headerHouseHold  = headerHouseHold + householdDetailContribution.values.toList();
+      headerScraper = headerScraper + scraperDetailContribution.values.toList();
+    }
     sheetHouseHold.appendRow(headerHouseHold.map((e) => TextCellValue(e)).toList());
     sheetScrapper.appendRow(headerScraper.map((e) => TextCellValue(e)).toList());
-    if (householdStatisticData["overall_data_by_time"] != null && scraperStatisticData["overall_data_by_time"] != null) {
-      for (var data in detailHouseholdStatisticData) {
-        List<CellValue> factors = householdDetailContribution.keys.map((key) {
-          List factorsDetail = data["factors"];
-          var val = factorsDetail.firstWhereOrNull((e) {
-            return e["factor_id"] == key;
-          });
-          if (key <= 4) {
-            return IntCellValue(val != null ? val["quantity"].round() : 0);
-          } 
-          return DoubleCellValue(val != null ? val["quantity"] : 0.0);
-        }).toList();
-        sheetHouseHold.appendRow(
-          [
-          IntCellValue(detailHouseholdStatisticData.indexOf(data)),
-          DateCellValue.fromDateTime(DateTime.parse(data["date"])),
-          TextCellValue("${data["first_name"]} ${data["last_name"]}"),
-          DoubleCellValue(data["kg_co2e_plastic_reduced"] + data["kg_co2e_recycle_reduced"]),
-          DoubleCellValue(data["kg_co2e_plastic_reduced"]),
-          DoubleCellValue(data["kg_co2e_recycle_reduced"]),
-          ] + factors
-        );
-      }
+
+    for (var data in detailHouseholdStatisticData) {
+      List<CellValue> factors = !hasDetail ? [] : householdDetailContribution.keys.map((key) {
+        List factorsDetail = data["factors"];
+        var val = factorsDetail.firstWhereOrNull((e) {
+          return e["factor_id"] == key;
+        });
+        if (key <= 4) {
+          return IntCellValue(val != null ? val["quantity"].round() : 0);
+        } 
+        return DoubleCellValue(val != null ? val["quantity"] : 0.0);
+      }).toList();
+      sheetHouseHold.appendRow(
+        [
+        IntCellValue(detailHouseholdStatisticData.indexOf(data)),
+        DateCellValue.fromDateTime(DateTime.parse(data["date"])),
+        TextCellValue("${data["first_name"]} ${data["last_name"]}"),
+        DoubleCellValue(data["kg_co2e_plastic_reduced"] + data["kg_co2e_recycle_reduced"]),
+        DoubleCellValue(data["kg_co2e_plastic_reduced"]),
+        DoubleCellValue(data["kg_co2e_recycle_reduced"]),
+        ] + factors
+      );
+    }
 
 
 
-      for (var data in detailScraperStatisticData) {
-        List<CellValue> factors = scraperDetailContribution.keys.map((key) {
-          List factorsDetail = data["factors"];
-          var val = factorsDetail.firstWhereOrNull((e) {
-            return e["factor_id"] == key;
-          });
+    for (var data in detailScraperStatisticData) {
+      List<CellValue> factors = !hasDetail ? [] : scraperDetailContribution.keys.map((key) {
+        List factorsDetail = data["factors"];
+        var val = factorsDetail.firstWhereOrNull((e) {
+          return e["factor_id"] == key;
+        });
 
-          return DoubleCellValue(val != null ? val["quantity"] : 0.0);
-        }).toList();
-        sheetScrapper.appendRow(
-          [
-          IntCellValue(detailScraperStatisticData.indexOf(data)),
-          DateCellValue.fromDateTime(DateTime.parse(data["date"])),
-          TextCellValue("${data["first_name"]} ${data["last_name"]}"),
-          DoubleCellValue(data["kg_co2e_reduced"] + data["kg_collected"]),
-          DoubleCellValue(data["kg_co2e_reduced"]),
-          DoubleCellValue(data["kg_collected"]),
-          DoubleCellValue(data["expense_reduced"]),
-          ] + factors
-        );
-      }
+        return DoubleCellValue(val != null ? val["quantity"] : 0.0);
+      }).toList();
+      sheetScrapper.appendRow(
+        [
+        IntCellValue(detailScraperStatisticData.indexOf(data)),
+        DateCellValue.fromDateTime(DateTime.parse(data["date"])),
+        TextCellValue("${data["first_name"]} ${data["last_name"]}"),
+        DoubleCellValue(data["kg_co2e_reduced"] + data["kg_collected"]),
+        DoubleCellValue(data["kg_co2e_reduced"]),
+        DoubleCellValue(data["kg_collected"]),
+        DoubleCellValue(data["expense_reduced"]),
+        ] + factors
+      );
     }
 
     for (var row in sheetScrapper.rows) {
@@ -246,7 +271,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
     var fileBytes = excel.save();
     var directory = await getApplicationDocumentsDirectory();
 
-    String fileName = "Thong_Ke_${DateFormat("dd_MM_yyyy").format(start)}_${DateFormat("dd_MM_yyyy").format(end)}.xlsx";
+    String fileName = "WAZNET_Thong_Ke_${DateFormat("dd_MM_yyyy").format(start)}_${DateFormat("dd_MM_yyyy").format(end)}.xlsx";
     File("${directory.path}/$fileName").writeAsBytes(fileBytes ?? []);
     await OpenFile.open("${directory.path}/$fileName");   
   }
@@ -351,11 +376,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
             children: [
               Text("Dữ liệu", style: colorCons.fastStyle(18, FontWeight.w600, const Color(0xFF29292A))),
               const SizedBox(width: 16),
+              if (widget.roleId == 1)
               InkWell(
                 onTap: () async{
                   bool isSuccess = await _getDetailDataByTime();
-                  if (!isSuccess) return;
-                  _createExcel();},
+                  _createExcel(hasDetail: isSuccess);
+                },
                 child: Container(
                   height: 40,
                   width: 40,

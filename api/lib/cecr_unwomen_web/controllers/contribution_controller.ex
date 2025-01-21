@@ -642,7 +642,6 @@ defmodule CecrUnwomenWeb.ContributionController do
           "detail_household" => detail_household,
           "detail_scraper" => detail_scraper
         }
-        IO.inspect(data)
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", data)
         
       true -> %{success: false, message: "Bạn không có quyền xem thông tin này!", code: 402}
