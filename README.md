@@ -6,7 +6,7 @@
 
 **WazNet** (Waste zero, Net zero) is a mobile app that helps users track their contributions to greenhouse gas reduction.
 
-A product of SPARC Lab (HUST) and CECR. Available on [App Store](https://apps.apple.com/vn/app/waznet/id6738925384) and Google Play.
+A product of SPARC Lab (HUST) and CECR. Available on [App Store](https://apps.apple.com/vn/app/waznet/id6738925384) and [Google Play](https://play.google.com/store/apps/details?id=vn.sparc.waznet).
 
 ## Tech stacks
 - Mobile app built with Flutter
@@ -20,7 +20,7 @@ A product of SPARC Lab (HUST) and CECR. Available on [App Store](https://apps.ap
 ## Features
 - 3 roles: Admin, Household, Scraper
 - Scrapers and Households contribute garbage/recycle quantity data, app will calculate to **kgCO2e** reduction
-- Admin can track all contributions, export Excel statistic(upcoming)
+- Admin can track all contributions, export Excel statistics
 - Others can track own contributions, receive notifications to remind contribute in custom time 
 
 <details>
@@ -55,8 +55,7 @@ A product of SPARC Lab (HUST) and CECR. Available on [App Store](https://apps.ap
 ## Installing
 
 Google Play:
-- Closed Beta Testing (send email address to email in contact)
-- Waiting to be published
+- [Google Play](https://play.google.com/store/apps/details?id=vn.sparc.waznet)
 
 App Store:
 - [TestFlight](https://testflight.apple.com/join/9wRutKJ9)
@@ -76,7 +75,6 @@ If all files are decrypted, done! You can run code normally.
 
 ## Roadmap
 - iOS/Android Push Notification
-- Custom time schedule for sending reminder notification to users
 - ZNS to forgot password flow (on my way to find another solution)
 - Export Excel statistics
 
