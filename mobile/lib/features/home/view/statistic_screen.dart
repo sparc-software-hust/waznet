@@ -122,7 +122,9 @@ class _StatisticScreenState extends State<StatisticScreen> {
       detailHouseholdStatisticData = householdStatisticData["overall_data_by_time"];
       detailScraperStatisticData = scraperStatisticData["overall_data_by_time"];
     }
-    Map res = await TempApi.getDetailDataByTime(start: start, end: end);
+    Map res = await TempApi.getDetailDataByTime(start: start, end: end).timeout(const Duration(seconds: 6), onTimeout: () {
+      return {"success" : false};
+    },);
     if (!res["success"]) return false;
     
     detailHouseholdStatisticData = detailHouseholdStatisticData.map((e) {
