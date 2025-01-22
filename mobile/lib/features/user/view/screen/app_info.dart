@@ -5,7 +5,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AppInfo extends StatelessWidget {
   final ColorConstants colorConstants = ColorConstants();
-  AppInfo({super.key});
+  final String version;
+  AppInfo({super.key, required this.version});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class AppInfo extends StatelessWidget {
               ),
               Text("WazNet", style: colorConstants.fastStyle(26, FontWeight.w900, const Color(0xff4CAF50))),
               const SizedBox(height: 20,),
-              Text("Phiên bản 1.0.0", style: colorConstants.placeholderStyle()),
+              Text("Phiên bản $version", style: colorConstants.placeholderStyle()),
               Text.rich(
                 TextSpan(
                   children: [

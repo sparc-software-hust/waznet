@@ -40,6 +40,7 @@ defmodule CecrUnwomenWeb.Router do
       pipe_through :token
       get "/get_overall_data", ContributionController, :get_overall_data
       get "/get_filter_overall_data", ContributionController, :get_filter_overall_data
+      get "/get_detail_contribution_by_time", ContributionController, :get_detail_contribution_by_time
       get "/get_overall_contribution", ContributionController, :get_overall_contribution
       post "/contribute_data", ContributionController, :contribute_data
       post "/edit_factor_quantity", ContributionController, :edit_factor_quantity

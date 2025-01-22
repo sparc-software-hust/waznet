@@ -3,7 +3,7 @@ description: "WazNet (Waste zero, Net zero) is a mobile app that helps users tra
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.0.3+31
+version: 1.0.4+32
 
 environment:
   sdk: ^3.5.3
@@ -40,6 +40,10 @@ dependencies:
   in_app_update: ^4.2.3
   flutter_local_notifications: ^18.0.0
   image_picker: ^1.1.2
+  excel: ^4.0.6
+  path_provider: ^2.1.5
+  open_file: ^3.5.10
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
