@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cecr_unwomen/constants/color_constants.dart';
+import 'package:cecr_unwomen/features/authentication/repository/authentication_repository.dart';
 import 'package:cecr_unwomen/features/home/view/home_screen.dart';
 import 'package:cecr_unwomen/secrets.dart';
 import 'package:dio/dio.dart';
@@ -80,6 +81,40 @@ class Utils {
       }
     );
   }
+
+  static Future<dynamic> showLogOutDialog(BuildContext context) {
+   return showDialog(
+      context: context,
+      builder: (BuildContext c) {
+        return CupertinoAlertDialog(
+          title: const Text("Không xác định được người dùng", style: TextStyle(fontWeight: FontWeight.w600, fontFamily: "Inter", fontSize: 16)),
+          content: const Text("Vui lòng đăng nhập lại", style: TextStyle(fontFamily: "Inter", fontSize: 14),),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              child: const Text(
+                "Đăng xuất",
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter",),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                AuthRepository.logout();
+              },
+            ),
+            CupertinoDialogAction(
+              child: const Text(
+                "Để sau",
+                style: TextStyle(fontWeight: FontWeight.w400, color: Colors.black, fontFamily: "Inter",),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ]
+        );
+      }
+    );
+  }
+
 
   static void showDatePicker({
     required BuildContext context,

@@ -51,8 +51,10 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
   },
 
   onError: (error, handler) {
-    print('errorr:${error.response?.data}');
-    return handler.next(error);
+    if (Utils.globalContext != null) {
+      Utils.showLogOutDialog(Utils.globalContext!);
+    }
+    return handler.reject(error);
   }
 );
 
