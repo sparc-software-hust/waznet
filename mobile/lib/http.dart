@@ -19,8 +19,8 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     if (accessToken == null || accessExp == null || refreshToken == null) {
       // return handler.next(options);
       // logout
-      await AuthRepository.logout();
-      return;
+      await AuthRepository.logoutNoCredentials();
+      return handler.next(options);
     }
 
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -51,8 +51,10 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
   },
 
   onError: (error, handler) {
-    print('errorr:${error.response?.data}');
-    return handler.next(error);
+    if (Utils.globalContext != null) {
+      Utils.showLogOutDialog(Utils.globalContext!);
+    }
+    return handler.reject(error);
   }
 );
 

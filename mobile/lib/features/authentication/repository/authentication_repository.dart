@@ -86,8 +86,8 @@ class AuthRepository {
   }
 
   static Future<void> logout() async {
+    await AuthenticationApi.logout();
     await AuthRepository.logoutNoCredentials();
-    AuthenticationApi.logout();
     _controller.add(AuthenticationStatus.unauthorized);
   }
 
