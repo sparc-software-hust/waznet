@@ -19,8 +19,8 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
     if (accessToken == null || accessExp == null || refreshToken == null) {
       // return handler.next(options);
       // logout
-      await AuthRepository.logout();
-      return;
+      await AuthRepository.logoutNoCredentials();
+      return handler.next(options);
     }
 
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
