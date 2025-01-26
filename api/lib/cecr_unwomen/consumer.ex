@@ -1,8 +1,8 @@
 defmodule CecrUnwomen.Consumer do
   use GenServer
   use AMQP
-  
-  alias CecrUnwomen.Workers.{ ScheduleWorker }
+
+  alias CecrUnwomen.Workers.{ScheduleWorker}
 
   @channel :default
   # @delay_exchange "delay_exchange"
@@ -29,10 +29,10 @@ defmodule CecrUnwomen.Consumer do
 
     :ok = Basic.qos(chan, prefetch_count: 10)
     {:ok, _consumer_tag} = Basic.consume(chan, @delay_queue)
-    
+
     {:ok, chan}
   end
-  
+
   def handle_call(:get_chan, _, chan) do
     {:reply, chan, chan}
   end
@@ -63,7 +63,6 @@ defmodule CecrUnwomen.Consumer do
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}}, chan) do
-  # IO.inspect("msgggggggggggg")
     consume(chan, tag, redelivered, payload)
     {:noreply, chan}
   end
@@ -73,7 +72,7 @@ defmodule CecrUnwomen.Consumer do
     # test: AMQP.Basic.publish(chan, "", "delay_3_sec_queue", "5", persitent: true)
 
     {:ok, _} = Queue.declare(chan, @delay_queue_error, durable: true)
-    
+
     # Exchange.delete(chan, "delay_exchange")
     {:ok, _} =
       Queue.declare(chan, @delay_queue,
@@ -84,52 +83,49 @@ defmodule CecrUnwomen.Consumer do
         ]
       )
 
-    # Queue.delete(chan, "delay_3_sec_queue", if_empty: true)
-    # {:ok, _} =
-    #   Queue.declare(chan, @delay_3_sec_queue,
-    #     durable: true,
-    #     arguments: [
-    #       {"x-dead-letter-exchange", :longstr, ""},
-    #       {"x-dead-letter-routing-key", :longstr, @delay_queue},
-    #       {"x-message-ttl", :signedint, 3000}
-    #     ]
-    #   )
-      
-    minutes = (1..30 |> Enum.to_list)
-    
-    Enum.each(minutes, fn min -> 
-      Queue.declare(chan, "wait_min_#{min}", durable: true,
-        arguments: [{"x-dead-letter-exchange", :longstr, ""},
-                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
-                    {"x-message-ttl", :signedint, 60000 * min}]
-                  )
-      end
-    )
-    
-    hours = (1..12 |> Enum.to_list)
+    minutes = 1..30 |> Enum.to_list()
+
+    Enum.each(minutes, fn min ->
+      Queue.declare(chan, "wait_min_#{min}",
+        durable: true,
+        arguments: [
+          {"x-dead-letter-exchange", :longstr, ""},
+          {"x-dead-letter-routing-key", :longstr, @delay_queue},
+          {"x-message-ttl", :signedint, 60000 * min}
+        ]
+      )
+    end)
+
+    hours = 1..12 |> Enum.to_list()
+
     Enum.each(hours, fn hour ->
-      Queue.declare(chan, "wait_hour_#{hour}", durable: true,
-        arguments: [{"x-dead-letter-exchange", :longstr, ""},
-                    {"x-dead-letter-routing-key", :longstr, @delay_queue},
-                    {"x-message-ttl", :signedint, 3600000 * hour}]
-                  )
-    end
-    )
+      Queue.declare(chan, "wait_hour_#{hour}",
+        durable: true,
+        arguments: [
+          {"x-dead-letter-exchange", :longstr, ""},
+          {"x-dead-letter-routing-key", :longstr, @delay_queue},
+          {"x-message-ttl", :signedint, 3_600_000 * hour}
+        ]
+      )
+    end)
   end
 
   def consume(channel, tag, redelivered, payload) do
-    case Jason.decode payload do
-      {:ok, obj} -> case obj["action"] do
-        "broadcast_remind_to_input" ->  spawn(fn ->  ScheduleWorker.schedule_to_send_noti_vi([obj["data"]])   end)
-        _ -> raise("not detect action #{obj}")
-      end
-      Basic.ack channel, tag
-      
+    case Jason.decode(payload) do
+      {:ok, obj} ->
+        case obj["action"] do
+          "broadcast_remind_to_input" ->
+            spawn(fn -> ScheduleWorker.schedule_to_send_noti_vi([obj["data"]]) end)
+
+          _ ->
+            raise("not detect action #{obj}")
+        end
+
+        Basic.ack(channel, tag)
+
       {:error, _} ->
-        Basic.reject channel, tag, requeue: false
+        Basic.reject(channel, tag, requeue: false)
     end
-    
-    
   rescue
     # You might also want to catch :exit signal in production code.
     # Make sure you call ack, nack or reject otherwise consumer will stop
