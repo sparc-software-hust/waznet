@@ -4,6 +4,7 @@
 - make bash -> mix ecto.migrate -> mix run priv/repo/seeds.exs
 - make dev
 
+
 ## Steps configuration on server
 - install docker
 - make app
