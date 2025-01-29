@@ -74,9 +74,8 @@ git-crypt unlock <path_to_key>
 If all files are decrypted, done! You can run code normally.
 
 ## Roadmap
-- iOS/Android Push Notification
 - ZNS to forgot password flow (on my way to find another solution)
-- Export Excel statistics
+- Add more screenshots feature
 
 ## Contact
 Email: sparc.hust@gmail.com
