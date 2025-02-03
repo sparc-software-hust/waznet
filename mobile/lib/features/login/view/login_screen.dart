@@ -510,7 +510,7 @@ class _RegisterBoxState extends State<RegisterBox> {
         ),
 
         const SizedBox(height: 12),
-        _buildHeaderWidget("Giới tính"),
+        _buildHeaderWidget("Giới tính (không bắt buộc)"),
         Row(
           children: [
             Expanded(
