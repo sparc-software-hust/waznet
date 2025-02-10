@@ -217,10 +217,9 @@ class HomeScreenState extends State<HomeScreen> {
       floatingActionButton: roleId != 1 && _currentIndex == 0 ? FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () async {
-          needGetDataChart = true;
           final bool? shouldCallApi = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContributionScreen(roleId: roleId)));
-          needGetDataChart = false;
           if (!(shouldCallApi ?? false)) return;
+          needGetDataChart = !needGetDataChart;
           callApiGetOverallData();
         },
         backgroundColor: const Color(0xFF4CAF50),
@@ -474,6 +473,8 @@ class _HouseholdChartState extends State<HouseholdChart> {
     }
 
     Widget buildChartItem({bool isRecyled = true}) {
+      List items = isRecyled ? recycled : rejected;
+
       return Column(
         children: [
           Row(
@@ -528,7 +529,15 @@ class _HouseholdChartState extends State<HouseholdChart> {
             ],
           ),
           const SizedBox(height: 12,),
-          Container(
+          items.isEmpty
+          ?  Center(
+                child: Text("Chưa có dữ liệu trong${option == TimeFilterOptions.custom ? " khoảng" : ""} ${TimeFilterHelper.getOptionsString(option).toLowerCase()}", style: const TextStyle(
+                  color: Color(0xFF808082),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500)
+                ),
+              )
+          : Container(
             height: 180,
             decoration: BoxDecoration(
               color: const Color(0xffFFFFFF),
@@ -545,7 +554,7 @@ class _HouseholdChartState extends State<HouseholdChart> {
                   child: PieChart(
                     PieChartData(
                       startDegreeOffset: -90,
-                      sections: (isRecyled ? recycled : rejected).map((e) {
+                      sections: items.map((e) {
                         return PieChartSectionData(
                           radius: 20,
                           title: "",
@@ -561,7 +570,7 @@ class _HouseholdChartState extends State<HouseholdChart> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: (isRecyled ? recycled : rejected).map((e) {
+                    children: items.map((e) {
                       return label(
                         (isRecyled ? convertGarbageCountToTitle(e["factor_name"] ?? "") : convertRejectedCountToTitle(e["factor_name"] ?? "")),
                         e["quantity"] ?? 0,
@@ -754,7 +763,15 @@ class _ScraperChartState extends State<ScraperChart> {
             ],
           ),
           const SizedBox(height: 12,),
-          Container(
+          collected.isEmpty
+          ?  Center(
+                child: Text("Chưa có dữ liệu trong${option == TimeFilterOptions.custom ? " khoảng" : ""} ${TimeFilterHelper.getOptionsString(option).toLowerCase()}", style: const TextStyle(
+                  color: Color(0xFF808082),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500)
+                ),
+              )
+          : Container(
             height: 180,
             decoration: BoxDecoration(
               color: const Color(0xffFFFFFF),
