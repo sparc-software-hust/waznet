@@ -798,9 +798,10 @@ class DetailContributionItem extends StatelessWidget {
 }
 
 class DetailContributionTypeGroup extends StatelessWidget {
-  const DetailContributionTypeGroup({super.key, this.detailContribution = const [], required this.textHeader, required this.roleId});
+  const DetailContributionTypeGroup({super.key, this.detailContribution = const [], required this.textHeader, required this.roleId, required this.insertedAt});
   final List detailContribution;
   final String textHeader;
+  final String insertedAt;
   final int roleId;
 
   @override
@@ -810,10 +811,23 @@ class DetailContributionTypeGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(textHeader, style: const TextStyle(
-          color: Color(0xFF1D1D1E),
-          fontSize: 14,
-          fontWeight: FontWeight.w600)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(textHeader, style: const TextStyle(
+              color: Color(0xFF1D1D1E),
+              fontSize: 14,
+              fontWeight: FontWeight.w600)
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 3.0),
+              child: Text(insertedAt, style: const TextStyle(
+                color: Color(0xFF666667),
+                fontSize: 14,
+                fontWeight: FontWeight.w600)
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         Container(
@@ -842,7 +856,8 @@ class DetailContributionTypeGroup extends StatelessWidget {
             //   DetailContributionItem(isLastItem: true),
             // ],
           )
-        )
+        ),
+        const SizedBox(height: 10),
       ],
     );
   }

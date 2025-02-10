@@ -51,14 +51,30 @@ defmodule CecrUnwomenWeb.ContributionController do
             |> Repo.insert()   
           end)
           
-          %OverallScraperContribution{
-            date: date,
-            user_id: user_id,
-            kg_co2e_reduced: overall.kg_co2e_reduced,
-            kg_collected: overall.kg_collected,
-            expense_reduced: overall.expense_reduced
-          } |> Repo.insert
+          case Repo.get_by(OverallScraperContribution, %{date: date,user_id: user_id}) do
+            nil -> 
+              %OverallScraperContribution{
+                date: date,
+                user_id: user_id,
+                kg_co2e_reduced: overall.kg_co2e_reduced,
+                kg_collected: overall.kg_collected,
+                expense_reduced: overall.expense_reduced
+              } |> Repo.insert
 
+            osc -> 
+              updated_overall_kg_co2e_reduced = overall.kg_co2e_reduced + Map.get(osc, :kg_co2e_reduced)
+              updated_overall_kg_collected = overall.kg_collected + Map.get(osc, :kg_collected)
+              updated_overall_expense_reduced = overall.expense_reduced + Map.get(osc, :expense_reduced)
+              Ecto.Changeset.change(osc, 
+                %{
+                  kg_co2e_reduced: updated_overall_kg_co2e_reduced,
+                  kg_collected: updated_overall_kg_collected,
+                  expense_reduced: updated_overall_expense_reduced
+                }
+              ) 
+              |> Repo.update
+          end
+          
           keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
           Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
@@ -101,13 +117,29 @@ defmodule CecrUnwomenWeb.ContributionController do
             |> Repo.insert()
           end)
           
-          %OverallHouseholdContribution{
-            date: date,
-            user_id: user_id,
-            kg_co2e_plastic_reduced: overall.kg_co2e_plastic_reduced,
-            kg_co2e_recycle_reduced: overall.kg_co2e_recycle_reduced,
-            kg_recycle_collected: overall.kg_recycle_collected
-          } |> Repo.insert
+          case Repo.get_by(OverallHouseholdContribution, %{date: date,user_id: user_id}) do
+            nil -> 
+              %OverallHouseholdContribution{
+                date: date,
+                user_id: user_id,
+                kg_co2e_plastic_reduced: overall.kg_co2e_plastic_reduced,
+                kg_co2e_recycle_reduced: overall.kg_co2e_recycle_reduced,
+                kg_recycle_collected: overall.kg_recycle_collected
+              } |> Repo.insert
+
+            ohc -> 
+              updated_kg_co2e_plastic_reduced = overall.kg_co2e_plastic_reduced + Map.get(ohc, :kg_co2e_plastic_reduced)
+              updated_kg_co2e_recycle_reduced = overall.kg_co2e_recycle_reduced + Map.get(ohc, :kg_co2e_recycle_reduced)
+              updated_kg_recycle_collected = overall.kg_recycle_collected + Map.get(ohc, :kg_recycle_collected)
+              Ecto.Changeset.change(ohc, 
+                %{
+                  kg_co2e_plastic_reduced: updated_kg_co2e_plastic_reduced,
+                  kg_co2e_recycle_reduced: updated_kg_co2e_recycle_reduced ,
+                  kg_recycle_collected: updated_kg_recycle_collected
+                }
+              ) 
+              |> Repo.update
+          end
 
           keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
           Helper.aggregate_with_fields(OverallHouseholdContribution, keys)
@@ -328,9 +360,10 @@ defmodule CecrUnwomenWeb.ContributionController do
             date: m.date,
             factor_id: m.factor_id,
             quantity: m.quantity,
-            # inserted_at: m.inserted_at
+            inserted_at: m.inserted_at
           })
           |> Repo.all()
+          |> Enum.group_by(fn entry -> entry.inserted_at end)
           |> IO.inspect(label: "hehe")
         %{success: true, message: "Lấy dữ liệu thành công!", data: data}
       true ->
@@ -345,9 +378,10 @@ defmodule CecrUnwomenWeb.ContributionController do
               date: m.date,
               factor_id: m.factor_id,
               quantity: m.quantity,
-              # inserted_at: m.inserted_at
+              inserted_at: m.inserted_at
             })
             |> Repo.all()
+            |> Enum.group_by(fn entry -> entry.inserted_at end)
             |> IO.inspect(label: "hehe")
           %{success: true, message: "Lấy dữ liệu thành công!", data: data}
         else
