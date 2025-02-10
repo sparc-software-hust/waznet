@@ -102,55 +102,18 @@ class _HouseholdContributionTabsState extends State<HouseholdContributionTabs> w
             child: TabBarView(
               controller: tabController,
               children: [
-                ListView.builder(
+                HouseholdContributionTab(
                   key: screenTabKey,
-                  controller: greenTabController,
-                  padding: const EdgeInsets.only(top: 16),
-                  physics: const ClampingScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: input.entries.take(4).length,
-                  itemBuilder: (context, index) {
-                    final int? initValue = widget.initialData.isNotEmpty ? widget.initialData[index]["quantity"] : null;
-                    final e = input.entries.elementAt(index);
-                    final int factorId = e.key;
-                    final String text = e.value.values.last;
-                    return ContributionInput(
-                      initValue: initValue.toString(),
-                      textHeader: text,
-                      factorId: factorId,
-                      callBack: (Map data) {
-                        widget.callbackUpdateTotalKgCO2e(data);
-                      },
-                      onlyInteger: factorId < 5,
-                      unitValue: e.value['unit_value'],
-                    );
-                  }
+                  householdInput: input,
+                  callbackUpdateTotalKgCO2e: widget.callbackUpdateTotalKgCO2e,
+                  initialData: widget.initialData
                 ),
-                ListView.builder(
+                HouseholdContributionTab(
+                  isMassTab: true,
                   key: massTabKey,
-                  padding: const EdgeInsets.only(top: 16),
-                  controller: massController,
-                  physics: const ClampingScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: input.entries.skip(4).length,
-                  itemBuilder: (context, index) {
-                    final num initValue = widget.initialData.isNotEmpty ? widget.initialData[4 + index]["quantity"] : null;
-                    final e = input.entries.skip(4).elementAt(index);
-                    final int factorId = e.key;
-                    final String text = e.value.values.last;
-                    return ContributionInput(
-                      initValue: initValue.toString(),
-                      textHeader: text,
-                      factorId: factorId,
-                      callBack: (Map data) {
-                        widget.callbackUpdateTotalKgCO2e(data);
-                      },
-                      onlyInteger: factorId < 5,
-                      unitValue: e.value['unit_value'],
-                    );
-                  }
+                  householdInput: input,
+                  callbackUpdateTotalKgCO2e: widget.callbackUpdateTotalKgCO2e,
+                  initialData: widget.initialData
                 )
               ],
             ),
@@ -159,4 +122,67 @@ class _HouseholdContributionTabsState extends State<HouseholdContributionTabs> w
       )
     );
   }
+}
+
+class HouseholdContributionTab extends StatefulWidget {
+  const HouseholdContributionTab({super.key,
+    required this.householdInput,
+    required this.callbackUpdateTotalKgCO2e,
+    this.initialData = const [],
+    this.isMassTab = false
+  });
+
+  final Map householdInput;
+  final Function callbackUpdateTotalKgCO2e;
+  final List initialData;
+  final bool isMassTab;
+
+  @override
+  State<HouseholdContributionTab> createState() => _HouseholdContributionTabState();
+}
+
+class _HouseholdContributionTabState extends State<HouseholdContributionTab> with AutomaticKeepAliveClientMixin {
+  // sử dụng automaticKeepAliveClientMixin để giữ trạng thái của tab khi chuyển qua lại giữa các tab
+  Map get input => widget.householdInput;
+  final ScrollController tabScrollController = ScrollController();
+
+  @override void dispose() {
+    super.dispose();
+    tabScrollController.dispose();
+  }
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final factors = widget.isMassTab ? input.entries.skip(4) : input.entries.take(4);
+    return ListView.builder(
+      key: widget.key,
+      controller: tabScrollController,
+      padding: const EdgeInsets.only(top: 16),
+      physics: const ClampingScrollPhysics(),
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: factors.length,
+      itemBuilder: (context, index) {
+        final int factorIndex = widget.isMassTab ? 4 + index : index;
+        final num? initValue = widget.initialData.isNotEmpty ? widget.initialData[factorIndex]["quantity"] : null;
+        final e = input.entries.elementAt(factorIndex);
+        final int factorId = e.key;
+        final String text = e.value.values.last;
+
+        return ContributionInput(
+          initValue: initValue.toString(),
+          textHeader: text,
+          factorId: factorId,
+          callBack: (Map data) {
+            widget.callbackUpdateTotalKgCO2e(data);
+          },
+          onlyInteger: factorId < 5,
+          unitValue: e.value['unit_value'],
+        );
+      }
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 }

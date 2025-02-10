@@ -675,9 +675,11 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
   }
 
   String? getAvatarUrl() {
-    final bool hasAvatar = widget.oneDayData["avatar_url"] != null;
-    if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
-    return widget.oneDayData["avatar_url"];
+    final User? user = context.read<AuthenticationBloc>().state.user;
+    return user?.avatarUrl;
+    // final bool hasAvatar = widget.oneDayData["avatar_url"] != null || avatarUrl != null;
+    // if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
+    // return widget.oneDayData["avatar_url"];
   }
 
   @override
