@@ -21,6 +21,16 @@ defmodule CecrUnwomen.RedisDB do
     end
   end
 
+  def reset_all_factors_by_type(type) do
+    model = if type == "scrap", do: "scrap_factor", else: "household_factor"
+    {:ok, keys} = Redix.command(:redix, ["KEYS", "#{model}:*"])
+    cond do
+      length(keys) == 0 -> nil
+      true ->
+        Enum.each(keys, fn key -> Redix.command(:redix, ["DEL", key]) end)
+    end
+  end
+
   def get_all_factors_by_type(type) do
     model = if type == "scrap", do: "scrap_factor", else: "household_factor"
     {:ok, keys} = Redix.command(:redix, ["KEYS", "#{model}:*"])

@@ -89,4 +89,14 @@ class TempApi {
       return {"success": false};
     }
   }
+
+  static Future<Map> removeContribution(Map data) async {
+    try {
+      const String url = "/contribution/remove_contribution";
+      final res = await dioConfigInterceptor.post(url, data: data);
+      return res.data;
+    } catch (e) {
+      return {"success": false};
+    }
+  }
 }

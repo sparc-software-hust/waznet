@@ -51,14 +51,30 @@ defmodule CecrUnwomenWeb.ContributionController do
             |> Repo.insert()   
           end)
           
-          %OverallScraperContribution{
-            date: date,
-            user_id: user_id,
-            kg_co2e_reduced: overall.kg_co2e_reduced,
-            kg_collected: overall.kg_collected,
-            expense_reduced: overall.expense_reduced
-          } |> Repo.insert
+          case Repo.get_by(OverallScraperContribution, %{date: date,user_id: user_id}) do
+            nil -> 
+              %OverallScraperContribution{
+                date: date,
+                user_id: user_id,
+                kg_co2e_reduced: overall.kg_co2e_reduced,
+                kg_collected: overall.kg_collected,
+                expense_reduced: overall.expense_reduced
+              } |> Repo.insert
 
+            osc -> 
+              updated_overall_kg_co2e_reduced = overall.kg_co2e_reduced + Map.get(osc, :kg_co2e_reduced)
+              updated_overall_kg_collected = overall.kg_collected + Map.get(osc, :kg_collected)
+              updated_overall_expense_reduced = overall.expense_reduced + Map.get(osc, :expense_reduced)
+              Ecto.Changeset.change(osc, 
+                %{
+                  kg_co2e_reduced: updated_overall_kg_co2e_reduced,
+                  kg_collected: updated_overall_kg_collected,
+                  expense_reduced: updated_overall_expense_reduced
+                }
+              ) 
+              |> Repo.update
+          end
+          
           keys = ["kg_co2e_reduced", "expense_reduced", "kg_collected"]
           Helper.aggregate_with_fields(OverallScraperContribution, keys)
         end)
@@ -66,7 +82,7 @@ defmodule CecrUnwomenWeb.ContributionController do
           {:ok, overall_data} ->
             send_noti_to_admin(user_id, overall, date)
             Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
-            
+
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
@@ -77,11 +93,13 @@ defmodule CecrUnwomenWeb.ContributionController do
           # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
           quantity = if factor_id <= 4, do: round(quantity), else: quantity
 
-          if (factor_id <= 4) do
-            Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
-          else
-            Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
-            |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
+          cond do
+            factor_id <= 4 ->
+              Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
+            factor_id <= 8 ->
+              Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
+              |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
+            true -> acc
           end
         end)
         |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
@@ -101,13 +119,29 @@ defmodule CecrUnwomenWeb.ContributionController do
             |> Repo.insert()
           end)
           
-          %OverallHouseholdContribution{
-            date: date,
-            user_id: user_id,
-            kg_co2e_plastic_reduced: overall.kg_co2e_plastic_reduced,
-            kg_co2e_recycle_reduced: overall.kg_co2e_recycle_reduced,
-            kg_recycle_collected: overall.kg_recycle_collected
-          } |> Repo.insert
+          case Repo.get_by(OverallHouseholdContribution, %{date: date,user_id: user_id}) do
+            nil -> 
+              %OverallHouseholdContribution{
+                date: date,
+                user_id: user_id,
+                kg_co2e_plastic_reduced: overall.kg_co2e_plastic_reduced,
+                kg_co2e_recycle_reduced: overall.kg_co2e_recycle_reduced,
+                kg_recycle_collected: overall.kg_recycle_collected
+              } |> Repo.insert
+
+            ohc -> 
+              updated_kg_co2e_plastic_reduced = overall.kg_co2e_plastic_reduced + Map.get(ohc, :kg_co2e_plastic_reduced)
+              updated_kg_co2e_recycle_reduced = overall.kg_co2e_recycle_reduced + Map.get(ohc, :kg_co2e_recycle_reduced)
+              updated_kg_recycle_collected = overall.kg_recycle_collected + Map.get(ohc, :kg_recycle_collected)
+              Ecto.Changeset.change(ohc, 
+                %{
+                  kg_co2e_plastic_reduced: updated_kg_co2e_plastic_reduced,
+                  kg_co2e_recycle_reduced: updated_kg_co2e_recycle_reduced ,
+                  kg_recycle_collected: updated_kg_recycle_collected
+                }
+              ) 
+              |> Repo.update
+          end
 
           keys = ["kg_co2e_plastic_reduced", "kg_co2e_recycle_reduced", "kg_recycle_collected"]
           Helper.aggregate_with_fields(OverallHouseholdContribution, keys)
@@ -180,6 +214,43 @@ defmodule CecrUnwomenWeb.ContributionController do
           "kg_co2e_plastic_reduced" => Map.get(data, :kg_co2e_plastic_reduced),
           "kg_co2e_recycle_reduced" => Map.get(data, :kg_co2e_recycle_reduced),
           "kg_recycle_collected" => Map.get(data,:kg_recycle_collected),
+        }
+      )
+    end)
+  end
+  
+  defp send_noti_to_user(admin_user_id, user_id, date) do
+    admin_info = from(
+      u in User,
+      where: u.id == ^admin_user_id,
+      select: %{
+        "first_name" => u.first_name,
+        "last_name" => u.last_name,
+        "avatar_url" => u.avatar_url
+      }
+    ) 
+    |> Repo.one 
+    
+    user_fcm_tokens = from(
+      ft in FirebaseToken,
+      where: ft.user_id == ^user_id,
+      select: %{
+        "token" => ft.token,
+      }
+    )
+    |> Repo.all
+    
+    admin_name = "Admin #{admin_info["first_name"]} #{admin_info["last_name"]}"
+    date_string = Calendar.strftime(date, "%d/%m/%Y")
+    
+    Enum.each(user_fcm_tokens, fn t -> 
+      tokens = t["token"]
+        
+      FcmWorker.send_firebase_notification(
+        [%{"token" => tokens}],
+        %{
+          "title" => "Cập nhật về dữ liệu khai báo",
+          "body" => "#{admin_name} vừa xoá dữ liệu bạn khai báo ngày #{date_string}"
         }
       )
     end)
@@ -328,9 +399,10 @@ defmodule CecrUnwomenWeb.ContributionController do
             date: m.date,
             factor_id: m.factor_id,
             quantity: m.quantity,
-            # inserted_at: m.inserted_at
+            inserted_at: m.inserted_at
           })
           |> Repo.all()
+          |> Enum.group_by(fn entry -> entry.inserted_at end)
           |> IO.inspect(label: "hehe")
         %{success: true, message: "Lấy dữ liệu thành công!", data: data}
       true ->
@@ -345,9 +417,10 @@ defmodule CecrUnwomenWeb.ContributionController do
               date: m.date,
               factor_id: m.factor_id,
               quantity: m.quantity,
-              # inserted_at: m.inserted_at
+              inserted_at: m.inserted_at
             })
             |> Repo.all()
+            |> Enum.group_by(fn entry -> entry.inserted_at end)
             |> IO.inspect(label: "hehe")
           %{success: true, message: "Lấy dữ liệu thành công!", data: data}
         else
@@ -645,6 +718,39 @@ defmodule CecrUnwomenWeb.ContributionController do
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", data)
         
       true -> %{success: false, message: "Bạn không có quyền xem thông tin này!", code: 402}
+    end
+    json conn, res
+  end
+  
+  def remove_contribute(conn, params) do 
+    role_id_contribute = params["role_id_contribute"] || 0
+    user_id_contribute = params["user_id_contribute"] || 0
+    admin_user_id = conn.assigns.user.user_id
+    date = params["date"] 
+    |> String.split("T")
+    |> List.first()
+    |> Date.from_iso8601!()
+    model_overall = if role_id_contribute == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+    model_contribute = if role_id_contribute == 2, do: HouseholdContribution, else: ScraperContribution
+    
+    res = Repo.transaction(fn ->
+      from(
+        ovr in model_overall,
+        where: ovr.user_id == ^user_id_contribute and ovr.date == ^date
+      ) 
+      |> Repo.delete_all
+      
+      from(
+        c in model_contribute,
+        where: c.user_id == ^user_id_contribute and c.date == ^date
+      )
+      |> Repo.delete_all
+    end)
+    |> case do
+      {:ok, _} -> 
+        send_noti_to_user(admin_user_id, user_id_contribute, date)
+        Helper. response_json_message(true, "Xoá dữ liệu thành công")
+      _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
     end
     json conn, res
   end

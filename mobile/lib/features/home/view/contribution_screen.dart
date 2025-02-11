@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/constants/text_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
+import 'package:cecr_unwomen/features/home/view/component/household_contribution_tabs.dart';
 import 'package:cecr_unwomen/features/home/view/component/modal/user_contribution_detail.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/temp_api.dart';
@@ -43,7 +46,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
 
   initData() {
     if (widget.roleId == 2) {
-      inputData = List.generate(8, (index) => {
+      inputData = List.generate(9, (index) => {
         "factor_id": index + 1,
         "quantity": 0,
         "co2e": 0.0,
@@ -123,7 +126,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
     } else {
       fToast.showToast(
         child: const ToastContent(
-          isSuccess: true, 
+          isSuccess: true,
           title: 'Gửi dữ liệu thành công'
         ),
         gravity: ToastGravity.BOTTOM
@@ -170,65 +173,70 @@ class _ContributionScreenState extends State<ContributionScreen> {
                   child: Icon(PhosphorIcons.regular.arrowLeft, size: 24, color: const Color(0xFF29292A))),
                 const SizedBox(width: 10),
                 Text("Nhập dữ liệu", style: colorCons.fastStyle(18, FontWeight.w600, const Color(0xFF29292A))),
-                // Container(
-                //   height: 40,
-                //   width: 40,
-                //   decoration: const BoxDecoration(
-                //     shape: BoxShape.circle,
-                //     color: Colors.white,
-                //   ),
-                //   child: Icon(PhosphorIcons.regular.export, size: 24, color: colorCons.primaryBlack1),
-                // ),
               ],
               ),
             )
           ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Ngày nhập số liệu", style: TextStyle(
+                  color: Color(0xFF1D1D1E),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600)
+                ),
+                const SizedBox(height: 10),
+                InkWell(
+                  radius: 12,
+                  onTap: () => _pickDate(context),
+                  child: Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isErrorDate ? Border.all(color: const Color(0xffFF4F3F)) : null
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                            style: const TextStyle(
+                              color: Color(0xFF333334),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500),
+                          ),
+                          Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xFF808082)),
+                        ],
+                      ),
+                    )
+                  ),
+                ),
+                if (isErrorDate)
+                const Text("Không thể chọn ngày này, hãy thử lại", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xffFF4F3F))),
+              ]
+            )
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: Container(
-              width: double.maxFinite,
-              padding: const EdgeInsets.all(16),
-              child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: widget.roleId == 2 ? 
+              HouseholdContributionTabs(
+                initialData: inputData,
+                householdInput: input,
+                callbackUpdateTotalKgCO2e: (Map data) {
+                  updateTotalKgCO2e(data);
+                },
+              ) : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Ngày nhập số liệu", style: TextStyle(
-                      color: Color(0xFF1D1D1E),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600)
-                    ),
-                    const SizedBox(height: 10),
-                    InkWell(
-                      radius: 12,
-                      onTap: () => _pickDate(context),
-                      child: Container(
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: isErrorDate ? Border.all(color: const Color(0xffFF4F3F)) : null
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
-                                style: const TextStyle(
-                                  color: Color(0xFF333334),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500),
-                              ),
-                              Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xFF808082)),
-                            ],
-                          ),
-                        )
-                      ),
-                    ),
-                    if (isErrorDate)
-                    const Text("Không thể chọn ngày này, hãy thử lại", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xffFF4F3F))),
-                    const SizedBox(height: 16),
-
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: input.entries.map((e) {
@@ -250,7 +258,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
               ),
             ),
           ),
-          // const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             margin: const EdgeInsets.only(bottom: 16),
@@ -378,12 +386,23 @@ class CountTotalOverallCo2e extends StatelessWidget {
 }
 
 class ContributionInput extends StatefulWidget {
-  const ContributionInput({super.key, required this.textHeader, required this.factorId, required this.callBack, this.onlyInteger = true, required this.unitValue});
+  const ContributionInput({
+    super.key,
+    required this.textHeader,
+    required this.factorId,
+    required this.callBack,
+    this.onlyInteger = true,
+    required this.unitValue,
+    this.initValue
+  });
+
   final String textHeader;
   final int factorId;
   final Function callBack;
   final bool onlyInteger;
   final double unitValue;
+  final String? initValue;
+
   @override
   State<ContributionInput> createState() => _ContributionInputState();
 }
@@ -392,6 +411,12 @@ class _ContributionInputState extends State<ContributionInput> {
   final TextEditingController _controller = TextEditingController();
   double co2eValue = 0.0;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initValue == null) return;
+    _controller.value = TextEditingValue(text: widget.initValue!);
+  }
   updateValue(currentValue) {
     setState(() {
       co2eValue = currentValue * widget.unitValue;
@@ -469,7 +494,7 @@ class _ContributionInputState extends State<ContributionInput> {
           ),
           const SizedBox(height: 10),
           Container(
-            height: 192,
+            height: widget.factorId != 9 ? 192 : 95,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -571,42 +596,48 @@ class _ContributionInputState extends State<ContributionInput> {
                   ),
                 ],
               ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                child: const Divider(color: Color(0xFFF4F4F5), height: 1, thickness: 1)
-              ),
-              const Text("Giảm phát thải khí nhà kính", style: TextStyle(
-                color: Color(0xFF666667),
-                fontSize: 14,
-                fontWeight: FontWeight.w600)
-              ),
-              const SizedBox(height: 5),
-              SizedBox(
-                height: 40,
-                child: Row(
-                  children: [
-                    Expanded(child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4F4F5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Text(co2eValue.toStringAsFixed(2),
-                          style: const TextStyle(
-                            color: Color(0xFF808082),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500)
+              if (widget.factorId != 9)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 16),
+                    child: const Divider(color: Color(0xFFF4F4F5), height: 1, thickness: 1)
+                  ),
+                  const Text("Giảm phát thải khí nhà kính", style: TextStyle(
+                    color: Color(0xFF666667),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)
+                  ),
+                  const SizedBox(height: 5),
+                  SizedBox(
+                    height: 40,
+                    child: Row(
+                      children: [
+                        Expanded(child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4F4F5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(co2eValue.toStringAsFixed(2),
+                              style: const TextStyle(
+                                color: Color(0xFF808082),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500)
+                            ),
+                          ),
+                        )),
+                        const SizedBox(width: 10),
+                        const Text("kg CO₂e", style: TextStyle(
+                          color: Color(0xFF333334),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400)
                         ),
-                      ),
-                    )),
-                    const SizedBox(width: 10),
-                    const Text("kg CO₂e", style: TextStyle(
-                      color: Color(0xFF333334),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400)
+                      ],
                     ),
-                  ],
-                ),
+                  )
+                ],
               )
             ])
           )
@@ -617,8 +648,11 @@ class _ContributionInputState extends State<ContributionInput> {
 }
 
 class UserContributionWidget extends StatefulWidget {
-  const UserContributionWidget({super.key, required this.oneDayData});
+  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete, required this.onReload, required this.index});
   final Map oneDayData;
+  final int index;
+  final Function(bool) onDelete;
+  final Function(bool) onReload;
 
   @override
   State<UserContributionWidget> createState() => _UserContributionWidgetState();
@@ -652,9 +686,11 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
   }
 
   String? getAvatarUrl() {
-    final bool hasAvatar = widget.oneDayData["avatar_url"] != null;
-    if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
-    return widget.oneDayData["avatar_url"];
+    final User? user = context.read<AuthenticationBloc>().state.user;
+    return user?.avatarUrl;
+    // final bool hasAvatar = widget.oneDayData["avatar_url"] != null || avatarUrl != null;
+    // if (!hasAvatar || widget.oneDayData["avatar_url"].contains("localhost")) return null;
+    // return widget.oneDayData["avatar_url"];
   }
 
   @override
@@ -664,6 +700,7 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
     final String? avatarUrl = getAvatarUrl();
     final String date = Utils.parseContributionDate(widget.oneDayData["date"], format: "dd/MM/yyyy");
     final num totalCo2e = countTotal();
+    final String roleUser = widget.oneDayData["role_id"] == 2 ? "Hộ gia đình" : "Người thu gom";
 
     // "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg",
     return Container(
@@ -671,55 +708,125 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
       child: Material(
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
-        child: InkWell(
-          radius: 12,
-          onTap: () {
-            showModalBottomSheet(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-              backgroundColor: ColorConstants().bgApp,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) {
-                return UserContributionDetailScreen(
-                  oneDayData: widget.oneDayData,
-                  userId: widget.oneDayData["user_id"] ?? user.id,
-                  name: name,
-                  avatarUrl: avatarUrl,
-                  date: date,
-                  roleIdUser: widget.oneDayData["role_id"]
-                );
+        child: user.roleId == 1 
+        ? Dismissible(
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (direction) {
+            void onDelete() async {
+              if (context.mounted) {
+                Navigator.pop(context);
               }
+              // for shimmer effect
+              widget.onReload.call(true);
+              var res = await TempApi.removeContribution({
+                "date": (DateTime.tryParse(widget.oneDayData["date"]) ?? DateTime.now()).toIso8601String(),
+                "role_id_contribute": widget.oneDayData["role_id"],
+                "user_id_contribute": widget.oneDayData["user_id"]
+              });
+              widget.onDelete.call(res["success"] ?? false);
+              await Future.delayed(const Duration(milliseconds: 400));
+              widget.onReload.call(false);
+            }
+
+            return showDialog(
+              context: context,
+              builder: (context) => Platform.isAndroid 
+              ? AlertDialog(
+                backgroundColor: const Color(0xFFFFFFFF),
+                title: const Text("Xoá dữ liệu ?", style: TextStyle(color: Color(0xff333334), fontSize: 18, fontWeight: FontWeight.w700)),
+                content: Text("Xoá dữ liệu khai báo ngày $date của $roleUser $name ?", style: const TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Huỷ bỏ", style: TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
+                  ),
+                  TextButton(
+                    onPressed: onDelete,
+                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600),),
+                  ),
+                ],
+              )
+              : CupertinoAlertDialog(
+                title: const Text("Xoá dữ liệu ?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamily: "Inter")),
+                content: Text("Xoá dữ liệu khai báo ngày $date của $roleUser $name ?", style: const TextStyle(fontSize: 14, fontFamily: "Inter")),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    onPressed: onDelete,
+                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
+                  ),
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Huỷ bỏ", style: TextStyle(color: Colors.blueAccent, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"))
+                  )
+                ]),
             );
           },
-          child: Container(
-            height: 100,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+          key: ValueKey<int>(widget.index),
+          background:  Container(
+              decoration: BoxDecoration(
+                color: const Color(0xffDB2E2E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: Icon(PhosphorIcons.regular.trashSimple, color: Colors.white, size: 35),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+          child: _buildContributeItem(user: user, name: name, avatarUrl: avatarUrl, date: date, totalCo2e: totalCo2e)
+        )
+        : _buildContributeItem(user: user, name: name, avatarUrl: avatarUrl, date: date, totalCo2e: totalCo2e),
+      ),
+    );
+  }
+
+
+  Widget _buildContributeItem({required User user, required String name, required String? avatarUrl, required String date, required num totalCo2e}) {
+    return InkWell(
+      radius: 12,
+      onTap: () {
+        showModalBottomSheet(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          backgroundColor: ColorConstants().bgApp,
+          context: context,
+          isScrollControlled: true,
+          builder: (context) {
+            return UserContributionDetailScreen(
+              oneDayData: widget.oneDayData,
+              userId: widget.oneDayData["user_id"] ?? user.id,
+              name: name,
+              avatarUrl: avatarUrl,
+              date: date,
+              roleIdUser: widget.oneDayData["role_id"]
+            );
+          }
+        );
+      },
+      child: Container(
+        height: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CustomCircleAvatar(
+              avatarUrl: avatarUrl,
+              size: 56,
+            ),
+            const SizedBox(width: 16),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomCircleAvatar(
-                  avatarUrl: avatarUrl,
-                  size: 56,
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
-                    _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
-                    _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
-                      icon: PhosphorIcons.regular.cloud
-                    ),
-                  ],
+                _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
+                _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
+                _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
+                  icon: PhosphorIcons.regular.cloud
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -737,9 +844,10 @@ class DetailContributionItem extends StatelessWidget {
     final ColorConstants colorCons = ColorConstants();
     final String quantityFormat = contributionData["factor_id"] <= 4 ? contributionData["quantity"].round().toString() : contributionData["quantity"].toString();
     final double value = contributionData["quantity"] * (contributionData["unit_value"] ?? 0);
+
     return Container(
       padding: isFirstItem ? const EdgeInsets.only(bottom: 10) 
-        : isLastItem ? const EdgeInsets.only(top: 10) 
+        : isLastItem ? const EdgeInsets.only(top: 10)
         : const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         border: isLastItem ? null : Border(
@@ -772,7 +880,9 @@ class DetailContributionItem extends StatelessWidget {
               ]
             )),
           ),
+
           Expanded(child: 
+            contributionData["factor_id"] == 9 ? const SizedBox() :
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -798,9 +908,10 @@ class DetailContributionItem extends StatelessWidget {
 }
 
 class DetailContributionTypeGroup extends StatelessWidget {
-  const DetailContributionTypeGroup({super.key, this.detailContribution = const [], required this.textHeader, required this.roleId});
+  const DetailContributionTypeGroup({super.key, this.detailContribution = const [], required this.textHeader, required this.roleId, required this.insertedAt});
   final List detailContribution;
   final String textHeader;
+  final String insertedAt;
   final int roleId;
 
   @override
@@ -810,10 +921,23 @@ class DetailContributionTypeGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(textHeader, style: const TextStyle(
-          color: Color(0xFF1D1D1E),
-          fontSize: 14,
-          fontWeight: FontWeight.w600)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(textHeader, style: const TextStyle(
+              color: Color(0xFF1D1D1E),
+              fontSize: 14,
+              fontWeight: FontWeight.w600)
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 3.0),
+              child: Text(insertedAt, style: const TextStyle(
+                color: Color(0xFF666667),
+                fontSize: 14,
+                fontWeight: FontWeight.w600)
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         Container(
@@ -842,7 +966,8 @@ class DetailContributionTypeGroup extends StatelessWidget {
             //   DetailContributionItem(isLastItem: true),
             // ],
           )
-        )
+        ),
+        const SizedBox(height: 10),
       ],
     );
   }

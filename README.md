@@ -76,6 +76,9 @@ If all files are decrypted, done! You can run code normally.
 ## Roadmap
 - ZNS to forgot password flow (on my way to find another solution)
 - Add more screenshots feature
+- Many inputs in one day
+- Admin can delete contributions
+- Divide household tab contributions
 
 ## Contact
 Email: sparc.hust@gmail.com

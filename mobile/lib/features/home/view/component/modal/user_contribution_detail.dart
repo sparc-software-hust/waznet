@@ -24,7 +24,7 @@ class UserContributionDetailScreen extends StatefulWidget {
 
 class _UserContributionDetailScreenState extends State<UserContributionDetailScreen> {
   final ColorConstants colorCons = ColorConstants();
-  List detailContribution = [];
+  Map detailContribution = {};
   bool isLoading = false;
   FToast fToast = FToast();
 
@@ -52,14 +52,6 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
         ),
         gravity: ToastGravity.BOTTOM
       );
-      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      //   duration: const Duration(seconds: 2),
-      //   content: Text('Lấy dữ liệu thất bại. ${res["message"]}', style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
-      //   behavior: SnackBarBehavior.floating,
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.circular(24),
-      //   ),
-      // ));
     } else {
       setState(() {
         detailContribution = res["data"];
@@ -143,7 +135,14 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
                   if (widget.roleIdUser == 2 && detailContribution.isNotEmpty)
                   Column(
                     children: [
-                      DetailContributionTypeGroup(detailContribution: detailContribution.take(4).toList(), textHeader: "Từ chối sử dụng đồ nhựa", roleId: widget.roleIdUser),
+                      ...detailContribution.keys.map((date) {
+                        return DetailContributionTypeGroup(
+                          detailContribution: detailContribution[date].take(4).toList(), 
+                          textHeader: "Từ chối sử dụng đồ nhựa", 
+                          roleId: widget.roleIdUser, 
+                          insertedAt: Utils.parseContributionDate(date)
+                        );
+                      }),
                       Container(
                         width: double.maxFinite,
                         margin: const EdgeInsets.symmetric(vertical: 10),
@@ -155,7 +154,14 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
                       ),
 
                       const SizedBox(height: 16),
-                      DetailContributionTypeGroup(detailContribution: detailContribution.getRange(4, 8).toList(), textHeader: "Tái chế rác thải", roleId: widget.roleIdUser),
+                      ...detailContribution.keys.map((date) {
+                        return DetailContributionTypeGroup(
+                          detailContribution: detailContribution[date].skip(4).toList(), 
+                          textHeader: "Tái chế rác thải", 
+                          roleId: widget.roleIdUser, 
+                          insertedAt: Utils.parseContributionDate(date)
+                        );
+                      }),
                       Container(
                         margin: const EdgeInsets.symmetric(vertical: 10),
                         child: CountTotalOverallCo2e(
@@ -169,7 +175,13 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
                   else if (widget.roleIdUser == 3 && detailContribution.isNotEmpty)
                   Column(
                     children: [
-                      DetailContributionTypeGroup(detailContribution: detailContribution, textHeader: "Thu gom rác thải", roleId: widget.roleIdUser),
+                      ...detailContribution.keys.map((date) {
+                        return DetailContributionTypeGroup(
+                          detailContribution: detailContribution[date], 
+                          textHeader: "Thu gom rác thải", roleId: widget.roleIdUser, 
+                          insertedAt: Utils.parseContributionDate(date)
+                        );
+                      }),
                       Container(
                         margin: const EdgeInsets.symmetric(vertical: 10),
                         child: CountTotalOverallCo2e(

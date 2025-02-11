@@ -62,21 +62,6 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
     return file;
   }
 
-  void showLoadingDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xff4CAF50),
-            backgroundColor: Color(0xffC1C1C2),
-          ),
-        );
-      }
-    );
-  }
-
 
   void updateInfo({required Map userResponse, isSuccess = true}) {
     if (!context.mounted) return;
@@ -150,7 +135,9 @@ class _ChangeInfoScreenState extends State<ChangeInfoScreen> {
                                 onTap: () async {
                                   File? pickedImg = await getImage();
                                   if (pickedImg == null) return;
-                                  showLoadingDialog();
+                                  if (context.mounted) {
+                                    Utils.showLoadingDialog(context);
+                                  }
                                   UserApi.changeAvatar(
                                     data:  FormData.fromMap({
                                       "data": await MultipartFile.fromFile(pickedImg.path),

@@ -28,6 +28,7 @@ const householdDetailContribution = {
   6: "kg rác GIẤY phân loại để tái chế",
   7: "kg rác KIM LOẠI phân loại để tái chế",
   8: "kg rác HỮU CƠ được ủ thành phân bón",
+  9: "kg rác phát sinh tổng cộng hàng ngày"
 };
 
 const scraperStatistic = {
@@ -91,5 +92,8 @@ const householdInput = {
     'unit_value': 2.15,
     'kilo_organic_garbage_to_fertilizer': "Khối lượng rác hữu cơ ủ để làm phân bón (kg)",
   },
-
+  9: {
+    'unit_value': 0.0,
+    'total_kilo_garbage_growth_daily': "Khối lượng rác phát sinh tổng cộng hàng ngày (kg)",
+  },
 };

@@ -96,17 +96,8 @@ class Utils {
                 style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter",),
               ),
               onPressed: () {
-                Navigator.pop(context);
-                AuthRepository.logout();
-              },
-            ),
-            CupertinoDialogAction(
-              child: const Text(
-                "Để sau",
-                style: TextStyle(fontWeight: FontWeight.w400, color: Colors.black, fontFamily: "Inter",),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(c);
+                AuthRepository.logout(needCallApi: false);
               },
             ),
           ]
@@ -259,5 +250,40 @@ class Utils {
     } catch (e, t) { 
       print("_________________________________________________checkUpdateApp Error: $e \n $t");
     }
+  }
+
+  static void showLoadingDialog(BuildContext context, {String? title, String? subtitle}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return title != null && subtitle != null 
+        ? AlertDialog(
+          backgroundColor: const Color(0xFFFFFFFF),
+          content: Container(
+            height: MediaQuery.of(context).size.height * 0.13,
+            width: MediaQuery.of(context).size.width * 0.3,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  color: const Color(0xFF329C1B),
+                  backgroundColor: const Color(0xff4CAF50).withOpacity(0.3),
+                ),
+                const SizedBox(height: 12,),
+                Text(title, style: const TextStyle(color: Color(0xff333334), fontSize: 18, fontWeight: FontWeight.w600)),
+                Text(subtitle, style: const TextStyle(color: Color(0xff666667), fontSize: 14, fontWeight: FontWeight.w400))
+              ],
+            ),
+          ),
+        )
+        : const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xff4CAF50),
+            backgroundColor: Color(0xffC1C1C2),
+          ),
+        );
+      }
+    );
   }
 }

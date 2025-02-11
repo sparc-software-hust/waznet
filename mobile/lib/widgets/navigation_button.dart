@@ -9,6 +9,7 @@ class NavigationButton extends StatelessWidget {
       required this.text,
       required this.icon,
       this.isWarning = false,
+      this.isIconWarning = false,
       this.hasSwitch = false,
       this.onTap,
       this.onToggleSwitch,
@@ -17,6 +18,7 @@ class NavigationButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final bool isWarning;
+  final bool isIconWarning;
   final bool hasSwitch;
   final bool? valueSwitch;
   final Function(bool)? onToggleSwitch;
@@ -26,8 +28,8 @@ class NavigationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color iconColor =
-        isWarning ? const Color(0xFFFF4F3F) : const Color(0xFF4CAF50);
-    final Color iconBgColor = isWarning
+        isIconWarning ? const Color(0xFFFF4F3F) : const Color(0xFF4CAF50);
+    final Color iconBgColor =  isIconWarning
         ? const Color(0xFFFFE8D8)
         : const Color(0xFFE8F5E9).withOpacity(0.7);
 
@@ -63,7 +65,7 @@ class NavigationButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () async {
-            if (isWarning) {
+            if (isWarning || isIconWarning) {
               final bool? isConfirm = await showDialog(
                 context: context,
                 builder: (context) => ConfirmCard(

@@ -45,6 +45,7 @@ defmodule CecrUnwomenWeb.Router do
       post "/contribute_data", ContributionController, :contribute_data
       post "/edit_factor_quantity", ContributionController, :edit_factor_quantity
       post "/get_detail_contribution", ContributionController, :get_detail_contribution
+      post "/remove_contribution", ContributionController, :remove_contribute
     end
   end
 end
