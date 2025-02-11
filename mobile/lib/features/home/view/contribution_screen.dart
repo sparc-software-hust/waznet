@@ -619,7 +619,7 @@ class _ContributionInputState extends State<ContributionInput> {
 class UserContributionWidget extends StatefulWidget {
   const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete, required this.onReload});
   final Map oneDayData;
-  final Function onDelete;
+  final Function(bool) onDelete;
   final Function(bool) onReload;
 
   @override
