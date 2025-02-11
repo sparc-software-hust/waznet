@@ -24,7 +24,6 @@ defmodule CecrUnwomen.RedisDB do
   def reset_all_factors_by_type(type) do
     model = if type == "scrap", do: "scrap_factor", else: "household_factor"
     {:ok, keys} = Redix.command(:redix, ["KEYS", "#{model}:*"])
-    IO.inspect(keys, label: "gfdkjdf")
     cond do
       length(keys) == 0 -> nil
       true ->
