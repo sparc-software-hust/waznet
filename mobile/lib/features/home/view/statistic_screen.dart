@@ -8,6 +8,7 @@ import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
 import 'package:cecr_unwomen/temp_api.dart';
+import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/filter_time.dart';
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
@@ -158,6 +159,10 @@ class _StatisticScreenState extends State<StatisticScreen> {
   }
 
   void _createExcel({required bool hasDetail}) async {
+    if (context.mounted) {
+      Utils.showLoadingDialog(context, title: "Đang tạo file excel", subtitle:  "Vui lòng đợi giây lát");
+    }
+    await Future.delayed(const Duration(seconds: 1));
     Excel excel = Excel.createExcel();
     excel.rename("Sheet1", "Hộ gia đình");
     Sheet sheetHouseHold = excel["Hộ gia đình"];
@@ -260,7 +265,10 @@ class _StatisticScreenState extends State<StatisticScreen> {
     final directory = await getApplicationDocumentsDirectory();
 
     String fileName = "WAZNET_Thong_Ke_${DateFormat("dd_MM_yyyy").format(start)}_${DateFormat("dd_MM_yyyy").format(end)}.xlsx";
-    File("${directory.path}/$fileName").writeAsBytes(fileBytes ?? []);
+    await File("${directory.path}/$fileName").writeAsBytes(fileBytes ?? []);
+    if (mounted) {
+      Navigator.pop(context);
+    }
     // voi android, can co app ho tro view xlsx
     // voi ios, mo file in app 
     await OpenFile.open("${directory.path}/$fileName").then((value) {
@@ -334,7 +342,27 @@ class _StatisticScreenState extends State<StatisticScreen> {
     final bool isInAdminScreen = widget.isHouseHoldTabAdminScreen != null ;
 
     Widget buildStatistic() {
-      return  Column(
+      final List<Widget> contributeItems = (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
+      ? allData["overall_data_by_time"].map<Widget>((e) {
+        return UserContributionWidget(
+          index: allData["overall_data_by_time"].indexOf(e),
+          oneDayData: {...e, "role_id": _getRoleIdShowData()},
+          onReload: (isLoad) {
+            setState(() {
+              isLoading = isLoad;
+            });
+          },
+          onDelete: (success) {
+            if (success) {
+              allData["overall_data_by_time"].remove(e);
+            }
+            fToast.showToast(child: ToastContent(isSuccess: success, title: success ? "Xoá dữ liệu thành công" : "Xoá dữ liệu thất bại. Thử lại sau"));
+          },
+        );
+      }).toList()
+      : [];
+
+      return Column(
         children: [
           if (!isInAdminScreen)
           BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
@@ -392,25 +420,22 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
           ),
           if (isLoading)
-           _buildShimmerEffectshimmerEffect(context)
+            isInAdminScreen 
+            ? _buildShimmerEffectshimmerEffect(context)
+            : Expanded(child: _buildShimmerEffectshimmerEffect(context))
           else
             if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
-            ...allData["overall_data_by_time"].map((e) {
-              return UserContributionWidget(
-                oneDayData: {...e, "role_id": _getRoleIdShowData()},
-                onReload: (isLoad) {
-                  setState(() {
-                    isLoading = isLoad;
-                  });
-                },
-                onDelete: (success) {
-                  if (success) {
-                    allData["overall_data_by_time"].remove(e);
-                  }
-                  fToast.showToast(child: ToastContent(isSuccess: success, title: success ? "Xoá dữ liệu thành công" : "Xoá dữ liệu thất bại. Thử lại sau"));
-                },
-              );
-            }).toList()
+              if (isInAdminScreen) 
+                ...contributeItems
+              else 
+                Expanded(
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(), // Change this
+                  child: Column(
+                    children: contributeItems
+                  ),
+                ),
+              )
             else
               const Center(
                 child: Text("Không có dữ liệu", style: TextStyle(
@@ -462,10 +487,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
               onRefresh: () {
                 return callApiGetFilterOverallData();
               },
-              child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: buildStatistic()
-              ),
+              child: buildStatistic(),
             ),
           ),
         ),

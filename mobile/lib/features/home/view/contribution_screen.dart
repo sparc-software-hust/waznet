@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/constants/text_constants.dart';
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.dart';
@@ -617,8 +619,9 @@ class _ContributionInputState extends State<ContributionInput> {
 }
 
 class UserContributionWidget extends StatefulWidget {
-  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete, required this.onReload});
+  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete, required this.onReload, required this.index});
   final Map oneDayData;
+  final int index;
   final Function(bool) onDelete;
   final Function(bool) onReload;
 
@@ -666,6 +669,7 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
     final String? avatarUrl = getAvatarUrl();
     final String date = Utils.parseContributionDate(widget.oneDayData["date"], format: "dd/MM/yyyy");
     final num totalCo2e = countTotal();
+    final String roleUser = widget.oneDayData["role_id"] == 2 ? "Hộ gia đình" : "Người thu gom";
 
     // "https://statics.pancake.vn/panchat-prod/2024/1/15/6574ac19760ba6628a77f63dcd3991d41c2e8add.jpeg",
     return Container(
@@ -673,85 +677,125 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
       child: Material(
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
-        child: InkWell(
-          radius: 12,
-          onLongPress: user.roleId != 1 ? null : () {
-            showCupertinoModalPopup(context: context, builder: (context) {
-              return CupertinoActionSheet(
+        child: user.roleId == 1 
+        ? Dismissible(
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (direction) {
+            void onDelete() async {
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+              // for shimmer effect
+              widget.onReload.call(true);
+              var res = await TempApi.removeContribution({
+                "date": (DateTime.tryParse(widget.oneDayData["date"]) ?? DateTime.now()).toIso8601String(),
+                "role_id_contribute": widget.oneDayData["role_id"],
+                "user_id_contribute": widget.oneDayData["user_id"]
+              });
+              widget.onDelete.call(res["success"] ?? false);
+              await Future.delayed(const Duration(milliseconds: 400));
+              widget.onReload.call(false);
+            }
+
+            return showDialog(
+              context: context,
+              builder: (context) => Platform.isAndroid 
+              ? AlertDialog(
+                backgroundColor: const Color(0xFFFFFFFF),
+                title: const Text("Xoá dữ liệu ?", style: TextStyle(color: Color(0xff333334), fontSize: 18, fontWeight: FontWeight.w700)),
+                content: Text("Xoá dữ liệu khai báo ngày $date của $roleUser $name ?", style: const TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
                 actions: [
-                  CupertinoActionSheetAction(
-                    onPressed: () async {
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
-                      // for shimmer effect
-                      widget.onReload.call(true);
-                      var res = await TempApi.removeContribution({
-                        "date": (DateTime.tryParse(widget.oneDayData["date"]) ?? DateTime.now()).toIso8601String(),
-                        "role_id_contribute": widget.oneDayData["role_id"],
-                        "user_id_contribute": widget.oneDayData["user_id"]
-                      });
-                      widget.onDelete.call(res["success"] ?? false);
-                      await Future.delayed(const Duration(milliseconds: 400));
-                      widget.onReload.call(false);
-                    }, 
-                    child: const Text("Xoá khai báo này", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter"))
-                  ),
-                  CupertinoActionSheetAction(
+                  TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Quay lại", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xff333334), fontFamily: "Inter"))
+                    child: const Text("Huỷ bỏ", style: TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
+                  ),
+                  TextButton(
+                    onPressed: onDelete,
+                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600),),
                   ),
                 ],
-              );
-            });
-          },
-          onTap: () {
-            showModalBottomSheet(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-              backgroundColor: ColorConstants().bgApp,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) {
-                return UserContributionDetailScreen(
-                  oneDayData: widget.oneDayData,
-                  userId: widget.oneDayData["user_id"] ?? user.id,
-                  name: name,
-                  avatarUrl: avatarUrl,
-                  date: date,
-                  roleIdUser: widget.oneDayData["role_id"]
-                );
-              }
+              )
+              : CupertinoAlertDialog(
+                title: const Text("Xoá dữ liệu ?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamily: "Inter")),
+                content: Text("Xoá dữ liệu khai báo ngày $date của $roleUser $name ?", style: const TextStyle(fontSize: 14, fontFamily: "Inter")),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    onPressed: onDelete,
+                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
+                  ),
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Huỷ bỏ", style: TextStyle(color: Colors.blueAccent, fontSize: 14, fontWeight: FontWeight.w600, fontFamily: "Inter"))
+                  )
+                ]),
             );
           },
-          child: Container(
-            height: 100,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+          key: ValueKey<int>(widget.index),
+          background:  Container(
+              decoration: BoxDecoration(
+                color: const Color(0xffDB2E2E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: Icon(PhosphorIcons.regular.trashSimple, color: Colors.white, size: 35),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+          child: _buildContributeItem(user: user, name: name, avatarUrl: avatarUrl, date: date, totalCo2e: totalCo2e)
+        )
+        : _buildContributeItem(user: user, name: name, avatarUrl: avatarUrl, date: date, totalCo2e: totalCo2e),
+      ),
+    );
+  }
+
+
+  Widget _buildContributeItem({required User user, required String name, required String? avatarUrl, required String date, required num totalCo2e}) {
+    return InkWell(
+      radius: 12,
+      onTap: () {
+        showModalBottomSheet(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          backgroundColor: ColorConstants().bgApp,
+          context: context,
+          isScrollControlled: true,
+          builder: (context) {
+            return UserContributionDetailScreen(
+              oneDayData: widget.oneDayData,
+              userId: widget.oneDayData["user_id"] ?? user.id,
+              name: name,
+              avatarUrl: avatarUrl,
+              date: date,
+              roleIdUser: widget.oneDayData["role_id"]
+            );
+          }
+        );
+      },
+      child: Container(
+        height: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CustomCircleAvatar(
+              avatarUrl: avatarUrl,
+              size: 56,
+            ),
+            const SizedBox(width: 16),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomCircleAvatar(
-                  avatarUrl: avatarUrl,
-                  size: 56,
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
-                    _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
-                    _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
-                      icon: PhosphorIcons.regular.cloud
-                    ),
-                  ],
+                _buildRowItem(text: name, icon: PhosphorIcons.regular.user),
+                _buildRowItem(text: date, icon: PhosphorIcons.regular.clock),
+                _buildRowItem(text: "${totalCo2e.toStringAsFixed(2)} kg CO₂e",
+                  icon: PhosphorIcons.regular.cloud
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
