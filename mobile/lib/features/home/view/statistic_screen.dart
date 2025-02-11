@@ -398,8 +398,16 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ...allData["overall_data_by_time"].map((e) {
               return UserContributionWidget(
                 oneDayData: {...e, "role_id": _getRoleIdShowData()},
-                onDelete: () {
-                  callApiGetFilterOverallData(isCustomRange: true);
+                onReload: (isLoad) {
+                  setState(() {
+                    isLoading = isLoad;
+                  });
+                },
+                onDelete: (success) {
+                  if (success) {
+                    allData["overall_data_by_time"].remove(e);
+                  }
+                  fToast.showToast(child: ToastContent(isSuccess: success, title: success ? "Xoá dữ liệu thành công" : "Xoá dữ liệu thất bại. Thử lại sau"));
                 },
               );
             }).toList()

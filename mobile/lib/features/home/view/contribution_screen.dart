@@ -617,9 +617,10 @@ class _ContributionInputState extends State<ContributionInput> {
 }
 
 class UserContributionWidget extends StatefulWidget {
-  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete});
+  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete, required this.onReload});
   final Map oneDayData;
   final Function onDelete;
+  final Function(bool) onReload;
 
   @override
   State<UserContributionWidget> createState() => _UserContributionWidgetState();
@@ -683,12 +684,16 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
                       if (context.mounted) {
                         Navigator.pop(context);
                       }
-                      await TempApi.removeContribution({
+                      // for shimmer effect
+                      widget.onReload.call(true);
+                      var res = await TempApi.removeContribution({
                         "date": (DateTime.tryParse(widget.oneDayData["date"]) ?? DateTime.now()).toIso8601String(),
                         "role_id_contribute": widget.oneDayData["role_id"],
                         "user_id_contribute": widget.oneDayData["user_id"]
                       });
-                      widget.onDelete.call();
+                      widget.onDelete.call(res["success"] ?? false);
+                      await Future.delayed(const Duration(milliseconds: 400));
+                      widget.onReload.call(false);
                     }, 
                     child: const Text("Xoá khai báo này", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter"))
                   ),
