@@ -97,7 +97,7 @@ class Utils {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                AuthRepository.logout();
+                AuthRepository.logout(needCallApi: false);
               },
             ),
             CupertinoDialogAction(

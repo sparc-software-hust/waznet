@@ -396,7 +396,12 @@ class _StatisticScreenState extends State<StatisticScreen> {
           else
             if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
             ...allData["overall_data_by_time"].map((e) {
-              return UserContributionWidget(oneDayData: {...e, "role_id": _getRoleIdShowData()});
+              return UserContributionWidget(
+                oneDayData: {...e, "role_id": _getRoleIdShowData()},
+                onDelete: () {
+                  callApiGetFilterOverallData(isCustomRange: true);
+                },
+              );
             }).toList()
             else
               const Center(

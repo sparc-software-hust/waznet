@@ -617,8 +617,9 @@ class _ContributionInputState extends State<ContributionInput> {
 }
 
 class UserContributionWidget extends StatefulWidget {
-  const UserContributionWidget({super.key, required this.oneDayData});
+  const UserContributionWidget({super.key, required this.oneDayData, required this.onDelete});
   final Map oneDayData;
+  final Function onDelete;
 
   @override
   State<UserContributionWidget> createState() => _UserContributionWidgetState();
@@ -673,6 +674,32 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
         color: Colors.transparent,
         child: InkWell(
           radius: 12,
+          onLongPress: user.roleId != 1 ? null : () {
+            showCupertinoModalPopup(context: context, builder: (context) {
+              return CupertinoActionSheet(
+                actions: [
+                  CupertinoActionSheetAction(
+                    onPressed: () async {
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
+                      await TempApi.removeContribution({
+                        "date": (DateTime.tryParse(widget.oneDayData["date"]) ?? DateTime.now()).toIso8601String(),
+                        "role_id_contribute": widget.oneDayData["role_id"],
+                        "user_id_contribute": widget.oneDayData["user_id"]
+                      });
+                      widget.onDelete.call();
+                    }, 
+                    child: const Text("Xoá khai báo này", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter"))
+                  ),
+                  CupertinoActionSheetAction(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Quay lại", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xff333334), fontFamily: "Inter"))
+                  ),
+                ],
+              );
+            });
+          },
           onTap: () {
             showModalBottomSheet(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
