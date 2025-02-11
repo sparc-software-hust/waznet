@@ -82,7 +82,7 @@ defmodule CecrUnwomenWeb.ContributionController do
           {:ok, overall_data} ->
             send_noti_to_admin(user_id, overall, date)
             Helper.response_json_with_data(true, "Nhập thông tin thành công!", overall_data)
-            
+
           _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
         end
 
@@ -93,11 +93,13 @@ defmodule CecrUnwomenWeb.ContributionController do
           # với factor_id từ 1 đến 4, là số lượng túi/giấy/ống hút => phải là int
           quantity = if factor_id <= 4, do: round(quantity), else: quantity
 
-          if (factor_id <= 4) do
-            Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
-          else
-            Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
-            |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
+          cond do
+            factor_id <= 4 ->
+              Map.update!(acc, :kg_co2e_plastic_reduced, &(&1 + constant_value[factor_id] * quantity))
+            factor_id <= 8 ->
+              Map.update!(acc, :kg_recycle_collected, &(&1 + quantity))
+              |> Map.update!(:kg_co2e_recycle_reduced, &(&1 + constant_value[factor_id] * quantity))
+            true -> acc
           end
         end)
         |> Enum.map(fn {k, v} -> {k, Float.round(v, 2)} end)
