@@ -218,7 +218,7 @@ class _UserInfoState extends State<UserInfo> {
                 // ),
                 NavigationButton(
                   text: "Đăng xuất",
-                  isWarning: true,
+                  isIconWarning: true,
                   icon: PhosphorIcons.regular.signOut,
                   onTap: () {
                     context.read<AuthenticationBloc>().add(LogoutRequest());
@@ -227,6 +227,7 @@ class _UserInfoState extends State<UserInfo> {
                 NavigationButton(
                   text: "Xóa tài khoản",
                   isWarning: true,
+                  isIconWarning: true,
                   icon: PhosphorIcons.regular.userMinus,
                   onTap: () {
                     context.read<AuthenticationBloc>().add(DeleteAccount());

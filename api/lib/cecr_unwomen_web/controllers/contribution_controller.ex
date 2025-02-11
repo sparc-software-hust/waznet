@@ -218,6 +218,43 @@ defmodule CecrUnwomenWeb.ContributionController do
       )
     end)
   end
+  
+  defp send_noti_to_user(admin_user_id, user_id, date) do
+    admin_info = from(
+      u in User,
+      where: u.id == ^admin_user_id,
+      select: %{
+        "first_name" => u.first_name,
+        "last_name" => u.last_name,
+        "avatar_url" => u.avatar_url
+      }
+    ) 
+    |> Repo.one 
+    
+    user_fcm_tokens = from(
+      ft in FirebaseToken,
+      where: ft.user_id == ^user_id,
+      select: %{
+        "token" => ft.token,
+      }
+    )
+    |> Repo.all
+    
+    admin_name = "Admin #{admin_info["first_name"]} #{admin_info["last_name"]}"
+    date_string = Calendar.strftime(date, "%d/%m/%Y")
+    
+    Enum.each(user_fcm_tokens, fn t -> 
+      tokens = t["token"]
+        
+      FcmWorker.send_firebase_notification(
+        [%{"token" => tokens}],
+        %{
+          "title" => "Cập nhật về dữ liệu khai báo",
+          "body" => "#{admin_name} vừa xoá dữ liệu bạn khai báo ngày #{date_string}"
+        }
+      )
+    end)
+  end
 
   def edit_factor_quantity(conn, params) do
     user_id = conn.assigns.user.user_id
@@ -681,6 +718,39 @@ defmodule CecrUnwomenWeb.ContributionController do
         Helper.response_json_with_data(true, "Lấy dữ liệu thành công", data)
         
       true -> %{success: false, message: "Bạn không có quyền xem thông tin này!", code: 402}
+    end
+    json conn, res
+  end
+  
+  def remove_contribute(conn, params) do 
+    role_id_contribute = params["role_id_contribute"] || 0
+    user_id_contribute = params["user_id_contribute"] || 0
+    admin_user_id = conn.assigns.user.user_id
+    date = params["date"] 
+    |> String.split("T")
+    |> List.first()
+    |> Date.from_iso8601!()
+    model_overall = if role_id_contribute == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
+    model_contribute = if role_id_contribute == 2, do: HouseholdContribution, else: ScraperContribution
+    
+    res = Repo.transaction(fn ->
+      from(
+        ovr in model_overall,
+        where: ovr.user_id == ^user_id_contribute and ovr.date == ^date
+      ) 
+      |> Repo.delete_all
+      
+      from(
+        c in model_contribute,
+        where: c.user_id == ^user_id_contribute and c.date == ^date
+      )
+      |> Repo.delete_all
+    end)
+    |> case do
+      {:ok, _} -> 
+        send_noti_to_user(admin_user_id, user_id_contribute, date)
+        Helper. response_json_message(true, "Xoá dữ liệu thành công")
+      _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
     end
     json conn, res
   end

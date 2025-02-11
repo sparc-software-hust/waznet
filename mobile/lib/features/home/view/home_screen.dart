@@ -240,7 +240,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
             buildBarItem(
               activeIcon: PhosphorIcons.fill.chartBar,
-              icon: PhosphorIcons.regular.chartBar, title: "Dữ liệu"
+              icon: PhosphorIcons.regular.chartBar, title: "Lịch sử"
             ),
             buildBarItem(
               activeIcon: PhosphorIcons.fill.userCircle,
