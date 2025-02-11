@@ -52,14 +52,6 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
         ),
         gravity: ToastGravity.BOTTOM
       );
-      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      //   duration: const Duration(seconds: 2),
-      //   content: Text('Lấy dữ liệu thất bại. ${res["message"]}', style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
-      //   behavior: SnackBarBehavior.floating,
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.circular(24),
-      //   ),
-      // ));
     } else {
       setState(() {
         detailContribution = res["data"];
@@ -164,7 +156,7 @@ class _UserContributionDetailScreenState extends State<UserContributionDetailScr
                       const SizedBox(height: 16),
                       ...detailContribution.keys.map((date) {
                         return DetailContributionTypeGroup(
-                          detailContribution: detailContribution[date].getRange(4, 8).toList(), 
+                          detailContribution: detailContribution[date].skip(4).toList(), 
                           textHeader: "Tái chế rác thải", 
                           roleId: widget.roleIdUser, 
                           insertedAt: Utils.parseContributionDate(date)
