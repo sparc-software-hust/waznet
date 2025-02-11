@@ -44,7 +44,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
 
   initData() {
     if (widget.roleId == 2) {
-      inputData = List.generate(8, (index) => {
+      inputData = List.generate(9, (index) => {
         "factor_id": index + 1,
         "quantity": 0,
         "co2e": 0.0,
@@ -124,7 +124,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
     } else {
       fToast.showToast(
         child: const ToastContent(
-          isSuccess: true, 
+          isSuccess: true,
           title: 'Gửi dữ liệu thành công'
         ),
         gravity: ToastGravity.BOTTOM
@@ -492,7 +492,7 @@ class _ContributionInputState extends State<ContributionInput> {
           ),
           const SizedBox(height: 10),
           Container(
-            height: 192,
+            height: widget.factorId != 9 ? 192 : 95,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -594,42 +594,48 @@ class _ContributionInputState extends State<ContributionInput> {
                   ),
                 ],
               ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                child: const Divider(color: Color(0xFFF4F4F5), height: 1, thickness: 1)
-              ),
-              const Text("Giảm phát thải khí nhà kính", style: TextStyle(
-                color: Color(0xFF666667),
-                fontSize: 14,
-                fontWeight: FontWeight.w600)
-              ),
-              const SizedBox(height: 5),
-              SizedBox(
-                height: 40,
-                child: Row(
-                  children: [
-                    Expanded(child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4F4F5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Text(co2eValue.toStringAsFixed(2),
-                          style: const TextStyle(
-                            color: Color(0xFF808082),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500)
+              if (widget.factorId != 9)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 16),
+                    child: const Divider(color: Color(0xFFF4F4F5), height: 1, thickness: 1)
+                  ),
+                  const Text("Giảm phát thải khí nhà kính", style: TextStyle(
+                    color: Color(0xFF666667),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)
+                  ),
+                  const SizedBox(height: 5),
+                  SizedBox(
+                    height: 40,
+                    child: Row(
+                      children: [
+                        Expanded(child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4F4F5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(co2eValue.toStringAsFixed(2),
+                              style: const TextStyle(
+                                color: Color(0xFF808082),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500)
+                            ),
+                          ),
+                        )),
+                        const SizedBox(width: 10),
+                        const Text("kg CO₂e", style: TextStyle(
+                          color: Color(0xFF333334),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400)
                         ),
-                      ),
-                    )),
-                    const SizedBox(width: 10),
-                    const Text("kg CO₂e", style: TextStyle(
-                      color: Color(0xFF333334),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400)
+                      ],
                     ),
-                  ],
-                ),
+                  )
+                ],
               )
             ])
           )
@@ -762,9 +768,10 @@ class DetailContributionItem extends StatelessWidget {
     final ColorConstants colorCons = ColorConstants();
     final String quantityFormat = contributionData["factor_id"] <= 4 ? contributionData["quantity"].round().toString() : contributionData["quantity"].toString();
     final double value = contributionData["quantity"] * (contributionData["unit_value"] ?? 0);
+
     return Container(
       padding: isFirstItem ? const EdgeInsets.only(bottom: 10) 
-        : isLastItem ? const EdgeInsets.only(top: 10) 
+        : isLastItem ? const EdgeInsets.only(top: 10)
         : const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         border: isLastItem ? null : Border(
@@ -797,7 +804,9 @@ class DetailContributionItem extends StatelessWidget {
               ]
             )),
           ),
+
           Expanded(child: 
+            contributionData["factor_id"] == 9 ? const SizedBox() :
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [

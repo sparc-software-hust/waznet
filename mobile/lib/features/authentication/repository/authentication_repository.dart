@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:cecr_unwomen/features/authentication/authentication.dart';
 import 'package:cecr_unwomen/features/authentication/repository/authentication_api.dart';
 import 'package:cecr_unwomen/features/user/repository/user_repository.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository {
@@ -86,9 +87,17 @@ class AuthRepository {
   }
 
   static Future<void> logout() async {
-    await AuthenticationApi.logout();
-    await AuthRepository.logoutNoCredentials();
-    _controller.add(AuthenticationStatus.unauthorized);
+    try {
+      // TODO: check internet before call api logout
+      await FirebaseMessaging.instance.deleteToken();
+      await AuthenticationApi.logout();
+      await AuthRepository.logoutNoCredentials();
+      _controller.add(AuthenticationStatus.unauthorized);
+    } catch (e) {
+      await FirebaseMessaging.instance.deleteToken();
+      await AuthRepository.logoutNoCredentials();
+      _controller.add(AuthenticationStatus.unauthorized);
+    }
   }
 
   static Future<void> logoutNoCredentials() async {
