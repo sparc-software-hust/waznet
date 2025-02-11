@@ -752,11 +752,11 @@ class _UserContributionWidgetState extends State<UserContributionWidget> {
                 actions: <Widget>[
                   CupertinoDialogAction(
                     onPressed: onDelete,
-                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
+                    child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
                   ),
                   CupertinoDialogAction(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Huỷ bỏ", style: TextStyle(color: Colors.blueAccent, fontSize: 14, fontWeight: FontWeight.w600, fontFamily: "Inter"))
+                    child: const Text("Huỷ bỏ", style: TextStyle(color: Colors.blueAccent, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"))
                   )
                 ]),
             );

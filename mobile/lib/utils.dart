@@ -96,17 +96,8 @@ class Utils {
                 style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent, fontFamily: "Inter",),
               ),
               onPressed: () {
-                Navigator.pop(context);
-                AuthRepository.logout();
-              },
-            ),
-            CupertinoDialogAction(
-              child: const Text(
-                "Để sau",
-                style: TextStyle(fontWeight: FontWeight.w400, color: Colors.black, fontFamily: "Inter",),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(c);
+                AuthRepository.logout(needCallApi: false);
               },
             ),
           ]

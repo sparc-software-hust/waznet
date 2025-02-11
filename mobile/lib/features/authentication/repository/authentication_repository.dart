@@ -86,11 +86,13 @@ class AuthRepository {
     }
   }
 
-  static Future<void> logout() async {
+  static Future<void> logout({bool needCallApi = true}) async {
     try {
       // TODO: check internet before call api logout
-      await FirebaseMessaging.instance.deleteToken();
-      await AuthenticationApi.logout();
+      FirebaseMessaging.instance.deleteToken();
+      if (needCallApi) {
+        await AuthenticationApi.logout();
+      }
       await AuthRepository.logoutNoCredentials();
       _controller.add(AuthenticationStatus.unauthorized);
     } catch (e) {
