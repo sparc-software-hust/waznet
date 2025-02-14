@@ -168,73 +168,104 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
             )
           ),
           BarWidget(isHousehold: isHouseholdTab, changeBar: changeBar),
-          if (searchController.text.isNotEmpty && data.isEmpty  && !isLoading)
-          ...[
-            Image.asset("assets/images/empty_box.png", scale: 0.6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50),
-              child: Text(
-                "\"${searchController.text}\" không khớp với bất kỳ kết quả nào. \nVui lòng thử lại.", 
-                style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),
-                textAlign: TextAlign.center,
+          _buildContent(),
+          _buildLoadMoreIndicator(),
+        ],
+      ),
+    );
+  }
+
+   Widget _buildContent() {
+    if (searchController.text.isNotEmpty && data.isEmpty && !isLoading) {
+      return _buildEmptySearchResult();
+    }
+    if (searchController.text.isEmpty && data.isEmpty) {
+      return _buildInitialSearchState();
+    }
+    if (isLoading) {
+      return Expanded(child: Utils.buildShimmerEffectshimmerEffect(context));
+    }
+    return _buildSearchResults();
+  }
+
+  Widget _buildEmptySearchResult() {
+    return Column(
+      children: [
+        Image.asset("assets/images/empty_box.png", scale: 0.6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 50),
+          child: Text(
+            "\"${searchController.text}\" không khớp với bất kỳ kết quả nào. \nVui lòng thử lại.",
+            style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInitialSearchState() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 100.0),
+          child: Image.asset("assets/images/search_user.png", scale: 0.8),
+        ),
+        Text(
+          "Bạn đang tìm kiếm ai?",
+          style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff666667)),
+        ),
+        Text(
+          "Nhập để tìm kiếm và xem kết quả tương tự",
+          style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return Expanded(
+      child: ListView.builder(
+        controller: scrollController,
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        physics: const ClampingScrollPhysics(),
+        itemCount: data.length,
+        itemBuilder: (context, index) => UserContributionWidget(
+          index: index,
+          oneDayData: {...data[index], "role_id": isHouseholdTab ? 2 : 3},
+          onReload: (isLoad) => setState(() => isLoading = isLoad),
+          onDelete:(success) {
+            if (success) {
+              setState(() => data.removeAt(index));
+            }
+            fToast.showToast(
+              child: ToastContent(
+                isSuccess: success,
+                title: success ? "Xoá dữ liệu thành công" : "Xoá dữ liệu thất bại. Thử lại sau",
               ),
-            )
-          ]
-          else
-            if (searchController.text.isEmpty && data.isEmpty)
-            ...[
-              Padding(
-                padding: const EdgeInsets.only(top: 100.0),
-                child: Image.asset("assets/images/search_user.png", scale: 0.8,),
-              ),
-              Text("Bạn đang tìm kiếm ai?", style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff666667)),),
-              Text("Nhập để tìm kiếm và xem kết quả tương tự", style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),)
-            ]
-            else 
-              if (isLoading)
-              Expanded(child: Utils.buildShimmerEffectshimmerEffect(context))
-              else 
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  physics: const ClampingScrollPhysics(),
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    return UserContributionWidget(
-                      index: index,
-                      oneDayData: {...data[index], "role_id": isHouseholdTab ? 2 : 3},
-                      onReload: (isLoad) {
-                        setState(() {
-                          isLoading = isLoad;
-                        });
-                      },
-                      onDelete: (success) {
-                        if (success) {
-                          data.removeAt(index);
-                        }
-                        fToast.showToast(child: ToastContent(isSuccess: success, title: success ? "Xoá dữ liệu thành công" : "Xoá dữ liệu thất bại. Thử lại sau"));
-                      },
-                    );
-                }),
-              ),
-          isLoadMore
-          ? const Center(
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadMoreIndicator() {
+    return SizedBox(
+      height: 30,
+      child: isLoadMore
+        ? const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 12.0),
               child: SizedBox(
                 height: 30,
                 width: 30,
-                child: CircularProgressIndicator.adaptive()
+                child: CircularProgressIndicator.adaptive(),
               ),
             ),
           )
-          : const SizedBox(
-            height: 30,
-          )
-        ],
-      ),
+        : null,
     );
   }
 }
