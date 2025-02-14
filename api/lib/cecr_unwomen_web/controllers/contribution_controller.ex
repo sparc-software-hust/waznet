@@ -13,6 +13,7 @@ defmodule CecrUnwomenWeb.ContributionController do
     ScrapConstantFactor
   }
   
+  alias CecrUnwomenWeb.UserController
   alias CecrUnwomen.Workers.FcmWorker
   alias CecrUnwomen.{Utils.Helper, Repo}
 
@@ -722,10 +723,11 @@ defmodule CecrUnwomenWeb.ContributionController do
     json conn, res
   end
   
-  def remove_contribute(conn, params) do 
+  def remove_contribution(conn, params) do 
     role_id_contribute = params["role_id_contribute"] || 0
     user_id_contribute = params["user_id_contribute"] || 0
     admin_user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
     date = params["date"] 
     |> String.split("T")
     |> List.first()
@@ -733,24 +735,95 @@ defmodule CecrUnwomenWeb.ContributionController do
     model_overall = if role_id_contribute == 2, do: OverallHouseholdContribution, else: OverallScraperContribution
     model_contribute = if role_id_contribute == 2, do: HouseholdContribution, else: ScraperContribution
     
-    res = Repo.transaction(fn ->
-      from(
-        ovr in model_overall,
-        where: ovr.user_id == ^user_id_contribute and ovr.date == ^date
-      ) 
-      |> Repo.delete_all
+    res = cond do
+      role_id == 1 ->
+        Repo.transaction(fn ->
+        from(
+          ovr in model_overall,
+          where: ovr.user_id == ^user_id_contribute and ovr.date == ^date
+        ) 
+        |> Repo.delete_all
+        
+        from(
+          c in model_contribute,
+          where: c.user_id == ^user_id_contribute and c.date == ^date
+        )
+        |> Repo.delete_all
+      end)
+      |> case do
+        {:ok, _} -> 
+          send_noti_to_user(admin_user_id, user_id_contribute, date)
+          Helper. response_json_message(true, "Xoá dữ liệu thành công")
+        _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
+      end
       
-      from(
-        c in model_contribute,
-        where: c.user_id == ^user_id_contribute and c.date == ^date
-      )
-      |> Repo.delete_all
-    end)
-    |> case do
-      {:ok, _} -> 
-        send_noti_to_user(admin_user_id, user_id_contribute, date)
-        Helper. response_json_message(true, "Xoá dữ liệu thành công")
-      _ -> Helper.response_json_message(false, "Có lỗi xảy ra", 406)
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    json conn, res
+  end
+  
+  def search_contribution(conn, params) do
+    role_id = conn.assigns.user.role_id
+    name = params["name"]
+    role_id_search = params["role_id_search"] || 0
+    date = params["date"] 
+      |> String.split("T")
+      |> List.first()
+      |> Date.from_iso8601!()
+    
+      IO.inspect(params)
+      
+    res = cond do
+      role_id == 1 ->
+        user_ids = UserController.search_user(name, role_id_search)
+        data = cond do 
+          role_id_search == 3 -> from(
+            osc in OverallScraperContribution,
+            left_join: u in User,
+            on:  u.id == osc.user_id,
+            order_by: [desc: osc.date],
+            limit: 20,
+            where: osc.date < ^date and osc.user_id in ^user_ids,
+            select: %{
+              id: osc.id,
+              kg_co2e_reduced: osc.kg_co2e_reduced,
+              expense_reduced: osc.expense_reduced,
+              kg_collected: osc.kg_collected,
+              user_id: osc.user_id,
+              avatar_url: u.avatar_url,
+              inserted_at: osc.inserted_at,
+              date: osc.date,
+              first_name: u.first_name,
+              last_name: u.last_name
+            }
+          ) 
+          |> Repo.all
+    
+          role_id_search == 2 -> from(
+            ohc in OverallHouseholdContribution,
+            left_join: u in User,
+            on:  u.id == ohc.user_id,
+            order_by: [desc: ohc.date],
+            limit: 10,
+            where: ohc.date < ^date and ohc.user_id in ^user_ids,
+            select: %{
+              id: ohc.id,
+              date: ohc.date,
+              kg_co2e_plastic_reduced: ohc.kg_co2e_plastic_reduced,
+              kg_co2e_recycle_reduced: ohc.kg_co2e_recycle_reduced,
+              kg_recycle_collected: ohc.kg_recycle_collected,
+              inserted_at: ohc.inserted_at,
+              user_id: ohc.user_id,
+              avatar_url: u.avatar_url,
+              first_name: u.first_name,
+              last_name: u.last_name
+            }
+          ) 
+          |> Repo.all
+        end
+        Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", data)
+      
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
     end
     json conn, res
   end

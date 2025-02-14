@@ -4,6 +4,7 @@ import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/constants/extension/datetime_extension.dart';
 import 'package:cecr_unwomen/constants/text_constants.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
+import 'package:cecr_unwomen/features/home/view/component/search_contribution_screen.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
 import 'package:cecr_unwomen/features/home/view/contribution_screen.dart';
@@ -305,31 +306,6 @@ class _StatisticScreenState extends State<StatisticScreen> {
     });   
   }
 
-  Widget _buildShimmerEffectshimmerEffect(context, {int number = 10}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 12.0, left: 12.0, right: 12),
-      child: SingleChildScrollView(
-        child: Shimmer.fromColors(
-          baseColor:  const Color(0xffe2e5e8),
-          highlightColor:  Colors.grey.shade100,
-          enabled: true,
-          child: Column(
-            children: List.generate(number, (i) => i).map((_) => Padding(
-              padding: const EdgeInsets.only(bottom: 14.0),
-              child: Container(
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12)
-                ),
-              )
-            )).toList(),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -374,55 +350,75 @@ class _StatisticScreenState extends State<StatisticScreen> {
                 Text(title, 
                   style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667)),
                 ),
-                InkWell(
-                  onTap: () {
-                    showCupertinoModalPopup(
-                      context: context, 
-                      builder: (context) {
-                        return TimeFilter(
-                          option: option,
-                          start: start,
-                          end: end,
-                          onSave: (e) {
-                            setState(() {
-                              option = e;
-                            });
-                            if (!TimeFilterHelper.isCustomOption(option)) {
-                              callApiGetFilterOverallData();
-                            }
-                          },
-                          onSaveCustomRange: (startDate, endDate) {
-                            setState(() {
-                              start = startDate;
-                              end = endDate;
-                            });
-                            callApiGetFilterOverallData(isCustomRange: true);
-                          },
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        showCupertinoModalPopup(
+                          context: context, 
+                          builder: (context) {
+                            return TimeFilter(
+                              option: option,
+                              start: start,
+                              end: end,
+                              onSave: (e) {
+                                setState(() {
+                                  option = e;
+                                });
+                                if (!TimeFilterHelper.isCustomOption(option)) {
+                                  callApiGetFilterOverallData();
+                                }
+                              },
+                              onSaveCustomRange: (startDate, endDate) {
+                                setState(() {
+                                  start = startDate;
+                                  end = endDate;
+                                });
+                                callApiGetFilterOverallData(isCustomRange: true);
+                              },
+                            );
+                          }
                         );
-                      }
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: const Color(0xffE3E3E5)
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xffE3E3E5)
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                        child: Row(
+                          children: [
+                            Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
+                            Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
+                          ],
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                    child: Row(
-                      children: [
-                        Icon(PhosphorIcons.regular.calendarBlank, size: 20, color: const Color(0xff4D4D4E),),
-                        Text(" ${TimeFilterHelper.getOptionsString(option)}",  style: colorCons.fastStyle(14, FontWeight.w500, const Color(0xff4D4D4E)),)
-                      ],
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) {
+                          return const SearchContributionScreen();
+                        }));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xffE3E3E5)
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        margin: const EdgeInsets.only(left: 8),
+                        child: Icon(PhosphorIcons.regular.magnifyingGlass, size: 20, color: const Color(0xff4D4D4E),),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
           if (isLoading)
             isInAdminScreen 
-            ? _buildShimmerEffectshimmerEffect(context)
-            : Expanded(child: _buildShimmerEffectshimmerEffect(context))
+            ? Utils.buildShimmerEffectshimmerEffect(context)
+            : Expanded(child: Utils.buildShimmerEffectshimmerEffect(context))
           else
             if (allData["overall_data_by_time"] != null && allData["overall_data_by_time"].isNotEmpty)
               if (isInAdminScreen) 

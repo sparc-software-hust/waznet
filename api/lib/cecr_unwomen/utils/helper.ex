@@ -144,4 +144,28 @@ defmodule CecrUnwomen.Utils.Helper do
     end)
     |> Map.values()
   end
+  
+  def unsign_vietnamese(text, opt \\ [downcase: true]) do
+    downcase = Keyword.get(opt, :downcase, true)
+    text = if downcase do
+      String.downcase(text)
+    else
+      text
+      |> String.replace(["À","Á","Ạ","Ả","Ã","Â","Ầ","Ấ","Ậ","Ẩ","Ẫ","Ă","Ằ","Ắ","Ặ","Ẳ","Ẵ"], "A")
+      |> String.replace(["È","É","Ẹ","Ẻ","Ẽ","Ê","Ề","Ế","Ệ","Ể","Ễ"], "E")
+      |> String.replace(["Ì", "Í","Ị","Ỉ","Ĩ"], "I")
+      |> String.replace(["Ò","Ó","Ọ","Ỏ","Õ","Ô","Ồ","Ố","Ộ","Ổ","Ỗ","Ơ","Ờ","Ớ","Ợ","Ở"], "O")
+      |> String.replace(["Ù","Ú","Ụ","Ủ","Ũ","Ư","Ừ","Ứ","Ự","Ử","Ữ"], "U")
+      |> String.replace(["Ỳ","Ý","Ỵ","Ỷ","Ỹ"], "Y")
+      |> String.replace("Đ", "D")
+    end
+    text
+    |> String.replace(["à","á","ạ","ả","ã","â","ầ","ấ","ậ","ẩ","ẫ","ă","ằ","ắ","ặ","ẳ","ẵ"], "a")
+    |> String.replace(["è","é","ẹ","ẻ","ẽ","ê","ề","ế","ệ","ể","ễ"], "e")
+    |> String.replace(["ì", "í","ị","ỉ","ĩ"], "i")
+    |> String.replace(["ò","ó","ọ","ỏ","õ","ô","ồ","ố","ộ","ổ","ỗ","ơ","ờ","ớ","ợ","ở"], "o")
+    |> String.replace(["ù","ú","ụ","ủ","ũ","ư","ừ","ứ","ự","ử","ữ"], "u")
+    |> String.replace(["ỳ","ý","ỵ","ỷ","ỹ"], "y")
+    |> String.replace("đ", "d")
+  end
 end
