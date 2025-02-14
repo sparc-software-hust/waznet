@@ -364,7 +364,6 @@ defmodule CecrUnwomenWeb.UserController do
       |> Enum.find(fn user -> Map.has_key?(user, t) end) 
       |> Map.get(t)
     end)
-    |> IO.inspect(label: "res")
   end
 end
 
