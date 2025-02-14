@@ -83,7 +83,7 @@ class Utils {
   }
 
   static Future<dynamic> showLogOutDialog(BuildContext context) {
-   return showDialog(
+    return showDialog(
       context: context,
       builder: (BuildContext c) {
         return CupertinoAlertDialog(

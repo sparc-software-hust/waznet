@@ -187,20 +187,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     Container(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          buildChart(),
-                          if (roleId == 1) 
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16.0),
-                            child: StatisticScreen(
-                              roleId: roleId, 
-                              isHouseHoldTabAdminScreen: isHouseholdTab,
-                              needGetDataAdmin: needGetDataAdmin,
-                            ),
-                          )
-                        ],
-                      ),
+                      child: buildChart(),
                     ),
                   ]
                 ),
