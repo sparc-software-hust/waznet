@@ -770,8 +770,6 @@ defmodule CecrUnwomenWeb.ContributionController do
       |> String.split("T")
       |> List.first()
       |> Date.from_iso8601!()
-    
-      IO.inspect(params)
       
     res = cond do
       role_id == 1 ->
