@@ -377,6 +377,8 @@ class _HouseholdChartState extends State<HouseholdChart> {
             return const Color(0xff5DADE2);
           case "one_kilo_organic_garbage_to_fertilizer":
             return const Color(0xffF1948A);
+          case "total_kilo_garbage_growth_daily":
+            return const Color(0xffFFB74D);
           default:
             return const Color(0xffF1948A);
         }
@@ -412,6 +414,8 @@ class _HouseholdChartState extends State<HouseholdChart> {
           return "Kim loại";
         case "one_kilo_organic_garbage_to_fertilizer":
           return "Hữu cơ";
+        case "total_kilo_garbage_growth_daily":
+          return "Rác phát sinh";
         default: 
           return "";
       }

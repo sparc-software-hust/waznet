@@ -1,6 +1,6 @@
 defmodule CecrUnwomenWeb.UserController do
   use CecrUnwomenWeb, :controller
-  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB}
+  alias CecrUnwomen.{Utils.Helper, Repo, RedisDB, Utils.Search}
   alias CecrUnwomenWeb.Models.{User, FirebaseToken}
   import Ecto.Query
 
@@ -336,6 +336,35 @@ defmodule CecrUnwomenWeb.UserController do
   defp validate_phone_number_length(phone_number) do
     phone_number_length = if is_nil(phone_number), do: -1, else: String.length(phone_number)
     if phone_number_length == 10, do: true, else: false
+  end
+  
+  def search_user(name, role_id) do
+    users = from(
+      u in User,
+      where: u.role_id == ^role_id,
+      select: %{
+        "user_id" => u.id,
+        "first_name" => u.first_name,
+        "last_name" => u.last_name
+      }
+    )
+    |> Repo.all
+    |> Enum.map(fn t -> 
+      %{
+        "user_id" => t["user_id"],
+        "full_name" => "#{t["first_name"]} #{t["last_name"]}"
+      }
+    end)
+
+    Enum.reduce(users, [] , fn t, acc -> 
+      acc ++ [Map.get(t, "full_name")]
+    end)
+    |> Search.search_by_name(name)
+    |> Enum.flat_map(fn t -> 
+      users
+      |> Enum.filter(fn user -> user["full_name"] == t end) 
+      |> Enum.map(fn user -> user["user_id"] end)
+    end)
   end
 end
 

@@ -99,4 +99,14 @@ class TempApi {
       return {"success": false};
     }
   }
+
+  static Future<Map> searchContribution(Map data) async {
+    try {
+      const String url = "/contribution/search_contribution";
+      final res = await dioConfigInterceptor.post(url, data: data);
+      return res.data;
+    } catch (e) {
+      return {"success": false};
+    }
+  }
 }
