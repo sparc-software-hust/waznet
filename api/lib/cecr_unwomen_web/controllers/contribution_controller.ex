@@ -781,7 +781,7 @@ defmodule CecrUnwomenWeb.ContributionController do
             on:  u.id == osc.user_id,
             order_by: [desc: osc.date],
             limit: 20,
-            where: osc.date < ^date and osc.user_id in ^user_ids,
+            where: osc.date <= ^date and osc.user_id in ^user_ids,
             select: %{
               id: osc.id,
               kg_co2e_reduced: osc.kg_co2e_reduced,
@@ -803,7 +803,7 @@ defmodule CecrUnwomenWeb.ContributionController do
             on:  u.id == ohc.user_id,
             order_by: [desc: ohc.date],
             limit: 10,
-            where: ohc.date < ^date and ohc.user_id in ^user_ids,
+            where: ohc.date <= ^date and ohc.user_id in ^user_ids,
             select: %{
               id: ohc.id,
               date: ohc.date,

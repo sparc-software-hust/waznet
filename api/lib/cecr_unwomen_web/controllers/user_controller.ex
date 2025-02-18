@@ -351,18 +351,19 @@ defmodule CecrUnwomenWeb.UserController do
     |> Repo.all
     |> Enum.map(fn t -> 
       %{
-        "#{t["first_name"]} #{t["last_name"]}" => t["user_id"]
+        "user_id" => t["user_id"],
+        "full_name" => "#{t["first_name"]} #{t["last_name"]}"
       }
     end)
 
     Enum.reduce(users, [] , fn t, acc -> 
-      acc ++ Map.keys(t)
+      acc ++ [Map.get(t, "full_name")]
     end)
     |> Search.search_by_name(name)
-    |> Enum.map(fn t -> 
+    |> Enum.flat_map(fn t -> 
       users
-      |> Enum.find(fn user -> Map.has_key?(user, t) end) 
-      |> Map.get(t)
+      |> Enum.filter(fn user -> user["full_name"] == t end) 
+      |> Enum.map(fn user -> user["user_id"] end)
     end)
   end
 end

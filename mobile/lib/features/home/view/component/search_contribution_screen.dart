@@ -112,7 +112,7 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(isLoading);
+
     return Material(
       child: Column(
         children: [
