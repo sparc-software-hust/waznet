@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class HeaderWidget extends StatelessWidget {
-  const HeaderWidget({super.key, required this.child});
+  const HeaderWidget({super.key, required this.child, this.height = 124});
   final Widget child;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 124,
+      height: height,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
           gradient: LinearGradient(

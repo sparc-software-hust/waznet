@@ -14,6 +14,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Utils {
@@ -284,6 +285,32 @@ class Utils {
           ),
         );
       }
+    );
+  }
+
+  static  Widget buildShimmerEffectshimmerEffect(context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 12.0, left: 12.0, right: 12),
+      child: SingleChildScrollView(
+        child: Shimmer.fromColors(
+          baseColor:  const Color(0xffe2e5e8),
+          highlightColor:  Colors.grey.shade100,
+          enabled: true,
+          child: Column(
+            children: List.generate(10, (i) => i).map((_) => Padding(
+              padding: const EdgeInsets.only(bottom: 14.0),
+              child: Container(
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12)
+                ),
+              )
+            )).toList(),
+          ),
+        ),
+      ),
     );
   }
 }
