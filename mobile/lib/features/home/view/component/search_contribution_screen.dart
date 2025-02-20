@@ -115,6 +115,7 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
   Widget build(BuildContext context) {
 
     return Material(
+      color: const Color(0xffF4F4F5),
       child: Column(
         children: [
           HeaderWidget(
@@ -190,9 +191,17 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
   }
 
   Widget _buildEmptySearchResult() {
+    Size screenSize = MediaQuery.of(context).size;
+
     return Column(
       children: [
-        Image.asset("assets/images/empty_box.png", scale: 0.6),
+        SizedBox(height: screenSize.height * 0.1),
+        Image.asset(
+          "assets/images/empty_box.png",
+          height: screenSize.height * 0.2, 
+          width: screenSize.height * 0.2,
+          fit: BoxFit.fill,
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 50),
           child: Text(
@@ -206,21 +215,28 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
   }
 
   Widget _buildInitialSearchState() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 100.0),
-          child: Image.asset("assets/images/search_user.png", scale: 0.8),
-        ),
-        Text(
-          "Bạn đang tìm kiếm ai?",
-          style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff666667)),
-        ),
-        Text(
-          "Nhập để tìm kiếm và xem kết quả tương tự",
-          style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),
-        ),
-      ],
+    Size screenSize = MediaQuery.of(context).size;
+
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: screenSize.height * 0.1),
+          Image.asset(
+            "assets/images/search_user.png", 
+            height: screenSize.height * 0.2, 
+            width: screenSize.height * 0.2,
+            fit: BoxFit.fill,
+          ),
+          Text(
+            "Bạn đang tìm kiếm ai?",
+            style: colorCons.fastStyle(16, FontWeight.w600, const Color(0xff666667)),
+          ),
+          Text(
+            "Nhập để tìm kiếm và xem kết quả tương tự",
+            style: colorCons.fastStyle(14, FontWeight.w400, const Color(0xff808082)),
+          ),
+        ],
+      ),
     );
   }
 
