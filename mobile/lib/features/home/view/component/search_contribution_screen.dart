@@ -89,7 +89,7 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
       TempApi.searchContribution({
           "name": searchController.text,
           "role_id_search": isHouseholdTab ? 2 : 3,
-          "date": date.toIso8601String()
+          "date": date.add(const Duration(days: -1)).toIso8601String()
         })
         .then((res) {
           setState(() {

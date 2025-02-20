@@ -29,16 +29,21 @@ final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
       final retryDio = Dio()
         ..options.baseUrl = options.baseUrl
         ..options.headers['Authorization'] = "Bearer $refreshToken";
-      final Response res = await retryDio.post("/auth/renew_access_token", data: {});
-      final bool isRefreshSuccess = res.data["success"] == true;
-      if (!isRefreshSuccess) {
-        // print('false with logout');
-        await AuthRepository.logoutNoCredentials();
-      } else {
-        await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
-        final String accessToken = res.data["data"]["access_token"];
-        options.headers['Authorization'] = "Bearer $accessToken";
-      }
+        try {
+          final Response res = await retryDio.post("/auth/renew_access_token", data: {});
+          final bool isRefreshSuccess = res.data["success"] == true;
+          if (!isRefreshSuccess) {
+            // print('false with logout');
+            await AuthRepository.logoutNoCredentials();
+          } else {
+            await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
+            final String accessToken = res.data["data"]["access_token"];
+            options.headers['Authorization'] = "Bearer $accessToken";
+          }
+        } catch (e) {
+          print("retry dio ---- $e");
+          AuthRepository.logoutNoCredentials();
+        }
     } else {
       options.headers['Authorization'] = "Bearer $accessToken";
     }
