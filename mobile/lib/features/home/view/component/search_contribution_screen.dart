@@ -89,6 +89,7 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
       TempApi.searchContribution({
           "name": searchController.text,
           "role_id_search": isHouseholdTab ? 2 : 3,
+          // for load more -> decrease by 1 day because api using <= to avoid loop result
           "date": date.add(const Duration(days: -1)).toIso8601String()
         })
         .then((res) {
