@@ -10,7 +10,6 @@ import 'package:cecr_unwomen/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:shimmer/shimmer.dart';
 
 class SearchContributionScreen extends StatefulWidget {
   const SearchContributionScreen({super.key});
@@ -40,13 +39,13 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
   }
 
   searchContribution(){
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
     if (searchController.text.isEmpty) {
       setState(() {
         data = [];
       });
       return;
     }
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (!isLoading) {
         setState(() {
@@ -62,7 +61,8 @@ class _SearchContributionScreenState extends State<SearchContributionScreen> {
       await Future.delayed(const Duration(milliseconds: 300));
       TempApi.searchContribution(payload).then((res) {
         setState(() {
-          data = res["data"];
+          // case empty field after timer trigger and before has response 
+          data = searchController.text.isNotEmpty ? res["data"] : [];
           isLoading = false;
         });
       });
