@@ -232,6 +232,10 @@ class HomeScreenState extends State<HomeScreen> {
             buildBarItem(
               activeIcon: PhosphorIcons.fill.userCircle,
               icon: PhosphorIcons.regular.userCircle, title: "Tài khoản"
+            ),      
+            buildBarItem(
+              activeIcon: PhosphorIcons.fill.globe,
+              icon: PhosphorIcons.regular.globe, title: "Thông tin"
             ),
         ]),
       ),
@@ -248,7 +252,7 @@ class HomeScreenState extends State<HomeScreen> {
           StatisticScreen(
             roleId: roleId,
           )
-          : const UserInfo(),
+          : _currentIndex == 2 ? const UserInfo() : const DiscoverScreen(),
         ),
       );
     }
@@ -913,5 +917,193 @@ class AdminChart extends StatelessWidget {
     }
     
    return buildChartItem();
+  }
+}
+
+
+class DiscoverScreen extends StatefulWidget {
+  const DiscoverScreen({super.key});
+
+  @override
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends State<DiscoverScreen> {
+  int tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F5),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF4F4F5),
+        title: const Text(
+          'Discover', 
+          style: TextStyle(
+            color: Colors.black, 
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        actions: [
+          // IconButton(
+          //   icon: const Icon(Icons.search),
+          //   onPressed: () {},
+          // ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Category Tabs
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(4, (index) {
+                  final label = index == 0 ? "Health" : index == 1 ? "News" : index == 2 ? "Art" : "Food";
+
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      setState(() {
+                        tab = index;
+                      });
+                    },
+                    child: CategoryChip(label: label, isSelected: tab == index),
+                  );
+                })
+              ),
+            ),
+          ),
+          
+          // Article List
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: const [
+                ArticleCard(
+                  imageUrl: '', // Replace with actual image or placeholder
+                  title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+                  readTime: '5 min read',
+                ),
+                SizedBox(height: 16),
+                ArticleCard(
+                  imageUrl: '', // Replace with actual image or placeholder
+                  title: 'Sed eget voluctus dolor, a maximus dolor tincidunt',
+                  readTime: '3 min read',
+                ),
+                SizedBox(height: 16),
+                ArticleCard(
+                  imageUrl: '', // Replace with actual image or placeholder
+                  title: 'Praesent vestibulum ante in velit tempus',
+                  readTime: '4 min read',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CategoryChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+
+  const CategoryChip({
+    super.key, 
+    required this.label, 
+    this.isSelected = false
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Chip(
+        label: Text(
+          label, 
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+          ),
+        ),
+        backgroundColor: isSelected ? Colors.black : Colors.grey[200],
+      ),
+    );
+  }
+}
+
+class ArticleCard extends StatelessWidget {
+  final String imageUrl;
+  final String title;
+  final String readTime;
+
+  const ArticleCard({
+    super.key,
+    required this.imageUrl,
+    required this.title,
+    required this.readTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(right: 2),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Placeholder for image
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              bottomLeft: Radius.circular(12)
+            ),
+            child: Container(
+              width: 100,
+              height: 100,
+              color: Colors.grey[300],
+              child: const Center(child: Icon(Icons.image, color: Colors.grey)),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  readTime,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
