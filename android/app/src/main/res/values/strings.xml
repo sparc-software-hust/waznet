@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Waznet</string>
+    <string name="login_title" translatable="false">Bắt đầu hành trình\nsống xanh</string>
+    <string name="login_sign_in">Đăng nhập/Đăng ký tài khoản WazNet</string>
+    <string name="phone_number" translatable="false">Số điện thoại</string>
+    <string name="vietnam_code" translatable="false">+84</string>
+    <string name="enter_phone_number" translatable="false">Nhập số điện thoại</string>
+
 
 </resources>
