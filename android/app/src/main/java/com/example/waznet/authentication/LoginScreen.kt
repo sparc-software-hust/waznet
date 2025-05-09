@@ -1,5 +1,6 @@
 package com.example.waznet.authentication
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,10 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,7 +36,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,9 +46,12 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,7 +87,8 @@ fun LoginScreenContent(
             .paint(
                 painter = painterResource(R.drawable.background),
                 contentScale = ContentScale.FillBounds
-            ).padding(
+            )
+            .padding(
                 horizontal = padding
             ),
         contentAlignment = Alignment.Center
@@ -93,12 +101,17 @@ fun LoginScreenContent(
 fun PhoneNumberComponent(
     modifier: Modifier = Modifier
 ) {
+    var text by rememberSaveable { mutableStateOf("") }
+    var goToPassWord by rememberSaveable { mutableStateOf(false) }
+    var goToRegister by rememberSaveable { mutableStateOf(false) }
     val padding = dimensionResource(id = R.dimen.horizontal_margin)
+    val isValidPhoneNumber = text.length == 10
 
     Column(
         modifier = Modifier
             .wrapContentSize()
-            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
+            .background(Color(0xffFFFFFF).copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
             .padding(horizontal = padding, vertical = padding),
 
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -133,13 +146,50 @@ fun PhoneNumberComponent(
             textAlign = TextAlign.Left
         )
         Spacer(modifier = Modifier.height(6.dp))
-        PhoneNumberContainer(modifier = modifier)
+        PhoneNumberContainer(
+            modifier = modifier,
+            text = text,
+            isValid = isValidPhoneNumber,
+            onValueChange = {
+                text = it
+            },
+            onSubmit = {
+                goToPassWord = true
+            }
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ActionButton(
+            isActive = isValidPhoneNumber,
+            onClick = {},
+            title = stringResource(R.string.continuee)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            stringResource(R.string.not_have_account),
+            style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ActionButton(
+            isActive = true,
+            onClick = {},
+            title = stringResource(R.string.sign_up)
+        )
+        if (goToPassWord)
+        ActionButton(
+            isActive = true,
+            onClick = {},
+            title = stringResource(R.string.sign_up)
+        )
     }
 }
 
 @Composable
 fun PhoneNumberContainer(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    text: String,
+    isValid: Boolean,
+    onValueChange: (String) -> Unit,
+    onSubmit: () -> Unit
 ) {
     val padding = dimensionResource(id = R.dimen.horizontal_margin)
 
@@ -188,7 +238,13 @@ fun PhoneNumberContainer(
                 )
             }
 
-            PhoneNumberInput(modifier = modifier)
+            PhoneNumberInput(
+                modifier = modifier,
+                text = text,
+                onValueChange = onValueChange,
+                onSubmit = onSubmit,
+                isValid = isValid
+            )
         }
     }
 }
@@ -196,34 +252,62 @@ fun PhoneNumberContainer(
 
 @Composable
 fun PhoneNumberInput(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    text: String,
+    isValid: Boolean,
+    onValueChange: (String) -> Unit,
+    onSubmit: () -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    val toastTitle = stringResource(R.string.invalid_phone_number)
+    val duration = Toast.LENGTH_SHORT
+    val context = LocalContext.current
 
     TextField(
         value = text,
-        onValueChange = {
-            text = it
-        },
+        onValueChange = onValueChange,
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = MaterialTheme.colorScheme.surface
+            unfocusedContainerColor = Color(0xFFFFFFFF),
+            focusedContainerColor = Color(0xFFFFFFFF),
+            focusedIndicatorColor = Color(0xFF4CAF50),
+            cursorColor =  Color(0xFF4CAF50)
         ),
         placeholder = {
-            Text(stringResource(R.string.enter_phone_number))
+            Text(
+                stringResource(R.string.enter_phone_number),
+                style = MaterialTheme.typography.labelMedium
+            )
         },
         suffix = if (text.isEmpty()) null else {
             {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                IconButton(
+                    onClick = {
+                        onValueChange("")
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = null,
+                    )
+                }
             }
         },
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Phone
+            keyboardType = KeyboardType.Phone,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                if (isValid) {
+                    onSubmit()
+                } else {
+                    Toast.makeText(
+                        context,
+                        toastTitle,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         ),
         modifier = Modifier
             .height(56.dp)
@@ -236,3 +320,33 @@ fun PhoneNumberInput(
             )
     )
 }
+
+@Composable
+fun ActionButton(
+    modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    onClick: () -> Unit,
+    title: String = ""
+) {
+    Button (
+        onClick = onClick,
+        enabled = isActive,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xff4CAF50),
+            disabledContainerColor = Color(0xffC1C1C2)
+        ),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Text(
+            title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            style =  MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+
+

@@ -18,6 +18,7 @@ private val DarkColorScheme = darkColorScheme(
     background = BgApp,
     onPrimary = TextHeader,
     surface = Surface,
+    primaryContainer = BgClickable,
     // border
     outlineVariant = Border
 )
@@ -29,7 +30,9 @@ private val LightColorScheme = lightColorScheme(
     background = BgApp,
     onPrimary = TextHeader,
     surface = Surface,
+    primaryContainer = BgClickable,
     outlineVariant = Border
+
 
 
     /* Other default colors to override

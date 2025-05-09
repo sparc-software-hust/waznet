@@ -5,6 +5,10 @@
     <string name="phone_number" translatable="false">Số điện thoại</string>
     <string name="vietnam_code" translatable="false">+84</string>
     <string name="enter_phone_number" translatable="false">Nhập số điện thoại</string>
+    <string name="continuee" translatable="false">Tiếp tục</string>
+    <string name="not_have_account" translatable="false">Chưa có tài khoản?</string>
+    <string name="sign_up" translatable="false">Đăng ký tài khoản mới</string>
+    <string name="invalid_phone_number">Số điện thoại không hợp lệ</string>
 
 
 </resources>
