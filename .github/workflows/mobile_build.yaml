@@ -67,7 +67,7 @@ jobs:
 
   build-and-release-ios:
     name: Build Testflight iOS App
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout Github repo
         uses: actions/checkout@v4
