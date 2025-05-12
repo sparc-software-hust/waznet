@@ -167,7 +167,7 @@ class _HouseholdContributionTabState extends State<HouseholdContributionTab> wit
         final num? initValue = widget.initialData.isNotEmpty ? widget.initialData[factorIndex]["quantity"] : null;
         final e = input.entries.elementAt(factorIndex);
         final int factorId = e.key;
-        final String text = e.value.values.last;
+        final String text = "${index + 1}. ${e.value.values.last}" ;
 
         return ContributionInput(
           initValue: initValue.toString(),
