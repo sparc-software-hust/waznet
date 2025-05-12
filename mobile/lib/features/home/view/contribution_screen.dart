@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cecr_unwomen/constants/color_constants.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -97,6 +99,68 @@ class _ContributionScreenState extends State<ContributionScreen> {
     );
   }
 
+  void celebrate() {
+      const colors = [
+      Colors.red,
+      Colors.teal
+    ];
+
+    int frameTime = 1000 ~/ 24;
+    int total = 1000 ~/ frameTime;
+    int progress = 0;
+
+    ConfettiController? controller1;
+    ConfettiController? controller2;
+    bool isDone = false;
+
+    Timer.periodic(Duration(milliseconds: frameTime), (timer) {
+      progress++;
+      if (progress >= total) {
+        timer.cancel();
+        isDone = true;
+        return;
+      }
+      if (controller1 == null) {
+        controller1 = Confetti.launch(
+          context,
+          options: const ConfettiOptions(
+              particleCount: 2,
+              angle: 60,
+              spread: 55,
+              x: 0,
+              colors: colors),
+          onFinished: (overlayEntry) {
+            if (isDone) {
+              overlayEntry.remove();
+            }
+          },
+        );
+      } else {
+        controller1!.launch();
+      }
+
+      if (controller2 == null) {
+        controller2 = Confetti.launch(
+          context,
+          options: const ConfettiOptions(
+              particleCount: 2,
+              angle: 120,
+              spread: 55,
+              x: 1,
+              colors: colors),
+          onFinished: (overlayEntry) {
+            if (isDone) {
+              overlayEntry.remove();
+            }
+          },
+        );
+      }
+      else {
+        controller2!.launch();
+      }
+    });
+  }
+
   callApiToContributeData() async {
     if (!mounted) return;
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
@@ -124,12 +188,13 @@ class _ContributionScreenState extends State<ContributionScreen> {
       //   ),
       // ));
     } else {
+      celebrate();
       fToast.showToast(
         child: const ToastContent(
           isSuccess: true,
-          title: 'Gửi dữ liệu thành công'
+          title: 'Cảm ơn sự đóng góp của bạn cho môi trường'
         ),
-        gravity: ToastGravity.BOTTOM
+        gravity: ToastGravity.TOP,
       );
       // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       //   duration: const Duration(seconds: 2),
@@ -241,7 +306,8 @@ class _ContributionScreenState extends State<ContributionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: input.entries.map((e) {
                         final int factorId = e.key;
-                        final String text = e.value.values.last;
+                        final int index = input.entries.toList().indexOf(e);
+                        final String text = "${index + 1}. ${e.value.values.last}";
                         return ContributionInput(
                           textHeader: text,
                           factorId: factorId,

@@ -77,23 +77,23 @@ const householdInput = {
     'plastic_straw_rejected': "Số lượng ống hút nhựa từ chối sử dụng (cái)",
   },
   5: {
+    'unit_value': 0.0,
+    'total_kilo_garbage_growth_daily': "Khối lượng rác phát sinh tổng cộng hàng ngày (kg)",
+  },
+  6: {
     'unit_value': 1.64,
     'kilo_plastic_recycled': "Khối lượng rác nhựa phân loại để tái chế (kg)",
   },
-  6: {
+  7: {
     'unit_value': 3.90,
     'kilo_paper_recycled': "Khối lượng giấy phân loại để tái chế (kg)",
   },
-  7: {
+  8: {
     'unit_value': 6.79,
     'kilo_metal_garbage_recycled': "Khối lượng rác kim loại phân loại để tái chế (kg)", 
   },
-  8: {
+  9: {
     'unit_value': 2.15,
     'kilo_organic_garbage_to_fertilizer': "Khối lượng rác hữu cơ ủ để làm phân bón (kg)",
-  },
-  9: {
-    'unit_value': 0.0,
-    'total_kilo_garbage_growth_daily': "Khối lượng rác phát sinh tổng cộng hàng ngày (kg)",
   },
 };

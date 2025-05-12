@@ -44,6 +44,7 @@ dependencies:
   path_provider: ^2.1.5
   open_file: ^3.5.10
   shimmer: ^3.0.0
+  flutter_confetti: ^0.5.1
 
 dev_dependencies:
   flutter_test:
