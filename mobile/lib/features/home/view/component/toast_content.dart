@@ -31,7 +31,7 @@ class ToastContent extends StatelessWidget {
                 : Icon(PhosphorIcons.fill.xCircle,color: const Color(0xFFFF3048))
                 )
               ),
-          TextSpan(text: title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1D2939))),
+          TextSpan(text: title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1D2939))),
           ]
         )
       )
