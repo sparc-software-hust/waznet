@@ -23,19 +23,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,8 +47,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -79,6 +86,9 @@ fun LoginScreen(
 fun LoginScreenContent(
     modifier: Modifier = Modifier
 ) {
+    var goToPassWord by rememberSaveable { mutableStateOf(false) }
+    var goToRegister by rememberSaveable { mutableStateOf(false) }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
     val padding = dimensionResource(id = R.dimen.horizontal_margin)
 
     Box(
@@ -93,19 +103,41 @@ fun LoginScreenContent(
             ),
         contentAlignment = Alignment.Center
     ) {
-        PhoneNumberComponent(modifier = modifier)
-    }
+        if (goToPassWord)
+            PasswordComponent(
+                modifier = modifier,
+                phoneNumber = phoneNumber,
+                onBack = {
+                    goToPassWord = false
+                }
+            )
+        else
+            PhoneNumberComponent(
+                modifier = modifier,
+                phoneNumber = phoneNumber,
+                onValueChange = {
+                    phoneNumber = it
+                },
+                onGotoPassword = {
+                    goToPassWord = true
+                },
+                onGotoRegister = {
+                    goToRegister = true
+                }
+            )
+        }
 }
 
 @Composable
 fun PhoneNumberComponent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    phoneNumber: String,
+    onValueChange: (String) -> Unit,
+    onGotoPassword: () -> Unit,
+    onGotoRegister: () -> Unit,
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
-    var goToPassWord by rememberSaveable { mutableStateOf(false) }
-    var goToRegister by rememberSaveable { mutableStateOf(false) }
     val padding = dimensionResource(id = R.dimen.horizontal_margin)
-    val isValidPhoneNumber = text.length == 10
+    val isValidPhoneNumber = phoneNumber.length == 10
 
     Column(
         modifier = Modifier
@@ -148,19 +180,15 @@ fun PhoneNumberComponent(
         Spacer(modifier = Modifier.height(6.dp))
         PhoneNumberContainer(
             modifier = modifier,
-            text = text,
+            text = phoneNumber,
             isValid = isValidPhoneNumber,
-            onValueChange = {
-                text = it
-            },
-            onSubmit = {
-                goToPassWord = true
-            }
+            onValueChange = onValueChange,
+            onSubmit = onGotoPassword
         )
         Spacer(modifier = Modifier.height(24.dp))
         ActionButton(
             isActive = isValidPhoneNumber,
-            onClick = {},
+            onClick = onGotoPassword,
             title = stringResource(R.string.continuee)
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -169,12 +197,6 @@ fun PhoneNumberComponent(
             style = MaterialTheme.typography.titleSmall
         )
         Spacer(modifier = Modifier.height(24.dp))
-        ActionButton(
-            isActive = true,
-            onClick = {},
-            title = stringResource(R.string.sign_up)
-        )
-        if (goToPassWord)
         ActionButton(
             isActive = true,
             onClick = {},
@@ -350,3 +372,122 @@ fun ActionButton(
 
 
 
+
+@Composable
+fun PasswordComponent(
+    modifier: Modifier = Modifier,
+    phoneNumber: String,
+    onBack: () -> Unit
+) {
+    val padding = dimensionResource(id = R.dimen.horizontal_margin)
+
+    var passWordText by rememberSaveable() { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .wrapContentSize()
+            .background(Color(0xffFFFFFF).copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+            .padding(horizontal = padding, vertical = padding),
+
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        val textModifier = Modifier.fillMaxWidth()
+
+
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.size(24.dp).align(Alignment.Start)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null,
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.enter_password),
+            modifier = textModifier,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = stringResource(R.string.login_with_phone_number),
+            modifier = textModifier,
+            style = MaterialTheme.typography.titleSmall,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = phoneNumber,
+            modifier = textModifier,
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ValidatingInputTextField(
+            value = passWordText,
+            onValueChange = { passWordText = it },
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ActionButton(
+            isActive = true,
+            onClick = {},
+            title = stringResource(R.string.login)
+        )
+    }
+}
+
+@Composable
+fun ValidatingInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+
+    var isValid by rememberSaveable { mutableStateOf(true) }
+    //auto focus
+    val focusRequester = remember { FocusRequester() }
+
+    Column {
+        Text(
+            stringResource(R.string.password),
+            style = MaterialTheme.typography.titleSmall,
+            textAlign = TextAlign.Left
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+                if (it.isNotEmpty()) {
+                    isValid = it.length >= 8
+                }
+            },
+            colors = TextFieldDefaults.colors(
+                // Disable focused underline
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedContainerColor = Color(0xFFFFFFFF),
+                focusedContainerColor = Color(0xFFFFFFFF),
+                focusedIndicatorColor = Color(0xFF4CAF50),
+                cursorColor =  Color(0xFF4CAF50),
+                errorContainerColor = Color(0xFFFFFFFF)
+            ),
+            isError = !isValid,
+            supportingText = {
+                if (!isValid) {
+                    Text(stringResource(R.string.password_length_min_8))
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester)
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+}
