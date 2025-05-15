@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,5 +19,18 @@ class UserRepository {
     final String? userDataEncoded = prefs.getString("user");
     if (userDataEncoded == null) return null;
     return jsonDecode(userDataEncoded);
+  }
+
+  static Future<List<User>> getListContributedUser({required Map data, Function()? onError}) async {
+    try {
+      final Map res = await UserApi.getListContributedUsers(data: data, onError: onError);
+      final List resData = (res["data"] ?? []) as List;
+      
+      return data.isEmpty ? [] : resData.map((e) => User.fromJson(e)).toList();
+    } 
+    catch (e) {
+      onError?.call();
+      return [];
+    }
   }
 }

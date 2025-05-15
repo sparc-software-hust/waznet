@@ -288,7 +288,7 @@ class Utils {
     );
   }
 
-  static  Widget buildShimmerEffectshimmerEffect(context) {
+  static  Widget buildShimmerEffectshimmerEffect(context, {int count = 10}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 12.0, left: 12.0, right: 12),
@@ -298,7 +298,7 @@ class Utils {
           highlightColor:  Colors.grey.shade100,
           enabled: true,
           child: Column(
-            children: List.generate(10, (i) => i).map((_) => Padding(
+            children: List.generate(count, (i) => i).map((_) => Padding(
               padding: const EdgeInsets.only(bottom: 14.0),
               child: Container(
                 height: 70,

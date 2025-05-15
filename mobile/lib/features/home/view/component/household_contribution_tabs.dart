@@ -101,6 +101,8 @@ class _HouseholdContributionTabsState extends State<HouseholdContributionTabs> w
           Expanded(
             child: TabBarView(
               controller: tabController,
+              // disable scroll for zoom
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 HouseholdContributionTab(
                   key: screenTabKey,

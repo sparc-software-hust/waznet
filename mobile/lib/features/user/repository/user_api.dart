@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cecr_unwomen/http.dart';
 import 'package:dio/dio.dart';
 
@@ -42,4 +41,41 @@ class UserApi {
       return {};
     }
   }
+
+  static Future<Map> getListContributedUsers({required Map data, Function()? onError}) async {
+    try {
+      const String url = "/user/get_list_user_of_type";
+      final Response res = await dioConfigInterceptor.post(url, data: data);
+      return res.data;
+    } 
+    catch (e) {
+      onError?.call();
+      return {};
+    }
+  }
+
+  static Future<Map> deleteUser({required Map data, Function()? onError}) async {
+    try {
+      const String url = "/user/delete_user_for_admin";
+      final Response response = await dioConfigInterceptor.post(url, data: data);
+      return response.data;
+    }
+    catch (e) {
+      onError?.call();
+      return {};
+    }
+  }
+
+  static Future<Map> searchUser({required Map data, Function()? onError}) async {
+    try {
+      const String url = "/user/search_user_for_admin";
+      final Response response = await dioConfigInterceptor.post(url, data: data);
+      return response.data;
+    }
+    catch (e) {
+      onError?.call();
+      return {};
+    }
+  }
+
 }
