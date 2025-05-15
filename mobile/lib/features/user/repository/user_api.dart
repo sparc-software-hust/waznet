@@ -42,4 +42,16 @@ class UserApi {
       return {};
     }
   }
+
+  static Future<Map> getListContributedUsers({required Map data, required onError}) async {
+    try {
+      const String url = "/user/get_list_user_of_type";
+      final Response res = await dioConfigInterceptor.post(url, data: data);
+      return res.data;
+    } 
+    catch (e) {
+      onError(e);
+      return {};
+    }
+  }
 }
