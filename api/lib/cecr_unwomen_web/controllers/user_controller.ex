@@ -143,6 +143,28 @@ defmodule CecrUnwomenWeb.UserController do
     end
     json conn, res
   end
+  
+  def delete_user_for_admin(conn, params) do
+    role_id = conn.assigns.user.role_id
+    user_id = params["user_id"]
+    res = cond do
+      role_id == 1 -> 
+        Repo.get_by(User, %{id: user_id, is_removed: false})
+        |> case do
+          nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+          user ->
+            Ecto.Changeset.change(user, %{is_removed: true, refresh_token: nil})
+            |> Repo.update
+            |> case do
+              {:ok, _} -> Helper.response_json_message(true, "Xóa người dùng thành công!")
+              _ -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
+            end
+        end
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
+  end
 
   def logout(conn, _params) do
     # user_id = params["user_id"]
@@ -341,7 +363,7 @@ defmodule CecrUnwomenWeb.UserController do
   def search_user(name, role_id) do
     users = from(
       u in User,
-      where: u.role_id == ^role_id,
+      where: u.role_id == ^role_id and u.is_removed != true,
       select: %{
         "user_id" => u.id,
         "first_name" => u.first_name,
@@ -393,7 +415,6 @@ defmodule CecrUnwomenWeb.UserController do
   end
   
   def get_list_user_of_type(conn, params) do
-    user_id = conn.assigns.user.user_id
     role_id = conn.assigns.user.role_id
     last_inserted = if is_nil(params["last_inserted_at"]), 
       do: NaiveDateTime.utc_now(), 
@@ -404,7 +425,7 @@ defmodule CecrUnwomenWeb.UserController do
       role_id == 1 ->     
         users = from(
           u in User,
-          where: u.role_id == ^role_id_filter and u.inserted_at < ^last_inserted,
+          where: u.role_id == ^role_id_filter and u.inserted_at < ^last_inserted and u.is_removed != true,
           order_by: [desc: u.inserted_at],
           limit: 20
         )
