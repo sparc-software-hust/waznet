@@ -360,10 +360,10 @@ defmodule CecrUnwomenWeb.UserController do
     if phone_number_length == 10, do: true, else: false
   end
   
-  def search_user(name, role_id) do
+  def search_user(name, role_id, is_removed \\ false) do
     users = from(
       u in User,
-      where: u.role_id == ^role_id and u.is_removed != true,
+      where: u.role_id == ^role_id and u.is_removed == ^is_removed,
       select: %{
         "user_id" => u.id,
         "first_name" => u.first_name,
@@ -389,15 +389,16 @@ defmodule CecrUnwomenWeb.UserController do
     end)
   end
   
-  def search_users(conn, params) do
-    user_id = conn.assigns.user.user_id
+  def search_user_for_admin(conn, params) do
     role_id = conn.assigns.user.role_id
     text = params["text"] || ""
     role_id_filter = params["role_id_filter"] || 0
+    is_removed = params["is_removed"] || false
+    IO.inspect(params, label: "params")
     
     res = cond do
       role_id == 1 -> 
-        result_ids = search_user(text, role_id_filter)
+        result_ids = search_user(text, role_id_filter, is_removed)
         users = from(
           u in User,
           where: u.id in ^result_ids
