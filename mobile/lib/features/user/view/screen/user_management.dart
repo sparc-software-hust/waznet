@@ -6,7 +6,7 @@ import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_cubit.dart';
 import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_state.dart';
-import 'package:cecr_unwomen/features/user/repository/user_api.dart';
+import 'package:cecr_unwomen/features/user/view/screen/search_user_screen.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:flutter/cupertino.dart';
@@ -75,6 +75,38 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   },
                 );
             }),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+              child: Row(
+                children: [
+                  Text("Danh sách", style: colorCons.fastStyle(14, FontWeight.w600, const Color(0xff666667))),
+                  const Spacer(),
+                  Material(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xffE3E3E5),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (context) {
+                            return const SearchUserScreen();
+                          })
+                        ).then((_) {
+                          // go back -> trigger load lai data
+                          if (context.mounted) {
+                            context.read<FetchUsersCubit>().fetchUsers(roleId: isHouseholdTab.value ? 2 : 3, reload: true);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(PhosphorIcons.regular.magnifyingGlass, size: 20, color: const Color(0xff4D4D4E),),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: BlocBuilder<FetchUsersCubit, FetchUsersState>(
                 builder: (context, state) {
@@ -211,7 +243,26 @@ class _ListHouseHoldUserState extends State<ListHouseHoldUser> {
                         )
                       );
                     }
-                    return UserWidget(user: listUsers[index], index: index);
+                    return UserWidget(
+                      user: listUsers[index], 
+                      index: index,
+                      onDelete: (user) {
+                        context.read<FetchUsersCubit>().deleteUser(
+                        userId: user.id,
+                        roleId: user.roleId,
+                        onError: () {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            duration: const Duration(seconds: 2),
+                            content: Text('Xoá tài khoản thất bại. Vui lòng thử lại sau.', style: ColorConstants().fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
+                            behavior: SnackBarBehavior.fixed,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ));
+                        }
+                      );
+                    },
+                  );
                 }),
               ),
             ),
@@ -306,7 +357,26 @@ class _ListScraperUserState extends State<ListScraperUser> {
                         )
                       );
                     }
-                    return UserWidget(user: listUsers[index], index: index);
+                    return UserWidget(
+                      user: listUsers[index], 
+                      index: index,
+                      onDelete: (user) {
+                         context.read<FetchUsersCubit>().deleteUser(
+                          userId: user.id,
+                          roleId: user.roleId,
+                          onError: () {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              duration: const Duration(seconds: 2),
+                              content: Text('Xoá tài khoản thất bại. Vui lòng thử lại sau.', style: ColorConstants().fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
+                              behavior: SnackBarBehavior.fixed,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ));
+                          }
+                        );
+                      },
+                    );
                 }),
               ),
             ),
@@ -319,8 +389,9 @@ class _ListScraperUserState extends State<ListScraperUser> {
 
 class UserWidget extends StatelessWidget {
   final int index;
+  final Function(User) onDelete;
   final User user;
-  const UserWidget({super.key, required this.user, required this.index});
+  const UserWidget({super.key, required this.user, required this.index, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -343,24 +414,11 @@ class UserWidget extends StatelessWidget {
         key: ValueKey<int>(index),
         direction: DismissDirection.endToStart,
         confirmDismiss: (direction) {
-          void onDelete() async {
+          void onDeleteUser() async {
             if (context.mounted) {
               Navigator.pop(context);
             }
-            context.read<FetchUsersCubit>().deleteUser(
-              userId: user.id,
-              roleId: user.roleId,
-              onError: () {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  duration: const Duration(seconds: 2),
-                  content: Text('Xoá tài khoản thất bại. Vui lòng thử lại sau.', style: ColorConstants().fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
-                  behavior: SnackBarBehavior.fixed,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ));
-              }
-            );
+            onDelete(user);
           }
 
           return showDialog(
@@ -376,7 +434,7 @@ class UserWidget extends StatelessWidget {
                   child: const Text("Huỷ bỏ", style: TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
                 ),
                 TextButton(
-                  onPressed: onDelete,
+                  onPressed: onDeleteUser,
                   child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600),),
                 ),
               ],
@@ -386,7 +444,7 @@ class UserWidget extends StatelessWidget {
               content: Text("Bạn chắc chắn muốn xoá tài khoản ${user.firstName} ${user.lastName} ?", style: const TextStyle(fontSize: 14, fontFamily: "Inter")),
               actions: <Widget>[
                 CupertinoDialogAction(
-                  onPressed: onDelete,
+                  onPressed: onDeleteUser,
                   child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
                 ),
                 CupertinoDialogAction(

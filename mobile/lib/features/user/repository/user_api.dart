@@ -66,4 +66,16 @@ class UserApi {
     }
   }
 
+  static Future<Map> searchUser({required Map data, Function()? onError}) async {
+    try {
+      const String url = "/user/search_user_for_admin";
+      final Response response = await dioConfigInterceptor.post(url, data: data);
+      return response.data;
+    }
+    catch (e) {
+      onError?.call();
+      return {};
+    }
+  }
+
 }

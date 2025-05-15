@@ -7,14 +7,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class FetchUsersCubit extends Cubit<FetchUsersState> {
   FetchUsersCubit() : super(const FetchUsersState());
 
-  Future<void> fetchUsers({required int roleId}) async {
+  Future<void> fetchUsers({required int roleId, bool reload = false}) async {
     emit(state.copyWith(status: FetchStatus.loading));
     try {
-      // prevent spam
+      // prevent spam call api
       List<User> users = [];
-      if (roleId == 3 && state.scraperUsers.isNotEmpty) {
+      if (roleId == 3 && state.scraperUsers.isNotEmpty && !reload) {
         users = state.scraperUsers;
-      } else if (roleId == 2 && state.householdUsers.isNotEmpty) {
+      } else if (roleId == 2 && state.householdUsers.isNotEmpty && !reload) {
         users = state.householdUsers;
       } 
       else {
@@ -30,8 +30,40 @@ class FetchUsersCubit extends Cubit<FetchUsersState> {
       }
 
       switch(roleId) {
-        case 2: emit(state.copyWith(status: FetchStatus.success, householdUsers:  users,));
-        case 3: emit(state.copyWith(status: FetchStatus.success, scraperUsers:  users,));
+        case 2: emit(state.copyWith(status: FetchStatus.success, householdUsers: users,));
+        case 3: emit(state.copyWith(status: FetchStatus.success, scraperUsers: users,));
+      }
+    } catch(e) {
+      emit(state.copyWith(status: FetchStatus.fail));
+    }
+  }
+
+  Future<void> fetchDeletedUsers({required int roleId}) async {
+    emit(state.copyWith(status: FetchStatus.loading));
+    try {
+      // prevent spam call api
+      List<User> users = [];
+      if (roleId == 3 && state.deletedScraperUsers.isNotEmpty) {
+        users = state.deletedScraperUsers;
+      } else if (roleId == 2 && state.deletedHouseholdUsers.isNotEmpty) {
+        users = state.deletedHouseholdUsers;
+      } 
+      else {
+        await Future.delayed(const Duration(seconds: 1));
+        users = await UserRepository.getListContributedUser(
+          data: {
+            "role_id_filter": roleId,
+            "is_deleted": true
+          },
+          onError: () {
+            emit(state.copyWith(status: FetchStatus.fail));
+          }
+        );
+      }
+
+      switch(roleId) {
+        case 2: emit(state.copyWith(status: FetchStatus.success, deletedHouseholdUsers: users,));
+        case 3: emit(state.copyWith(status: FetchStatus.success, deletedScraperUsers: users,));
       }
     } catch(e) {
       emit(state.copyWith(status: FetchStatus.fail));
@@ -79,7 +111,7 @@ class FetchUsersCubit extends Cubit<FetchUsersState> {
     }
   }
 
-  Future<void> deleteUser({required String userId, required int roleId, Function()? onError}) async {
+  Future<void> deleteUser({required String userId, required int roleId, Function()? onError, bool needCallApi = true}) async {
     emit(state.copyWith(status: FetchStatus.loading));
     try {
       await UserApi.deleteUser(
