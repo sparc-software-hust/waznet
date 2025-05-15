@@ -1,5 +1,6 @@
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_state.dart';
+import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/features/user/repository/user_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,9 +19,14 @@ class FetchUsersCubit extends Cubit<FetchUsersState> {
       } 
       else {
         await Future.delayed(const Duration(seconds: 1));
-        users = await UserRepository.getListContributedUser(data: {
-          "role_id_filter": roleId
-        });
+        users = await UserRepository.getListContributedUser(
+          data: {
+            "role_id_filter": roleId
+          },
+          onError: () {
+            emit(state.copyWith(status: FetchStatus.fail));
+          }
+        );
       }
 
       switch(roleId) {
@@ -70,6 +76,33 @@ class FetchUsersCubit extends Cubit<FetchUsersState> {
       }
     } catch(e) {
       emit(state.copyWith(isLoadingMoreHousehold: false, isLoadingMoreScraper: false));
+    }
+  }
+
+  Future<void> deleteUser({required String userId, required int roleId, Function()? onError}) async {
+    emit(state.copyWith(status: FetchStatus.loading));
+    try {
+      await UserApi.deleteUser(
+        data: {
+          "user_id": userId,
+        }, 
+        onError: onError
+      );
+
+      switch (roleId) {
+        case 2:
+          final List<User> users = state.householdUsers;
+          users.removeWhere((user) => user.id == userId);
+          emit(state.copyWith(status: FetchStatus.success, householdUsers: users));
+          break;
+        case 3:
+          final List<User> users = state.scraperUsers;
+          users.removeWhere((user) => user.id == userId);
+          emit(state.copyWith(status: FetchStatus.success, scraperUsers: users));
+          break;
+      }
+    } catch(e) {
+      emit(state.copyWith(status: FetchStatus.success));
     }
   }
 }

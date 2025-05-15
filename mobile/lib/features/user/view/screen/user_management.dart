@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:cecr_unwomen/constants/color_constants.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/home/view/component/header_widget.dart';
 import 'package:cecr_unwomen/features/home/view/component/tab_bar_widget.dart';
 import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_cubit.dart';
 import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_state.dart';
+import 'package:cecr_unwomen/features/user/repository/user_api.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -207,7 +211,7 @@ class _ListHouseHoldUserState extends State<ListHouseHoldUser> {
                         )
                       );
                     }
-                    return UserWidget(user: listUsers[index]);
+                    return UserWidget(user: listUsers[index], index: index);
                 }),
               ),
             ),
@@ -302,7 +306,7 @@ class _ListScraperUserState extends State<ListScraperUser> {
                         )
                       );
                     }
-                    return UserWidget(user: listUsers[index]);
+                    return UserWidget(user: listUsers[index], index: index);
                 }),
               ),
             ),
@@ -314,8 +318,9 @@ class _ListScraperUserState extends State<ListScraperUser> {
 }
 
 class UserWidget extends StatelessWidget {
+  final int index;
   final User user;
-  const UserWidget({super.key, required this.user});
+  const UserWidget({super.key, required this.user, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -334,37 +339,207 @@ class UserWidget extends StatelessWidget {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12)
-      ),
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CustomCircleAvatar(
-            avatarUrl: user.avatarUrl,
-            size: 56,
+    return Dismissible(
+        key: ValueKey<int>(index),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) {
+          void onDelete() async {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+            context.read<FetchUsersCubit>().deleteUser(
+              userId: user.id,
+              roleId: user.roleId,
+              onError: () {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  duration: const Duration(seconds: 2),
+                  content: Text('Xoá tài khoản thất bại. Vui lòng thử lại sau.', style: ColorConstants().fastStyle(16, FontWeight.w600, const Color(0xFFFFFFFF))),
+                  behavior: SnackBarBehavior.fixed,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ));
+              }
+            );
+          }
+
+          return showDialog(
+            context: context,
+            builder: (context) => Platform.isAndroid 
+            ? AlertDialog(
+              backgroundColor: const Color(0xFFFFFFFF),
+              title: const Text("Xoá tài khoản ?", style: TextStyle(color: Color(0xff333334), fontSize: 18, fontWeight: FontWeight.w700)),
+              content: Text("Bạn chắc chắn muốn xoá tài khoản ${user.firstName} ${user.lastName} ?", style: const TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Huỷ bỏ", style: TextStyle(color: Color(0xff333334), fontSize: 14, fontWeight: FontWeight.w400)),
+                ),
+                TextButton(
+                  onPressed: onDelete,
+                  child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 14, fontWeight: FontWeight.w600),),
+                ),
+              ],
+            )
+            : CupertinoAlertDialog(
+              title: const Text("Xoá tài khoản ?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamily: "Inter")),
+              content: Text("Bạn chắc chắn muốn xoá tài khoản ${user.firstName} ${user.lastName} ?", style: const TextStyle(fontSize: 14, fontFamily: "Inter")),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  onPressed: onDelete,
+                  child: const Text("Xoá", style: TextStyle(color: Color(0xffDB2E2E), fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"),),
+                ),
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Huỷ bỏ", style: TextStyle(color: Colors.blueAccent, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Inter"))
+                )
+              ]),
+          );
+        },
+        background: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xffDB2E2E),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 16),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildRowItem(text: name, icon: PhosphorIcons.regular.user),
-              buildRowItem(text: user.phoneNumber, icon: PhosphorIcons.regular.phone),
-              if (user.dateOfBirth != null)
-              buildRowItem(text: DateFormat('dd-MM-yyyy').format(user.dateOfBirth!),
-                icon: PhosphorIcons.regular.cake
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          child: Icon(PhosphorIcons.regular.trashSimple, color: Colors.white, size: 35),
+        ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () {
+              showModalBottomSheet(
+                context: context, 
+                builder: (context) {
+                  return UserInfoModal(user: user);
+                }
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CustomCircleAvatar(
+                    avatarUrl: user.avatarUrl,
+                    size: 56,
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildRowItem(text: name, icon: PhosphorIcons.regular.user),
+                      buildRowItem(text: user.phoneNumber, icon: PhosphorIcons.regular.phone),
+                      if (user.dateOfBirth != null)
+                      buildRowItem(text: DateFormat('dd-MM-yyyy').format(user.dateOfBirth!),
+                        icon: PhosphorIcons.regular.cake
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 
+
+
+class UserInfoModal extends StatelessWidget {
+  final User user;
+  const UserInfoModal({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final String name =  "${user.firstName} ${user.lastName}";
+
+    Widget buildRowItem({required String title, required IconData icon, required String? value, bool needEmphasis = false, bool needBorder = true}) {
+      return Container(
+        margin: !needBorder ? null : const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: !needBorder ? null : const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFFDDE1E7)
+            )
+          )
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: const Color(0xFF333334)),
+                const SizedBox(width: 12),
+                Text(title, style: const TextStyle(
+                  color: Color(0xFF666667),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400
+                )),
+              ],
+            ),
+            Text(value ?? "Chưa đặt", style: TextStyle(
+              color: needEmphasis ? const Color(0xFF4CAF50) : const Color(0xFF333334) ,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              decoration: needEmphasis ? TextDecoration.underline : null,
+              decorationColor: const Color(0xFF4CAF50)
+            ))
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Thông tin người đóng góp", style: ColorConstants().fastStyle(16, FontWeight.w700, ColorConstants().textBold)),
+          const SizedBox(height: 20),
+          CustomCircleAvatar(size: 100, avatarUrl: user.avatarUrl),
+          const SizedBox(height: 6,),
+          Text("  $name", style: ColorConstants().fastStyle(16, FontWeight.w700, const Color(0xFF333334))),
+          const SizedBox(height: 20),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFEDEEEE),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildRowItem(title: "Tên", icon: PhosphorIcons.regular.user, value: name),
+                buildRowItem(title: "Số điện thoại", icon: PhosphorIcons.regular.phone, value: user.phoneNumber, needEmphasis: true),
+                if (user.dateOfBirth != null)
+                buildRowItem(title: "Ngày sinh", icon: PhosphorIcons.regular.cake, value: user.dateOfBirth == null ? null : DateFormat('dd-MM-yyyy').format(user.dateOfBirth!)),
+                buildRowItem(title: "Giới tính", icon: PhosphorIcons.regular.genderIntersex, value: convertGenderToString(user.gender)),
+                buildRowItem(title: "Địa chỉ", icon: PhosphorIcons.regular.mapPin, value: user.location, needBorder: false),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
