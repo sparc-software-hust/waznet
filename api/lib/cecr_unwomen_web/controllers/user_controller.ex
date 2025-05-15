@@ -367,13 +367,38 @@ defmodule CecrUnwomenWeb.UserController do
     end)
   end
   
+  def search_users(conn, params) do
+    user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
+    text = params["text"] || ""
+    role_id_filter = params["role_id_filter"] || 0
+    
+    res = cond do
+      role_id == 1 -> 
+        result_ids = search_user(text, role_id_filter)
+        users = from(
+          u in User,
+          where: u.id in ^result_ids
+        )
+        |> Repo.all
+        |> Enum.map(fn t -> 
+          Map.take(t, [:id, :first_name, :last_name, :avatar_url, :role_id, :email, :phone_number, :gender, :location, :date_of_birth, :inserted_at])
+        end)
+        Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", users)  
+        
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
+  end
+  
   def get_list_user_of_type(conn, params) do
     user_id = conn.assigns.user.user_id
     role_id = conn.assigns.user.role_id
-    last_inserted = params["last_inserted_at"] || NaiveDateTime.utc_now()
+    last_inserted = if is_nil(params["last_inserted_at"]), 
+      do: NaiveDateTime.utc_now(), 
+      else: NaiveDateTime.from_iso8601!(params["last_inserted_at"])
     role_id_filter = params["role_id_filter"] || 0
-    
-    IO.inspect(params)
     
     res = cond do
       role_id == 1 ->     
@@ -387,7 +412,6 @@ defmodule CecrUnwomenWeb.UserController do
         |> Enum.map(fn t -> 
           Map.take(t, [:id, :first_name, :last_name, :avatar_url, :role_id, :email, :phone_number, :gender, :location, :date_of_birth, :inserted_at])
         end)
-        |> IO.inspect()
         Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", users)
         
       true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
