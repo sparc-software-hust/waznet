@@ -33,22 +33,43 @@ class FetchUsersCubit extends Cubit<FetchUsersState> {
   }
 
   Future<void> loadMoreUsers({required int roleId}) async {
-    final List<User> users = roleId == 2 ? state.householdUsers : state.scraperUsers;
-    emit(state.copyWith(status: FetchStatus.loadMore));
+    final bool isHousehold = roleId == 2;
+    final List<User> users = isHousehold ? state.householdUsers : state.scraperUsers;
+    // loading
+    if (isHousehold) {
+      emit(state.copyWith(isLoadingMoreHousehold: true));
+    } else {
+      emit(state.copyWith(isLoadingMoreScraper: true));
+    }
     try {
+      await Future.delayed(const Duration(seconds: 1));
       final List<User> data = await UserRepository.getListContributedUser(
         data: {
           "role_id_filter": roleId,
-          "last_inserted_at": users.last.insertedAt,
+          "last_inserted_at": users.last.insertedAt?.toIso8601String(),
       });
 
 
       switch(roleId) {
-        case 2: emit(state.copyWith(status: FetchStatus.success, householdUsers:  [...users, ...data],));
-        case 3: emit(state.copyWith(status: FetchStatus.success, scraperUsers: [...users, ...data]));
+        case 2: 
+          bool hasMore = data.isNotEmpty;
+          if (hasMore) {
+            emit(state.copyWith(status: FetchStatus.success, householdUsers:  [...users, ...data], hasMoreHousehold: true, isLoadingMoreHousehold: false));
+          } else {
+            emit(state.copyWith(hasMoreHousehold: false, isLoadingMoreHousehold: false));
+          }
+          break;
+        case 3:          
+          bool hasMore = data.isNotEmpty;
+          if (hasMore) {
+            emit(state.copyWith(status: FetchStatus.success, scraperUsers:  [...users, ...data], hasMoreScraper: true, isLoadingMoreScraper: false));
+
+          } else {
+            emit(state.copyWith(hasMoreScraper: false, isLoadingMoreScraper: false));
+          }
       }
     } catch(e) {
-      emit(state.copyWith(status: FetchStatus.fail));
+      emit(state.copyWith(isLoadingMoreHousehold: false, isLoadingMoreScraper: false));
     }
   }
 }

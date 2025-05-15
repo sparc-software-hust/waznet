@@ -24,10 +24,11 @@ class UserRepository {
   static Future<List<User>> getListContributedUser({required Map data, Function()? onError}) async {
     try {
       final Map res = await UserApi.getListContributedUsers(data: data, onError: onError);
-      return (res["data"] as List).map((e) => User.fromJson(e)).toList();
+      final List resData = (res["data"] ?? []) as List;
+      
+      return data.isEmpty ? [] : resData.map((e) => User.fromJson(e)).toList();
     } 
     catch (e) {
-      print(e);
       onError?.call();
       return [];
     }
