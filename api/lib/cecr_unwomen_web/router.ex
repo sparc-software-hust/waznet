@@ -30,6 +30,8 @@ defmodule CecrUnwomenWeb.Router do
       post "/change_password", UserController, :change_password
       post "/add_firebase_token", UserController, :add_firebase_token
       post "/get_list_user_of_type", UserController, :get_list_user_of_type
+      post "/search_user_for_admin", UserController, :search_user_for_admin
+      post "/delete_user_for_admin", UserController, :delete_user_for_admin
     end
 
     scope "/upload" do
