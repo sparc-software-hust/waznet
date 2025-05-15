@@ -20,7 +20,6 @@ import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:shimmer/shimmer.dart';
 
 class StatisticScreen extends StatefulWidget {
   const StatisticScreen({super.key, required this.roleId, this.isHouseHoldTabAdminScreen, this.needGetDataAdmin});

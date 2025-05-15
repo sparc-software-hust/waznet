@@ -12,6 +12,7 @@ class User extends Equatable {
   final int roleId;
   final String? location;
   final DateTime? timeReminded;
+  final  DateTime? insertedAt;
 
   const User({
     required this.id,
@@ -24,7 +25,8 @@ class User extends Equatable {
     this.gender = Gender.other,
     this.avatarUrl,
     this.location,
-    this.timeReminded
+    this.timeReminded,
+    this.insertedAt
   });
 
   factory User.fromJson(Map json) => User(
@@ -43,6 +45,10 @@ class User extends Equatable {
     timeReminded: json["time_reminded"] != null 
       ? DateTime.tryParse(json["time_reminded"]) 
       : null,
+    insertedAt: json["inserted_at"] != null 
+      ? DateTime.tryParse(json["inserted_at"]) 
+      : null,
+    
   );
 
   Map<String, dynamic> toJson() => {
@@ -56,7 +62,8 @@ class User extends Equatable {
     "avatar_url": avatarUrl,
     "role_id": roleId,
     "location": location,
-    "time_reminded": timeReminded?.toIso8601String()
+    "time_reminded": timeReminded?.toIso8601String(),
+    "inserted_at": insertedAt?.toIso8601String()
   };
 
   User clone(Map data) => User.fromJson(data);
