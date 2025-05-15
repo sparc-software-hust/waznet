@@ -29,6 +29,7 @@ defmodule CecrUnwomenWeb.Router do
       post "/set_time_reminded", UserController, :set_time_reminded
       post "/change_password", UserController, :change_password
       post "/add_firebase_token", UserController, :add_firebase_token
+      post "/get_list_user_of_type", UserController, :get_list_user_of_type
     end
 
     scope "/upload" do

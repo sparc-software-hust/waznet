@@ -366,6 +366,35 @@ defmodule CecrUnwomenWeb.UserController do
       |> Enum.map(fn user -> user["user_id"] end)
     end)
   end
+  
+  def get_list_user_of_type(conn, params) do
+    user_id = conn.assigns.user.user_id
+    role_id = conn.assigns.user.role_id
+    last_inserted = params["last_inserted_at"] || NaiveDateTime.utc_now()
+    role_id_filter = params["role_id_filter"] || 0
+    
+    IO.inspect(params)
+    
+    res = cond do
+      role_id == 1 ->     
+        users = from(
+          u in User,
+          where: u.role_id == ^role_id_filter and u.inserted_at < ^last_inserted,
+          order_by: [desc: u.inserted_at],
+          limit: 20
+        )
+        |> Repo.all
+        |> Enum.map(fn t -> 
+          Map.take(t, [:id, :first_name, :last_name, :avatar_url, :role_id, :email, :phone_number, :gender, :location, :date_of_birth, :inserted_at])
+        end)
+        |> IO.inspect()
+        Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", users)
+        
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
+  end
 end
 
 # Redis section for ref
