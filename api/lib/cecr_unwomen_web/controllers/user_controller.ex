@@ -143,6 +143,28 @@ defmodule CecrUnwomenWeb.UserController do
     end
     json conn, res
   end
+  
+  def delete_user_for_admin(conn, params) do
+    role_id = conn.assigns.user.role_id
+    user_id = params["user_id"]
+    res = cond do
+      role_id == 1 -> 
+        Repo.get_by(User, %{id: user_id, is_removed: false})
+        |> case do
+          nil -> Helper.response_json_message(false, "Không tìm thấy người dùng!", 300)
+          user ->
+            Ecto.Changeset.change(user, %{is_removed: true, refresh_token: nil})
+            |> Repo.update
+            |> case do
+              {:ok, _} -> Helper.response_json_message(true, "Xóa người dùng thành công!")
+              _ -> Helper.response_json_message(false, "Có lỗi xảy ra!", 303)
+            end
+        end
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
+  end
 
   def logout(conn, _params) do
     # user_id = params["user_id"]
@@ -338,10 +360,10 @@ defmodule CecrUnwomenWeb.UserController do
     if phone_number_length == 10, do: true, else: false
   end
   
-  def search_user(name, role_id) do
+  def search_user(name, role_id, is_removed \\ false) do
     users = from(
       u in User,
-      where: u.role_id == ^role_id,
+      where: u.role_id == ^role_id and u.is_removed == ^is_removed,
       select: %{
         "user_id" => u.id,
         "first_name" => u.first_name,
@@ -365,6 +387,59 @@ defmodule CecrUnwomenWeb.UserController do
       |> Enum.filter(fn user -> user["full_name"] == t end) 
       |> Enum.map(fn user -> user["user_id"] end)
     end)
+  end
+  
+  def search_user_for_admin(conn, params) do
+    role_id = conn.assigns.user.role_id
+    text = params["text"] || ""
+    role_id_filter = params["role_id_filter"] || 0
+    is_removed = params["is_removed"] || false
+    IO.inspect(params, label: "params")
+    
+    res = cond do
+      role_id == 1 -> 
+        result_ids = search_user(text, role_id_filter, is_removed)
+        users = from(
+          u in User,
+          where: u.id in ^result_ids
+        )
+        |> Repo.all
+        |> Enum.map(fn t -> 
+          Map.take(t, [:id, :first_name, :last_name, :avatar_url, :role_id, :email, :phone_number, :gender, :location, :date_of_birth, :inserted_at])
+        end)
+        Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", users)  
+        
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
+  end
+  
+  def get_list_user_of_type(conn, params) do
+    role_id = conn.assigns.user.role_id
+    last_inserted = if is_nil(params["last_inserted_at"]), 
+      do: NaiveDateTime.utc_now(), 
+      else: NaiveDateTime.from_iso8601!(params["last_inserted_at"])
+    role_id_filter = params["role_id_filter"] || 0
+    
+    res = cond do
+      role_id == 1 ->     
+        users = from(
+          u in User,
+          where: u.role_id == ^role_id_filter and u.inserted_at < ^last_inserted and u.is_removed != true,
+          order_by: [desc: u.inserted_at],
+          limit: 20
+        )
+        |> Repo.all
+        |> Enum.map(fn t -> 
+          Map.take(t, [:id, :first_name, :last_name, :avatar_url, :role_id, :email, :phone_number, :gender, :location, :date_of_birth, :inserted_at])
+        end)
+        Helper.response_json_with_data(true, "Tìm kiếm dữ liệu thành công", users)
+        
+      true -> Helper.response_json_message(false, "Bạn không phải admin", 402)
+    end
+    
+    json conn, res
   end
 end
 

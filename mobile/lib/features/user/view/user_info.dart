@@ -3,11 +3,13 @@ import 'package:cecr_unwomen/features/authentication/bloc/authentication_bloc.da
 import 'package:cecr_unwomen/features/authentication/bloc/authentication_event.dart';
 import 'package:cecr_unwomen/features/authentication/models/user.dart';
 import 'package:cecr_unwomen/features/home/view/component/toast_content.dart';
+import 'package:cecr_unwomen/features/user/domain/bloc/fetch_users/fetch_users_cubit.dart';
 import 'package:cecr_unwomen/features/user/repository/user_api.dart';
-import 'package:cecr_unwomen/features/user/view/bloc/change_password_bloc/change_password_bloc.dart';
+import 'package:cecr_unwomen/features/user/domain/bloc/change_password_bloc/change_password_bloc.dart';
 import 'package:cecr_unwomen/features/user/view/screen/app_info.dart';
 import 'package:cecr_unwomen/features/user/view/screen/change_info_screen.dart';
 import 'package:cecr_unwomen/features/user/view/screen/change_password_screen.dart';
+import 'package:cecr_unwomen/features/user/view/screen/user_management.dart';
 import 'package:cecr_unwomen/utils.dart';
 import 'package:cecr_unwomen/widgets/circle_avatar.dart';
 import 'package:cecr_unwomen/widgets/navigation_button.dart';
@@ -196,6 +198,20 @@ class _UserInfoState extends State<UserInfo> {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => AppInfo(version: version)));
                     }
                   } 
+                ),
+                if (user.roleId == 1)
+                NavigationButton(
+                  text: "Quản lý người đóng góp",
+                  icon: PhosphorIcons.regular.userList,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BlocProvider(
+                            create: (context) => FetchUsersCubit(),
+                            child: const UserManagementScreen(),
+                          )));
+                  },
                 ),
                 NavigationButton(
                   text: "Thay đổi mật khẩu",

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -12,14 +13,15 @@ class CustomCircleAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFF66BB6A),
-        image: avatarUrl != null ? DecorationImage(
-          image: NetworkImage(avatarUrl!),
-          fit: BoxFit.cover) : null,
+      decoration: avatarUrl != null ? null : const BoxDecoration(
+        color: Color(0xFF66BB6A),
         shape: BoxShape.circle,
       ),
-      child: avatarUrl != null ? null : Icon(PhosphorIcons.regular.user, size: iconSize, color: Colors.white),
+      child: avatarUrl != null 
+        ? ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: CachedNetworkImage(imageUrl:  avatarUrl!, fit: BoxFit.cover)) 
+        : Icon(PhosphorIcons.regular.user, size: iconSize, color: Colors.white),
     );
   }
 }
