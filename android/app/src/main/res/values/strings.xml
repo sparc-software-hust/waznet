@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Waznet</string>
+    <string name="login_title" translatable="false">Bắt đầu hành trình\nsống xanh</string>
+    <string name="login_sign_in">Đăng nhập/Đăng ký tài khoản WazNet</string>
+    <string name="phone_number" translatable="false">Số điện thoại</string>
+    <string name="vietnam_code" translatable="false">+84</string>
+    <string name="enter_phone_number" translatable="false">Nhập số điện thoại</string>
+    <string name="continuee" translatable="false">Tiếp tục</string>
+    <string name="not_have_account" translatable="false">Chưa có tài khoản?</string>
+    <string name="sign_up" translatable="false">Đăng ký tài khoản mới</string>
+    <string name="invalid_phone_number">Số điện thoại không hợp lệ</string>
+    <string name="enter_password">Nhập mật khẩu</string>
+    <string name="password">Mật khẩu</string>
+    <string name="login">Đăng nhập</string>
+    <string name="login_with_phone_number">Bạn đang đăng nhập với số điện thoại</string>
+    <string name="password_length_min_8">Mật khẩu cần có ít nhất 8 ký tự</string>
+
+
+</resources>
